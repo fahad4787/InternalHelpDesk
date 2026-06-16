@@ -1,0 +1,908 @@
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
+import { PrismaService } from '../../../database/prisma.service';
+import { AuthenticatedUser } from '../../../common/types/api-response.type';
+import { decrypt, encrypt } from '../../../common/utils/encryption.util';
+import { successResponse } from '../../../common/utils/api-response.util';
+import { MOCK_CALENDAR_EVENTS } from './constants/mock-events.constant';
+import { MOCK_DRIVE_FILES } from './constants/mock-drive-files.constant';
+import { MOCK_GMAIL_MESSAGES } from './constants/mock-gmail-messages.constant';
+import { UpdateGooglePreferencesDto } from './dto/update-google-preferences.dto';
+import {
+  DEFAULT_GOOGLE_PREFERENCES,
+  GoogleDriveFile,
+  GoogleGmailMessage,
+  GooglePreferences,
+} from './types/google-preferences.type';
+import { createOAuthState, verifyOAuthState } from './utils/oauth-state.util';
+import { extractMeetLink, extractMeetCode, isLikelyGoogleMeetEvent } from './utils/meet-link.util';
+
+const GOOGLE_SCOPES = [
+  'openid',
+  'email',
+  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/drive.readonly',
+  'https://www.googleapis.com/auth/gmail.readonly',
+].join(' ');
+const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
+const GOOGLE_CALENDAR_LIST_URL =
+  'https://www.googleapis.com/calendar/v3/users/me/calendarList';
+const GOOGLE_DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files';
+const GMAIL_API_URL = 'https://gmail.googleapis.com/gmail/v1';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  start: string;
+  end: string;
+  location: string | null;
+  htmlLink: string | null;
+  meetLink: string | null;
+  meetCode: string | null;
+  allDay: boolean;
+  organizerName: string | null;
+  organizerEmail: string | null;
+  attendeeCount: number;
+  recurringEventId?: string | null;
+}
+
+interface GoogleTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+}
+
+interface GoogleCalendarEventItem {
+  id: string;
+  summary?: string;
+  description?: string;
+  location?: string;
+  htmlLink?: string;
+  hangoutLink?: string;
+  conferenceData?: {
+    entryPoints?: Array<{ entryPointType?: string; uri?: string; label?: string }>;
+    conferenceSolution?: { key?: { type?: string }; name?: string };
+    createRequest?: { conferenceSolutionKey?: { type?: string } };
+  };
+  start?: { dateTime?: string; date?: string };
+  end?: { dateTime?: string; date?: string };
+  organizer?: { email?: string; displayName?: string };
+  attendees?: Array<{ email?: string; displayName?: string }>;
+  status?: string;
+  recurringEventId?: string;
+}
+
+interface GoogleEventsResponse {
+  items?: GoogleCalendarEventItem[];
+  nextPageToken?: string;
+}
+
+@Injectable()
+export class GoogleCalendarService {
+  private encryptionKey: string;
+  private jwtSecret: string;
+
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {
+    this.encryptionKey = this.configService.get<string>(
+      'ENCRYPTION_KEY',
+      'dev-encryption-key-change-in-production',
+    );
+    this.jwtSecret = this.configService.get<string>(
+      'JWT_SECRET',
+      'dev-secret',
+    );
+  }
+
+  isMockMode(): boolean {
+    const mode = this.configService.get<string>('GOOGLE_CALENDAR_MODE', 'mock');
+    if (mode === 'mock') return true;
+    return !this.configService.get<string>('GOOGLE_CLIENT_ID');
+  }
+
+  async getStatus(user: AuthenticatedUser) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    return successResponse({
+      connected: connection?.status === IntegrationStatus.CONNECTED,
+      mockMode: this.isMockMode(),
+      status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
+      googleEmail: connection?.googleEmail ?? null,
+      lastSyncedAt: connection?.lastSyncedAt?.toISOString() ?? null,
+      preferences: this.resolvePreferences(connection?.preferences),
+    });
+  }
+
+  async updatePreferences(
+    user: AuthenticatedUser,
+    dto: UpdateGooglePreferencesDto,
+  ) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      throw new BadRequestException('Google account is not connected');
+    }
+
+    const preferences: GooglePreferences = {
+      showUpcomingMeet: dto.showUpcomingMeet,
+      showCalendarEmbed: dto.showCalendarEmbed,
+      showGoogleDrive: dto.showGoogleDrive,
+      showGmail: dto.showGmail,
+    };
+
+    await this.prisma.googleCalendarConnection.update({
+      where: { userId: user.id },
+      data: { preferences: preferences as unknown as Prisma.InputJsonValue },
+    });
+
+    return successResponse(preferences, 'Preferences updated');
+  }
+
+  async getDriveFiles(user: AuthenticatedUser, limit = 10) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        mockMode: this.isMockMode(),
+        files: [] as GoogleDriveFile[],
+      });
+    }
+
+    if (this.isMockMode()) {
+      return successResponse({
+        connected: true,
+        mockMode: true,
+        googleEmail: connection.googleEmail,
+        files: MOCK_DRIVE_FILES.slice(0, limit),
+      });
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const files = await this.fetchDriveFiles(accessToken, limit);
+
+    return successResponse({
+      connected: true,
+      mockMode: false,
+      googleEmail: connection.googleEmail,
+      files,
+    });
+  }
+
+  private resolvePreferences(value: unknown): GooglePreferences {
+    if (!value || typeof value !== 'object') {
+      return { ...DEFAULT_GOOGLE_PREFERENCES };
+    }
+
+    const prefs = value as Record<string, unknown>;
+    return {
+      showUpcomingMeet:
+        typeof prefs.showUpcomingMeet === 'boolean'
+          ? prefs.showUpcomingMeet
+          : DEFAULT_GOOGLE_PREFERENCES.showUpcomingMeet,
+      showCalendarEmbed:
+        typeof prefs.showCalendarEmbed === 'boolean'
+          ? prefs.showCalendarEmbed
+          : DEFAULT_GOOGLE_PREFERENCES.showCalendarEmbed,
+      showGoogleDrive:
+        typeof prefs.showGoogleDrive === 'boolean'
+          ? prefs.showGoogleDrive
+          : DEFAULT_GOOGLE_PREFERENCES.showGoogleDrive,
+      showGmail:
+        typeof prefs.showGmail === 'boolean'
+          ? prefs.showGmail
+          : DEFAULT_GOOGLE_PREFERENCES.showGmail,
+    };
+  }
+
+  async getGmailMessages(user: AuthenticatedUser, limit = 10) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        mockMode: this.isMockMode(),
+        messages: [] as GoogleGmailMessage[],
+      });
+    }
+
+    if (this.isMockMode()) {
+      return successResponse({
+        connected: true,
+        mockMode: true,
+        googleEmail: connection.googleEmail,
+        messages: MOCK_GMAIL_MESSAGES.slice(0, limit),
+      });
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const messages = await this.fetchGmailMessages(accessToken, limit);
+
+    return successResponse({
+      connected: true,
+      mockMode: false,
+      googleEmail: connection.googleEmail,
+      messages,
+    });
+  }
+
+  private async fetchGmailMessages(
+    accessToken: string,
+    limit: number,
+  ): Promise<GoogleGmailMessage[]> {
+    const listParams = new URLSearchParams({
+      maxResults: String(limit),
+      labelIds: 'INBOX',
+    });
+
+    const listResponse = await fetch(
+      `${GMAIL_API_URL}/users/me/messages?${listParams}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!listResponse.ok) {
+      throw new BadRequestException('Failed to fetch Gmail messages');
+    }
+
+    const listData = (await listResponse.json()) as {
+      messages?: Array<{ id: string; threadId: string }>;
+    };
+
+    const messageRefs = listData.messages ?? [];
+    if (messageRefs.length === 0) {
+      return [];
+    }
+
+    const messages = await Promise.all(
+      messageRefs.map((ref) =>
+        this.fetchGmailMessage(accessToken, ref.id, ref.threadId),
+      ),
+    );
+
+    return messages;
+  }
+
+  private async fetchGmailMessage(
+    accessToken: string,
+    id: string,
+    threadId: string,
+  ): Promise<GoogleGmailMessage> {
+    const params = new URLSearchParams({ format: 'metadata' });
+    params.append('metadataHeaders', 'From');
+    params.append('metadataHeaders', 'Subject');
+    params.append('metadataHeaders', 'Date');
+
+    const response = await fetch(
+      `${GMAIL_API_URL}/users/me/messages/${id}?${params}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!response.ok) {
+      throw new BadRequestException('Failed to fetch Gmail message details');
+    }
+
+    const data = (await response.json()) as {
+      id: string;
+      threadId: string;
+      snippet?: string;
+      labelIds?: string[];
+      internalDate?: string;
+      payload?: {
+        headers?: Array<{ name: string; value: string }>;
+      };
+    };
+
+    const headers = data.payload?.headers ?? [];
+    const getHeader = (name: string) =>
+      headers.find((header) => header.name.toLowerCase() === name.toLowerCase())
+        ?.value ?? '';
+
+    const fromRaw = getHeader('From');
+    const { name: fromName, email: fromEmail } = this.parseEmailAddress(fromRaw);
+    const subject = getHeader('Subject') || '(No subject)';
+    const dateHeader = getHeader('Date');
+    const receivedAt = dateHeader
+      ? new Date(dateHeader).toISOString()
+      : data.internalDate
+        ? new Date(Number(data.internalDate)).toISOString()
+        : new Date().toISOString();
+
+    return {
+      id: data.id,
+      threadId: data.threadId ?? threadId,
+      subject,
+      from: fromName,
+      fromEmail,
+      snippet: data.snippet ?? '',
+      receivedAt,
+      isUnread: (data.labelIds ?? []).includes('UNREAD'),
+      webViewLink: `https://mail.google.com/mail/u/0/#inbox/${data.id}`,
+    };
+  }
+
+  private parseEmailAddress(value: string): {
+    name: string;
+    email: string | null;
+  } {
+    const trimmed = value.trim();
+    const match = trimmed.match(/^(.+?)\s*<([^>]+)>$/);
+    if (match) {
+      return {
+        name: match[1].replace(/^"|"$/g, '').trim(),
+        email: match[2].trim(),
+      };
+    }
+    if (trimmed.includes('@')) {
+      return { name: trimmed, email: trimmed };
+    }
+    return { name: trimmed || 'Unknown sender', email: null };
+  }
+
+  private async fetchDriveFiles(
+    accessToken: string,
+    limit: number,
+  ): Promise<GoogleDriveFile[]> {
+    const params = new URLSearchParams({
+      pageSize: String(limit),
+      orderBy: 'modifiedTime desc',
+      q: "'root' in parents and trashed=false",
+      fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink)',
+    });
+
+    const response = await fetch(`${GOOGLE_DRIVE_FILES_URL}?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+      throw new BadRequestException('Failed to fetch Google Drive files');
+    }
+
+    const data = (await response.json()) as {
+      files?: Array<{
+        id: string;
+        name: string;
+        mimeType: string;
+        size?: string;
+        modifiedTime?: string;
+        webViewLink?: string;
+      }>;
+    };
+
+    return (data.files ?? []).map((file) => ({
+      id: file.id,
+      name: file.name,
+      mimeType: file.mimeType,
+      size: file.size ? Number(file.size) : null,
+      modifiedAt: file.modifiedTime ?? new Date().toISOString(),
+      webViewLink: file.webViewLink ?? null,
+    }));
+  }
+
+  getAuthUrl(user: AuthenticatedUser) {
+    if (this.isMockMode()) {
+      throw new BadRequestException(
+        'Google OAuth is disabled in mock mode. Use the mock connect action instead.',
+      );
+    }
+
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const redirectUri = this.getRedirectUri();
+    if (!clientId || !redirectUri) {
+      throw new BadRequestException('Google Calendar is not configured');
+    }
+
+    const state = createOAuthState(user.id, this.jwtSecret);
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: GOOGLE_SCOPES,
+      access_type: 'offline',
+      prompt: 'consent',
+      state,
+    });
+
+    return successResponse({
+      url: `${GOOGLE_AUTH_URL}?${params.toString()}`,
+    });
+  }
+
+  async handleCallback(code: string, state: string) {
+    const userId = verifyOAuthState(state, this.jwtSecret);
+    if (!userId) {
+      throw new UnauthorizedException('Invalid or expired OAuth state');
+    }
+
+    const tokens = await this.exchangeCodeForTokens(code);
+    const email = await this.fetchGoogleEmail(tokens.access_token);
+
+    const encryptedAccess = encrypt(tokens.access_token, this.encryptionKey);
+    const encryptedRefresh = tokens.refresh_token
+      ? encrypt(tokens.refresh_token, this.encryptionKey)
+      : undefined;
+
+    await this.prisma.googleCalendarConnection.upsert({
+      where: { userId },
+      create: {
+        userId,
+        googleEmail: email,
+        encryptedAccessToken: encryptedAccess,
+        encryptedRefreshToken: encryptedRefresh,
+        tokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
+        status: IntegrationStatus.CONNECTED,
+        preferences: DEFAULT_GOOGLE_PREFERENCES as unknown as Prisma.InputJsonValue,
+        lastSyncedAt: new Date(),
+      },
+      update: {
+        googleEmail: email,
+        encryptedAccessToken: encryptedAccess,
+        ...(encryptedRefresh ? { encryptedRefreshToken: encryptedRefresh } : {}),
+        tokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
+        status: IntegrationStatus.CONNECTED,
+        lastSyncedAt: new Date(),
+      },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { companyId: true },
+    });
+
+    if (user) {
+      await this.prisma.integration.upsert({
+        where: {
+          companyId_provider: {
+            companyId: user.companyId,
+            provider: IntegrationProvider.GOOGLE_CALENDAR,
+          },
+        },
+        create: {
+          companyId: user.companyId,
+          provider: IntegrationProvider.GOOGLE_CALENDAR,
+          status: IntegrationStatus.CONNECTED,
+        },
+        update: { status: IntegrationStatus.CONNECTED },
+      });
+    }
+
+    return userId;
+  }
+
+  async connectMock(user: AuthenticatedUser) {
+    if (!this.isMockMode()) {
+      throw new BadRequestException('Mock connect is only available in mock mode');
+    }
+
+    await this.prisma.googleCalendarConnection.upsert({
+      where: { userId: user.id },
+      create: {
+        userId: user.id,
+        googleEmail: user.email,
+        status: IntegrationStatus.CONNECTED,
+        preferences: DEFAULT_GOOGLE_PREFERENCES as unknown as Prisma.InputJsonValue,
+        lastSyncedAt: new Date(),
+      },
+      update: {
+        googleEmail: user.email,
+        status: IntegrationStatus.CONNECTED,
+        lastSyncedAt: new Date(),
+      },
+    });
+
+    await this.prisma.integration.upsert({
+      where: {
+        companyId_provider: {
+          companyId: user.companyId,
+          provider: IntegrationProvider.GOOGLE_CALENDAR,
+        },
+      },
+      create: {
+        companyId: user.companyId,
+        provider: IntegrationProvider.GOOGLE_CALENDAR,
+        status: IntegrationStatus.CONNECTED,
+      },
+      update: { status: IntegrationStatus.CONNECTED },
+    });
+
+    return successResponse(
+      { connected: true, mockMode: true, googleEmail: user.email },
+      'Google Calendar connected (mock mode)',
+    );
+  }
+
+  async disconnect(user: AuthenticatedUser) {
+    await this.prisma.googleCalendarConnection.deleteMany({
+      where: { userId: user.id },
+    });
+
+    const otherConnections = await this.prisma.googleCalendarConnection.count({
+      where: { user: { companyId: user.companyId } },
+    });
+
+    if (otherConnections === 0) {
+      await this.prisma.integration.updateMany({
+        where: {
+          companyId: user.companyId,
+          provider: IntegrationProvider.GOOGLE_CALENDAR,
+        },
+        data: { status: IntegrationStatus.NOT_CONNECTED },
+      });
+    }
+
+    return successResponse(null, 'Google Calendar disconnected');
+  }
+
+  async getEvents(user: AuthenticatedUser, limit = 10) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        mockMode: this.isMockMode(),
+        events: [] as CalendarEvent[],
+      });
+    }
+
+    if (this.isMockMode()) {
+      return successResponse({
+        connected: true,
+        mockMode: true,
+        googleEmail: connection.googleEmail,
+        events: MOCK_CALENDAR_EVENTS.slice(0, limit),
+      });
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const events = await this.fetchGoogleEvents(
+      accessToken,
+      limit,
+      connection.googleEmail,
+    );
+
+    await this.prisma.googleCalendarConnection.update({
+      where: { userId: user.id },
+      data: { lastSyncedAt: new Date() },
+    });
+
+    return successResponse({
+      connected: true,
+      mockMode: false,
+      googleEmail: connection.googleEmail,
+      events,
+    });
+  }
+
+  private getRedirectUri(): string {
+    return (
+      this.configService.get<string>('GOOGLE_REDIRECT_URI') ??
+      `http://localhost:${this.configService.get<number>('PORT', 3001)}/api/integrations/google-calendar/callback`
+    );
+  }
+
+  private async exchangeCodeForTokens(code: string): Promise<GoogleTokenResponse> {
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+    const redirectUri = this.getRedirectUri();
+
+    const response = await fetch(GOOGLE_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId!,
+        client_secret: clientSecret!,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new BadRequestException(`Google token exchange failed: ${error}`);
+    }
+
+    return response.json() as Promise<GoogleTokenResponse>;
+  }
+
+  private async fetchGoogleEmail(accessToken: string): Promise<string | null> {
+    const tokenInfoRes = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`,
+    );
+    if (tokenInfoRes.ok) {
+      const data = (await tokenInfoRes.json()) as { email?: string };
+      if (data.email) return data.email;
+    }
+
+    const profileRes = await fetch(GOOGLE_USERINFO_URL, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (profileRes.ok) {
+      const profile = (await profileRes.json()) as { email?: string };
+      return profile.email ?? null;
+    }
+
+    return null;
+  }
+
+  private async getValidAccessToken(connection: {
+    encryptedAccessToken: string | null;
+    encryptedRefreshToken: string | null;
+    tokenExpiresAt: Date | null;
+    userId: string;
+  }): Promise<string> {
+    const expiresSoon =
+      !connection.tokenExpiresAt ||
+      connection.tokenExpiresAt.getTime() < Date.now() + 60_000;
+
+    if (!expiresSoon && connection.encryptedAccessToken) {
+      return decrypt(connection.encryptedAccessToken, this.encryptionKey);
+    }
+
+    if (!connection.encryptedRefreshToken) {
+      throw new BadRequestException(
+        'Google Calendar session expired. Please reconnect.',
+      );
+    }
+
+    const refreshToken = decrypt(
+      connection.encryptedRefreshToken,
+      this.encryptionKey,
+    );
+    const tokens = await this.refreshAccessToken(refreshToken);
+
+    await this.prisma.googleCalendarConnection.update({
+      where: { userId: connection.userId },
+      data: {
+        encryptedAccessToken: encrypt(tokens.access_token, this.encryptionKey),
+        tokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
+      },
+    });
+
+    return tokens.access_token;
+  }
+
+  private async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<GoogleTokenResponse> {
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+
+    const response = await fetch(GOOGLE_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId!,
+        client_secret: clientSecret!,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }),
+    });
+
+    if (!response.ok) {
+      throw new BadRequestException(
+        'Failed to refresh Google Calendar token. Please reconnect.',
+      );
+    }
+
+    return response.json() as Promise<GoogleTokenResponse>;
+  }
+
+  private async fetchGoogleEvents(
+    accessToken: string,
+    limit: number,
+    connectedEmail?: string | null,
+  ): Promise<CalendarEvent[]> {
+    const calendarIds = await this.fetchReadableCalendarIds(accessToken);
+    const meetings: CalendarEvent[] = [];
+    const seen = new Set<string>();
+    let detailFetches = 0;
+
+    for (const calendarId of calendarIds) {
+      if (meetings.length >= 100) break;
+
+      let pageToken: string | undefined;
+      let pagesFetched = 0;
+
+      while (meetings.length < 100 && pagesFetched < 3) {
+        const params = new URLSearchParams({
+          maxResults: '100',
+          singleEvents: 'true',
+          orderBy: 'startTime',
+          timeMin: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+          conferenceDataVersion: '1',
+          fields:
+            'nextPageToken,items(id,summary,description,location,hangoutLink,htmlLink,conferenceData,start,end,organizer,attendees,status,recurringEventId)',
+        });
+        if (pageToken) params.set('pageToken', pageToken);
+
+        const response = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } },
+        );
+
+        if (!response.ok) break;
+
+        const data = (await response.json()) as GoogleEventsResponse;
+        pagesFetched += 1;
+
+        for (const item of data.items ?? []) {
+          if (item.status === 'cancelled') continue;
+
+          const key = `${item.id}:${item.start?.dateTime ?? item.start?.date ?? ''}`;
+          if (seen.has(key)) continue;
+
+          let meetLink = extractMeetLink(item);
+
+          if (
+            !meetLink &&
+            detailFetches < 40 &&
+            this.shouldFetchEventDetails(item, connectedEmail)
+          ) {
+            meetLink = await this.fetchEventMeetLink(
+              accessToken,
+              calendarId,
+              item.id,
+            );
+            detailFetches += 1;
+          }
+
+          if (!meetLink) continue;
+
+          seen.add(key);
+          const allDay = !!item.start?.date && !item.start?.dateTime;
+          const start = item.start?.dateTime ?? item.start?.date ?? '';
+          const end = item.end?.dateTime ?? item.end?.date ?? '';
+
+          meetings.push({
+            id: item.id,
+            title: item.summary ?? 'Untitled',
+            description: item.description ?? null,
+            start,
+            end,
+            location: item.location ?? null,
+            htmlLink: item.htmlLink ?? null,
+            meetLink,
+            meetCode: extractMeetCode(meetLink),
+            allDay,
+            organizerName: item.organizer?.displayName ?? null,
+            organizerEmail: item.organizer?.email ?? null,
+            attendeeCount: item.attendees?.length ?? 0,
+            recurringEventId: item.recurringEventId ?? null,
+          });
+
+          if (meetings.length >= 100) break;
+        }
+
+        pageToken = data.nextPageToken;
+        if (!pageToken) break;
+      }
+    }
+
+    return this.dedupeRecurringMeetings(meetings, limit);
+  }
+
+  private dedupeRecurringMeetings(
+    meetings: CalendarEvent[],
+    limit: number,
+  ): CalendarEvent[] {
+    const now = Date.now() - 60 * 60 * 1000;
+    const groups = new Map<string, CalendarEvent[]>();
+
+    for (const meeting of meetings) {
+      if (new Date(meeting.start).getTime() < now) continue;
+
+      const seriesKey = meeting.recurringEventId ?? `single:${meeting.id}`;
+      const list = groups.get(seriesKey) ?? [];
+      list.push(meeting);
+      groups.set(seriesKey, list);
+    }
+
+    const deduped: CalendarEvent[] = [];
+
+    for (const group of groups.values()) {
+      group.sort(
+        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+      );
+
+      const next = { ...group[0] };
+      const titled = group.find((item) => item.title !== 'Untitled');
+      if (titled) {
+        next.title = titled.title;
+        if (!next.description && titled.description) {
+          next.description = titled.description;
+        }
+      }
+
+      deduped.push(next);
+    }
+
+    return deduped
+      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+      .slice(0, limit);
+  }
+
+  private shouldFetchEventDetails(
+    item: GoogleCalendarEventItem,
+    connectedEmail?: string | null,
+  ): boolean {
+    if (isLikelyGoogleMeetEvent(item)) return true;
+    if (item.conferenceData) return true;
+
+    const isTimedEvent = !!item.start?.dateTime;
+    if (!isTimedEvent) return false;
+
+    const organizerEmail = item.organizer?.email?.toLowerCase();
+    const accountEmail = connectedEmail?.toLowerCase();
+    if (organizerEmail && accountEmail && organizerEmail === accountEmail) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private async fetchReadableCalendarIds(
+    accessToken: string,
+  ): Promise<string[]> {
+    const params = new URLSearchParams({
+      minAccessRole: 'reader',
+      fields: 'items(id,selected,primary)',
+    });
+
+    const response = await fetch(`${GOOGLE_CALENDAR_LIST_URL}?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) return ['primary'];
+
+    const data = (await response.json()) as {
+      items?: Array<{ id: string; selected?: boolean; primary?: boolean }>;
+    };
+
+    const calendars =
+      data.items?.filter((c) => c.selected !== false).map((c) => c.id) ?? [];
+
+    return calendars.length > 0 ? calendars : ['primary'];
+  }
+
+  private async fetchEventMeetLink(
+    accessToken: string,
+    calendarId: string,
+    eventId: string,
+  ): Promise<string | null> {
+    const params = new URLSearchParams({
+      conferenceDataVersion: '1',
+      fields: 'hangoutLink,conferenceData,description,location',
+    });
+
+    const response = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}?${params}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!response.ok) return null;
+
+    const event = (await response.json()) as GoogleCalendarEventItem;
+    return extractMeetLink(event);
+  }
+}

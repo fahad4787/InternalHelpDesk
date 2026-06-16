@@ -1,0 +1,385 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  MANAGER
+  AGENT
+  EMPLOYEE
+}
+
+enum TicketCategory {
+  HR
+  IT
+  ADMIN
+  FINANCE
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum IntegrationProvider {
+  SLACK
+  MICROSOFT_TEAMS
+  GOOGLE_DRIVE
+  GOOGLE_MEET
+  GMAIL
+  OUTLOOK
+  JIRA
+  SERVICENOW
+  WORKDAY
+  GOOGLE_CALENDAR
+}
+
+enum IntegrationStatus {
+  NOT_CONNECTED
+  CONNECTED
+  ERROR
+}
+
+enum DocumentSource {
+  MANUAL_UPLOAD
+  WORKDAY
+  GOOGLE_DRIVE
+  SLACK
+}
+
+enum WorkdayEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+enum SyncLogStatus {
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  domain      String?
+  logoUrl     String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users         User[]
+  departments   Department[]
+  documents     Document[]
+  chatSessions  ChatSession[]
+  tickets       Ticket[]
+  integrations      Integration[]
+  invitations       Invitation[]
+  workdayConnection WorkdayConnection?
+  syncLogs          IntegrationSyncLog[]
+
+  @@index([slug])
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole @default(EMPLOYEE)
+  isActive     Boolean  @default(true)
+  avatarUrl    String?
+  companyId    String
+  departmentId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company            Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  department         Department?     @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  chatSessions       ChatSession[]
+  ticketsCreated     Ticket[]        @relation("TicketCreator")
+  ticketsAssigned    Ticket[]        @relation("TicketAssignee")
+  ticketComments     TicketComment[]
+  ticketActivities   TicketActivity[]
+  documentsUploaded  Document[]
+  invitationsSent           Invitation[]              @relation("InvitationSender")
+  googleCalendarConnection  GoogleCalendarConnection?
+
+  @@unique([email, companyId])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([role])
+}
+
+model Invitation {
+  id          String   @id @default(uuid())
+  email       String
+  role        UserRole @default(EMPLOYEE)
+  token       String   @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  companyId   String
+  invitedById String
+  createdAt   DateTime @default(now())
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invitedBy User    @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([token])
+}
+
+model Department {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  companyId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users   User[]
+  tickets Ticket[]
+
+  @@unique([name, companyId])
+  @@index([companyId])
+}
+
+model Document {
+  id           String         @id @default(uuid())
+  title        String
+  fileName     String
+  filePath     String
+  mimeType     String
+  fileSize     Int
+  status       DocumentStatus @default(PENDING)
+  source       DocumentSource @default(MANUAL_UPLOAD)
+  externalId   String?
+  sourceUrl    String?
+  category     String?
+  tags         Json?
+  lastSyncedAt DateTime?
+  companyId    String
+  uploadedById String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  company    Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  uploadedBy User            @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  chunks     DocumentChunk[]
+
+  @@unique([companyId, source, externalId])
+  @@index([companyId])
+  @@index([status])
+  @@index([source])
+}
+
+model DocumentChunk {
+  id         String   @id @default(uuid())
+  documentId String
+  content    String
+  chunkIndex Int
+  tokenCount Int      @default(0)
+  embedding  Json?
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  title     String?
+  companyId String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company  Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([companyId])
+  @@index([userId])
+}
+
+model ChatMessage {
+  id            String   @id @default(uuid())
+  sessionId     String
+  role          String
+  content       String
+  sources       Json?
+  confidence    Float?
+  suggestTicket Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model Ticket {
+  id           String         @id @default(uuid())
+  ticketNumber Int
+  subject      String
+  description  String
+  category     TicketCategory
+  priority     TicketPriority @default(MEDIUM)
+  status       TicketStatus   @default(OPEN)
+  companyId    String
+  createdById  String
+  assigneeId   String?
+  departmentId String?
+  chatSessionId String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  company    Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy  User             @relation("TicketCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  assignee   User?            @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  department Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  comments   TicketComment[]
+  activities TicketActivity[]
+
+  @@unique([companyId, ticketNumber])
+  @@index([companyId])
+  @@index([status])
+  @@index([category])
+  @@index([createdById])
+  @@index([assigneeId])
+}
+
+model TicketComment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  content   String
+  isInternal Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+model TicketActivity {
+  id        String   @id @default(uuid())
+  ticketId  String
+  actorId   String?
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor  User?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+}
+
+model Integration {
+  id        String              @id @default(uuid())
+  provider  IntegrationProvider
+  status    IntegrationStatus   @default(NOT_CONNECTED)
+  config    Json?
+  companyId String
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, provider])
+  @@index([companyId])
+}
+
+model WorkdayConnection {
+  id                    String             @id @default(uuid())
+  companyId             String             @unique
+  tenantUrl             String?
+  clientId              String?
+  encryptedClientSecret String?
+  environment           WorkdayEnvironment @default(SANDBOX)
+  status                IntegrationStatus  @default(NOT_CONNECTED)
+  lastTestedAt          DateTime?
+  lastSyncedAt          DateTime?
+  totalSyncedArticles   Int                @default(0)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model IntegrationSyncLog {
+  id              String        @id @default(uuid())
+  companyId       String
+  integrationType String
+  status          SyncLogStatus
+  message         String?
+  totalItems      Int           @default(0)
+  createdCount    Int           @default(0)
+  updatedCount    Int           @default(0)
+  failedCount     Int           @default(0)
+  startedAt       DateTime      @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([integrationType])
+}
+
+model GoogleCalendarConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  googleEmail           String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+}

@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+:root {
+  --bg-base: #f8fafc;
+  --bg-elevated: #ffffff;
+  --bg-muted: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --primary: #006600;
+  --primary-hover: #004d00;
+  --primary-light: #e6f5e6;
+  --primary-muted: #b3d9b3;
+  --accent: #008844;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-brand: #006600;
+  --color-brand-hover: #004d00;
+  --color-brand-light: #e6f5e6;
+  --color-brand-muted: #b3d9b3;
+  --color-brand-accent: #008844;
+}
+
+html {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.ai-gradient-text {
+  background: linear-gradient(135deg, #006600 0%, #008844 50%, #004d00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ai-page-bg {
+  background-color: var(--bg-base);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 102, 0, 0.07), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(0, 136, 68, 0.05), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 100%, rgba(0, 77, 0, 0.04), transparent);
+}
+
+.ai-card {
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ai-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
