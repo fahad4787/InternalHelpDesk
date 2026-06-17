@@ -3,7 +3,8 @@ import { PrismaService } from '../../database/prisma.service';
 import { AuthenticatedUser } from '../../common/types/api-response.type';
 import { successResponse } from '../../common/utils/api-response.util';
 import { SendMessageDto } from './dto/send-message.dto';
-import { askQuestion } from './utils/query.util';
+import { OpenAiService } from './openai.service';
+import { rankChunks } from './utils/chunk-ranking.util';
 
 interface SourceReference {
   documentId: string;
@@ -11,7 +12,6 @@ interface SourceReference {
   source?: string;
   chunkIndex: number;
   excerpt: string;
-  section?: string;
   score: number;
 }
 
@@ -22,7 +22,10 @@ function formatDocumentTitle(title: string, source?: string): string {
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private openAiService: OpenAiService,
+  ) {}
 
   async getSessions(user: AuthenticatedUser) {
     const sessions = await this.prisma.chatSession.findMany({
@@ -106,32 +109,21 @@ export class ChatService {
     });
   }
 
-  private mergeChunksByDocument(
-    chunks: {
-      content: string;
-      chunkIndex: number;
-      document: { id: string; title: string; source?: string };
-    }[],
-  ) {
-    const byDocument = new Map<
-      string,
-      { content: string; chunkIndex: number; document: { id: string; title: string; source?: string } }
-    >();
+  private buildContext(
+    rankedChunks: ReturnType<typeof rankChunks>,
+  ): { context: string; documentIds: string[] } {
+    const documentIds = [
+      ...new Set(rankedChunks.map((chunk) => chunk.document.id)),
+    ];
 
-    for (const chunk of chunks) {
-      const existing = byDocument.get(chunk.document.id);
-      if (existing) {
-        existing.content = `${existing.content}\n${chunk.content}`;
-      } else {
-        byDocument.set(chunk.document.id, {
-          content: chunk.content,
-          chunkIndex: chunk.chunkIndex,
-          document: chunk.document,
-        });
-      }
-    }
+    const context = rankedChunks
+      .map(
+        (chunk) =>
+          `[Document ID: ${chunk.document.id} | Title: ${chunk.document.title}]\n${chunk.content}`,
+      )
+      .join('\n\n---\n\n');
 
-    return [...byDocument.values()];
+    return { context, documentIds };
   }
 
   private async generateAnswer(companyId: string, question: string) {
@@ -142,25 +134,40 @@ export class ChatService {
       take: 200,
     });
 
-    const mergedChunks = this.mergeChunksByDocument(chunks);
-    const result = askQuestion(question, mergedChunks);
+    const rankedChunks = rankChunks(chunks, question, 10);
+    const { context, documentIds } = this.buildContext(rankedChunks);
 
-    const sources: SourceReference[] = result.passages.map((p) => {
-      const chunk = mergedChunks.find((c) => c.document.id === p.documentId);
-      const source = chunk?.document.source;
-      return {
-        documentId: p.documentId,
-        documentTitle: formatDocumentTitle(p.documentTitle, source),
-        source,
-        chunkIndex: p.chunkIndex,
-        section: p.section || undefined,
-        excerpt: p.text.length > 200 ? p.text.slice(0, 200) + '...' : p.text,
-        score: p.score,
-      };
-    });
+    const result = await this.openAiService.generateAnswer(
+      question,
+      context,
+      documentIds,
+    );
+
+    const sourceChunks =
+      result.sourceDocumentIds.length > 0
+        ? rankedChunks.filter((chunk) =>
+            result.sourceDocumentIds.includes(chunk.document.id),
+          )
+        : rankedChunks.slice(0, 2);
+
+    const sources: SourceReference[] = sourceChunks.map((chunk) => ({
+      documentId: chunk.document.id,
+      documentTitle: formatDocumentTitle(
+        chunk.document.title,
+        chunk.document.source,
+      ),
+      source: chunk.document.source,
+      chunkIndex: chunk.chunkIndex,
+      excerpt:
+        chunk.content.length > 200
+          ? `${chunk.content.slice(0, 200)}...`
+          : chunk.content,
+      score: chunk.score,
+    }));
 
     const uniqueSources = sources.filter(
-      (s, i, arr) => arr.findIndex((x) => x.excerpt === s.excerpt) === i,
+      (source, index, all) =>
+        all.findIndex((item) => item.excerpt === source.excerpt) === index,
     );
 
     return {

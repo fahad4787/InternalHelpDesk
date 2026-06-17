@@ -15,7 +15,7 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', 'apps/api/.env'],
+      envFilePath: '.env',
     }),
     DatabaseModule,
     AuthModule,
