@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -19,8 +18,10 @@ import { GoogleGmailList, GoToGmailButton } from '@/components/shared/google-gma
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useGoogleWidgets } from '@/hooks/use-google-widgets';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { CreateMeetButton } from '@/components/shared/create-meet-button';
 import { dashboardService } from '@/services/dashboard.service';
-import { googleCalendarService } from '@/services/google-calendar.service';
 
 const statCards = [
   { key: 'totalUsers', label: 'Total Users', icon: Users, color: 'text-cyan-600 bg-cyan-50 border-cyan-200' },
@@ -30,48 +31,26 @@ const statCards = [
 ] as const;
 
 export default function DashboardPage() {
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => dashboardService.getStats(),
   });
 
-  const { data: googleStatusData } = useQuery({
-    queryKey: ['google-calendar-status'],
-    queryFn: () => googleCalendarService.getStatus(),
-  });
-
-  const googleStatus = googleStatusData?.data;
-  const isGoogleConnected = googleStatus?.connected === true;
-  const showMeet =
-    isGoogleConnected && googleStatus?.preferences?.showUpcomingMeet === true;
-  const showDrive =
-    isGoogleConnected && googleStatus?.preferences?.showGoogleDrive === true;
-  const showGmail =
-    isGoogleConnected && googleStatus?.preferences?.showGmail === true;
-
-  const { data: calendarData, isLoading: calendarLoading } = useQuery({
-    queryKey: ['google-calendar-events'],
-    queryFn: () => googleCalendarService.getEvents(),
-    enabled: showMeet,
-  });
-
-  const { data: driveData, isLoading: driveLoading } = useQuery({
-    queryKey: ['google-drive-files'],
-    queryFn: () => googleCalendarService.getDriveFiles(),
-    enabled: showDrive,
-  });
-
-  const { data: gmailData, isLoading: gmailLoading } = useQuery({
-    queryKey: ['google-gmail-messages'],
-    queryFn: () => googleCalendarService.getGmailMessages(),
-    enabled: showGmail,
-  });
+  const {
+    status: googleStatus,
+    showMeet,
+    showDrive,
+    showGmail,
+    events,
+    eventsLoading,
+    files,
+    driveLoading,
+    messages,
+    gmailLoading,
+  } = useGoogleWidgets();
 
   const stats = data?.data;
-  const calendar = calendarData?.data;
-  const events = calendar?.events ?? [];
-  const files = driveData?.data?.files ?? [];
-  const messages = gmailData?.data?.messages ?? [];
 
   return (
     <PageContainer
@@ -116,6 +95,11 @@ export default function DashboardPage() {
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
+                <CreateMeetButton
+                  onCreated={() =>
+                    queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] })
+                  }
+                />
                 {events.length > 0 && (
                   <Badge variant="success">
                     {events.length} meeting{events.length === 1 ? '' : 's'}
@@ -128,7 +112,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-6">
-            {calendarLoading ? (
+            {eventsLoading ? (
               <p className="text-sm text-slate-500">Loading meetings...</p>
             ) : events.length === 0 ? (
               <EmptyState

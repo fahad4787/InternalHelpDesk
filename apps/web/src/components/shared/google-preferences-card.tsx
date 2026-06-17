@@ -7,6 +7,10 @@ import {
   GooglePreferences,
   googleCalendarService,
 } from '@/services/google-calendar.service';
+import {
+  patchGooglePreferencesCache,
+  syncGoogleWidgetQueries,
+} from '@/lib/google-preferences-cache';
 
 interface GooglePreferencesCardProps {
   preferences: GooglePreferences;
@@ -68,38 +72,23 @@ export function GooglePreferencesCard({
   const mutation = useMutation({
     mutationFn: (next: GooglePreferences) =>
       googleCalendarService.updatePreferences(next),
+    onMutate: async (next) => {
+      await queryClient.cancelQueries({ queryKey: ['google-calendar-status'] });
+      const previous = queryClient.getQueryData(['google-calendar-status']);
+      patchGooglePreferencesCache(queryClient, next);
+      syncGoogleWidgetQueries(queryClient, next);
+      return { previous };
+    },
     onSuccess: (res) => {
       const next = res.data;
       setPreferences(next);
-      queryClient.setQueryData(['google-calendar-status'], (current: unknown) => {
-        if (!current || typeof current !== 'object' || !('data' in current)) {
-          return current;
-        }
-        return {
-          ...current,
-          data: {
-            ...(current as { data: Record<string, unknown> }).data,
-            preferences: next,
-          },
-        };
-      });
-      if (!next.showUpcomingMeet) {
-        queryClient.removeQueries({ queryKey: ['google-calendar-events'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
-      }
-      if (!next.showGoogleDrive) {
-        queryClient.removeQueries({ queryKey: ['google-drive-files'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['google-drive-files'] });
-      }
-      if (!next.showGmail) {
-        queryClient.removeQueries({ queryKey: ['google-gmail-messages'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['google-gmail-messages'] });
-      }
+      patchGooglePreferencesCache(queryClient, next);
+      syncGoogleWidgetQueries(queryClient, next);
     },
-    onError: () => {
+    onError: (_err, _next, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['google-calendar-status'], context.previous);
+      }
       setPreferences(serverPreferences);
     },
   });

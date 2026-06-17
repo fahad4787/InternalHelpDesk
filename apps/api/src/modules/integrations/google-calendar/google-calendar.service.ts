@@ -1,10 +1,12 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../database/prisma.service';
 import { AuthenticatedUser } from '../../../common/types/api-response.type';
 import { decrypt, encrypt } from '../../../common/utils/encryption.util';
@@ -13,6 +15,7 @@ import { MOCK_CALENDAR_EVENTS } from './constants/mock-events.constant';
 import { MOCK_DRIVE_FILES } from './constants/mock-drive-files.constant';
 import { MOCK_GMAIL_MESSAGES } from './constants/mock-gmail-messages.constant';
 import { UpdateGooglePreferencesDto } from './dto/update-google-preferences.dto';
+import { CreateMeetDto } from './dto/create-meet.dto';
 import {
   DEFAULT_GOOGLE_PREFERENCES,
   GoogleDriveFile,
@@ -25,10 +28,15 @@ import { extractMeetLink, extractMeetCode, isLikelyGoogleMeetEvent } from './uti
 const GOOGLE_SCOPES = [
   'openid',
   'email',
-  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/calendar.events',
   'https://www.googleapis.com/auth/drive.readonly',
   'https://www.googleapis.com/auth/gmail.readonly',
 ].join(' ');
+
+const CALENDAR_WRITE_SCOPES = [
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/calendar',
+];
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
@@ -90,6 +98,7 @@ interface GoogleEventsResponse {
 export class GoogleCalendarService {
   private encryptionKey: string;
   private jwtSecret: string;
+  private mockCreatedEvents = new Map<string, CalendarEvent[]>();
 
   constructor(
     private prisma: PrismaService,
@@ -116,13 +125,26 @@ export class GoogleCalendarService {
       where: { userId: user.id },
     });
 
+    const connected = connection?.status === IntegrationStatus.CONNECTED;
+    let needsReconnect = false;
+
+    if (connected && !this.isMockMode() && connection?.encryptedAccessToken) {
+      try {
+        const accessToken = await this.getValidAccessToken(connection);
+        needsReconnect = !(await this.tokenHasCalendarWriteScope(accessToken));
+      } catch {
+        needsReconnect = true;
+      }
+    }
+
     return successResponse({
-      connected: connection?.status === IntegrationStatus.CONNECTED,
+      connected,
       mockMode: this.isMockMode(),
       status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
       googleEmail: connection?.googleEmail ?? null,
       lastSyncedAt: connection?.lastSyncedAt?.toISOString() ?? null,
       preferences: this.resolvePreferences(connection?.preferences),
+      needsReconnect,
     });
   }
 
@@ -530,6 +552,8 @@ export class GoogleCalendarService {
   }
 
   async disconnect(user: AuthenticatedUser) {
+    this.mockCreatedEvents.delete(user.id);
+
     await this.prisma.googleCalendarConnection.deleteMany({
       where: { userId: user.id },
     });
@@ -565,11 +589,16 @@ export class GoogleCalendarService {
     }
 
     if (this.isMockMode()) {
+      const created = this.mockCreatedEvents.get(user.id) ?? [];
+      const events = [...created, ...MOCK_CALENDAR_EVENTS]
+        .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+        .slice(0, limit);
+
       return successResponse({
         connected: true,
         mockMode: true,
         googleEmail: connection.googleEmail,
-        events: MOCK_CALENDAR_EVENTS.slice(0, limit),
+        events,
       });
     }
 
@@ -591,6 +620,169 @@ export class GoogleCalendarService {
       googleEmail: connection.googleEmail,
       events,
     });
+  }
+
+  async createMeet(user: AuthenticatedUser, dto: CreateMeetDto) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      throw new BadRequestException('Google account is not connected');
+    }
+
+    const start = new Date(dto.startAt);
+    if (Number.isNaN(start.getTime())) {
+      throw new BadRequestException('Invalid meeting start time');
+    }
+
+    const end = new Date(start.getTime() + dto.durationMinutes * 60_000);
+    if (end <= start) {
+      throw new BadRequestException('Meeting end must be after start');
+    }
+
+    if (this.isMockMode()) {
+      const meetCode = `mock-${Date.now().toString(36).slice(-3)}-${Math.random().toString(36).slice(2, 5)}`;
+      const event: CalendarEvent = {
+        id: `mock-created-${Date.now()}`,
+        title: dto.title.trim(),
+        description: dto.description?.trim() ?? null,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        location: 'Google Meet',
+        htmlLink: 'https://calendar.google.com',
+        meetLink: `https://meet.google.com/${meetCode}`,
+        meetCode,
+        allDay: false,
+        organizerName: connection.googleEmail?.split('@')[0] ?? null,
+        organizerEmail: connection.googleEmail,
+        attendeeCount: dto.attendeeEmails?.length ?? 0,
+      };
+
+      const existing = this.mockCreatedEvents.get(user.id) ?? [];
+      this.mockCreatedEvents.set(user.id, [event, ...existing]);
+
+      return successResponse(event, 'Google Meet created');
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const event = await this.insertGoogleMeetEvent(
+      accessToken,
+      dto,
+      start,
+      end,
+      connection.googleEmail,
+    );
+
+    await this.prisma.googleCalendarConnection.update({
+      where: { userId: user.id },
+      data: { lastSyncedAt: new Date() },
+    });
+
+    return successResponse(event, 'Google Meet created');
+  }
+
+  private async insertGoogleMeetEvent(
+    accessToken: string,
+    dto: CreateMeetDto,
+    start: Date,
+    end: Date,
+    organizerEmail: string | null,
+  ): Promise<CalendarEvent> {
+    const timeZone = dto.timeZone?.trim() || 'UTC';
+    const body: Record<string, unknown> = {
+      summary: dto.title.trim(),
+      description: dto.description?.trim() || undefined,
+      start: {
+        dateTime: start.toISOString(),
+        timeZone,
+      },
+      end: {
+        dateTime: end.toISOString(),
+        timeZone,
+      },
+      conferenceData: {
+        createRequest: {
+          requestId: randomUUID(),
+          conferenceSolutionKey: { type: 'hangoutsMeet' },
+        },
+      },
+    };
+
+    if (dto.attendeeEmails?.length) {
+      body.attendees = dto.attendeeEmails.map((email) => ({ email }));
+    }
+
+    const params = new URLSearchParams({
+      conferenceDataVersion: '1',
+      sendUpdates: dto.attendeeEmails?.length ? 'all' : 'none',
+    });
+
+    const response = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      if (
+        response.status === 403 &&
+        (error.includes('insufficientPermissions') ||
+          error.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT'))
+      ) {
+        throw new BadRequestException(
+          'Google Calendar needs updated permissions to create meetings. Click Reconnect on the Google integration page and approve calendar access again.',
+        );
+      }
+
+      throw new InternalServerErrorException(
+        `Failed to create Google Meet: ${error}`,
+      );
+    }
+
+    const item = (await response.json()) as GoogleCalendarEventItem;
+    const meetLink = extractMeetLink(item);
+
+    if (!meetLink) {
+      throw new InternalServerErrorException(
+        'Meeting was created but no Google Meet link was returned',
+      );
+    }
+
+    return this.mapGoogleEventItem(item, meetLink, organizerEmail);
+  }
+
+  private mapGoogleEventItem(
+    item: GoogleCalendarEventItem,
+    meetLink: string,
+    fallbackOrganizerEmail: string | null,
+  ): CalendarEvent {
+    const allDay = !!item.start?.date && !item.start?.dateTime;
+    const start = item.start?.dateTime ?? item.start?.date ?? new Date().toISOString();
+    const end = item.end?.dateTime ?? item.end?.date ?? start;
+
+    return {
+      id: item.id,
+      title: item.summary ?? 'Untitled',
+      description: item.description ?? null,
+      start,
+      end,
+      location: item.location ?? 'Google Meet',
+      htmlLink: item.htmlLink ?? null,
+      meetLink,
+      meetCode: extractMeetCode(meetLink),
+      allDay,
+      organizerName: item.organizer?.displayName ?? null,
+      organizerEmail: item.organizer?.email ?? fallbackOrganizerEmail,
+      attendeeCount: item.attendees?.length ?? 0,
+    };
   }
 
   private getRedirectUri(): string {
@@ -904,5 +1096,18 @@ export class GoogleCalendarService {
 
     const event = (await response.json()) as GoogleCalendarEventItem;
     return extractMeetLink(event);
+  }
+
+  private async tokenHasCalendarWriteScope(accessToken: string): Promise<boolean> {
+    const response = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`,
+    );
+
+    if (!response.ok) return false;
+
+    const data = (await response.json()) as { scope?: string };
+    const granted = data.scope?.split(' ') ?? [];
+
+    return CALENDAR_WRITE_SCOPES.some((scope) => granted.includes(scope));
   }
 }

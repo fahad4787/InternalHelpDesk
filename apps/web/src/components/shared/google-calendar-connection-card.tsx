@@ -13,6 +13,7 @@ interface GoogleCalendarConnectionCardProps {
   authError: string | null;
   connectError: string | null;
   onConnect: () => void;
+  onReconnect?: () => void;
   onDisconnect: () => void;
 }
 
@@ -24,6 +25,7 @@ export function GoogleCalendarConnectionCard({
   authError,
   connectError,
   onConnect,
+  onReconnect,
   onDisconnect,
 }: GoogleCalendarConnectionCardProps) {
   if (isLoading) {
@@ -105,21 +107,33 @@ export function GoogleCalendarConnectionCard({
                 {status?.mockMode ? 'Connect (Mock)' : 'Connect with Google'}
               </Button>
             ) : (
-              <Button
-                variant="outline"
-                onClick={onDisconnect}
-                disabled={isPending}
-                className="w-full bg-white sm:w-auto"
-              >
-                <Unplug className="mr-2 h-4 w-4" />
-                Disconnect
-              </Button>
+              <>
+                {status?.needsReconnect && onReconnect && (
+                  <Button onClick={onReconnect} disabled={isPending} className="w-full sm:w-auto">
+                    Reconnect Google
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={onDisconnect}
+                  disabled={isPending}
+                  className="w-full bg-white sm:w-auto"
+                >
+                  <Unplug className="mr-2 h-4 w-4" />
+                  Disconnect
+                </Button>
+              </>
             )}
           </div>
         </div>
 
-        {(status?.mockMode || authError || connectError) && (
+        {(status?.mockMode || status?.needsReconnect || authError || connectError) && (
           <div className="space-y-2 border-t border-slate-100 bg-white/70 px-5 py-3">
+            {status?.needsReconnect && (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                Calendar permissions are outdated. Click <strong>Reconnect Google</strong> to allow creating new Google Meet meetings.
+              </p>
+            )}
             {status?.mockMode && (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                 Mock mode is on. Set GOOGLE_CALENDAR_MODE=live for real Google OAuth.

@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../../../common/types/api-response.type';
 import { GoogleCalendarService } from './google-calendar.service';
 import { UpdateGooglePreferencesDto } from './dto/update-google-preferences.dto';
+import { CreateMeetDto } from './dto/create-meet.dto';
 
 @Controller('integrations/google-calendar')
 export class GoogleCalendarController {
@@ -99,6 +100,15 @@ export class GoogleCalendarController {
   @UseGuards(JwtAuthGuard)
   getGmailMessages(@CurrentUser() user: AuthenticatedUser) {
     return this.googleCalendarService.getGmailMessages(user);
+  }
+
+  @Post('events/meet')
+  @UseGuards(JwtAuthGuard)
+  createMeet(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateMeetDto,
+  ) {
+    return this.googleCalendarService.createMeet(user, dto);
   }
 
   @Patch('preferences')

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -13,55 +13,36 @@ import { GoogleCalendarConnectionCard } from '@/components/shared/google-calenda
 import { GooglePreferencesCard } from '@/components/shared/google-preferences-card';
 import { GoogleDriveList, GoToDriveButton } from '@/components/shared/google-drive-list';
 import { GoogleGmailList, GoToGmailButton } from '@/components/shared/google-gmail-list';
+import { CreateMeetButton } from '@/components/shared/create-meet-button';
+import { ToastContainer } from '@/components/shared/toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getErrorMessage } from '@/lib/api-client';
-import {
-  DEFAULT_GOOGLE_PREFERENCES,
-  googleCalendarService,
-} from '@/services/google-calendar.service';
+import { googleCalendarService } from '@/services/google-calendar.service';
+import { useGoogleWidgets } from '@/hooks/use-google-widgets';
 
 export default function GoogleIntegrationPage() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const { data: statusData, isLoading: statusLoading } = useQuery({
-    queryKey: ['google-calendar-status'],
-    queryFn: () => googleCalendarService.getStatus(),
-  });
-
-  const status = statusData?.data;
-  const isConnected = status?.connected === true;
-  const preferences = status?.preferences ?? DEFAULT_GOOGLE_PREFERENCES;
-  const showMeet = isConnected && preferences.showUpcomingMeet === true;
-  const showDrive = isConnected && preferences.showGoogleDrive === true;
-  const showGmail = isConnected && preferences.showGmail === true;
-  const showCalendarEmbed =
-    isConnected && preferences.showCalendarEmbed === true && !!status?.googleEmail;
-
-  const { data: eventsData, isLoading: eventsLoading } = useQuery({
-    queryKey: ['google-calendar-events'],
-    queryFn: () => googleCalendarService.getEvents(),
-    enabled: showMeet,
-  });
-
-  const { data: driveData, isLoading: driveLoading } = useQuery({
-    queryKey: ['google-drive-files'],
-    queryFn: () => googleCalendarService.getDriveFiles(),
-    enabled: showDrive,
-  });
-
-  const { data: gmailData, isLoading: gmailLoading } = useQuery({
-    queryKey: ['google-gmail-messages'],
-    queryFn: () => googleCalendarService.getGmailMessages(),
-    enabled: showGmail,
-  });
-
-  const events = eventsData?.data?.events ?? [];
-  const files = driveData?.data?.files ?? [];
-  const messages = gmailData?.data?.messages ?? [];
+  const {
+    status,
+    statusLoading,
+    isConnected,
+    preferences,
+    showMeet,
+    showDrive,
+    showGmail,
+    showCalendarEmbed,
+    events,
+    eventsLoading,
+    files,
+    driveLoading,
+    messages,
+    gmailLoading,
+  } = useGoogleWidgets();
 
   useEffect(() => {
     const connected = searchParams.get('connected');
@@ -140,6 +121,7 @@ export default function GoogleIntegrationPage() {
       }
     >
       <div className="space-y-6">
+        <ToastContainer />
         <GoogleCalendarConnectionCard
           status={status}
           isLoading={statusLoading}
@@ -148,6 +130,7 @@ export default function GoogleIntegrationPage() {
           authError={authError}
           connectError={connectError}
           onConnect={handleConnect}
+          onReconnect={() => connectGoogleMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
 
@@ -165,11 +148,18 @@ export default function GoogleIntegrationPage() {
                     Video meetings with a Google Meet link from your calendar
                   </CardDescription>
                 </div>
-                {events.length > 0 && (
-                  <Badge variant="success" className="w-fit">
-                    {events.length} meeting{events.length === 1 ? '' : 's'}
-                  </Badge>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <CreateMeetButton
+                    onCreated={() =>
+                      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] })
+                    }
+                  />
+                  {events.length > 0 && (
+                    <Badge variant="success" className="w-fit">
+                      {events.length} meeting{events.length === 1 ? '' : 's'}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-6">

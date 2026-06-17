@@ -15,6 +15,7 @@ export interface GoogleCalendarStatus {
   googleEmail: string | null;
   lastSyncedAt: string | null;
   preferences: GooglePreferences;
+  needsReconnect?: boolean;
 }
 
 export interface GoogleCalendarEventsResponse {
@@ -96,4 +97,13 @@ export const googleCalendarService = {
       '/integrations/google-calendar/preferences',
       preferences,
     ),
+
+  createMeet: (data: {
+    title: string;
+    startAt: string;
+    durationMinutes: number;
+    description?: string;
+    timeZone?: string;
+    attendeeEmails?: string[];
+  }) => apiPost<CalendarEvent>('/integrations/google-calendar/events/meet', data),
 };
