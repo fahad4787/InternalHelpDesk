@@ -3,7 +3,8 @@ import { PrismaService } from '../../database/prisma.service';
 import { AuthenticatedUser } from '../../common/types/api-response.type';
 import { successResponse } from '../../common/utils/api-response.util';
 import { SendMessageDto } from './dto/send-message.dto';
-import { OpenAiService } from './openai.service';
+import { ChatHistoryMessage, OpenAiService } from './openai.service';
+import { classifyChatIntent } from './utils/chat-intent.util';
 import { rankChunks } from './utils/chunk-ranking.util';
 
 interface SourceReference {
@@ -75,6 +76,12 @@ export class ChatService {
       sessionId = session.id;
     }
 
+    const priorMessages = await this.prisma.chatMessage.findMany({
+      where: { sessionId },
+      orderBy: { createdAt: 'asc' },
+      take: 12,
+    });
+
     await this.prisma.chatMessage.create({
       data: {
         sessionId,
@@ -83,8 +90,13 @@ export class ChatService {
       },
     });
 
+    const history: ChatHistoryMessage[] = priorMessages.map((message) => ({
+      role: message.role as 'user' | 'assistant',
+      content: message.content,
+    }));
+
     const { answer, sources, confidence, suggestTicket } =
-      await this.generateAnswer(user.companyId, dto.content);
+      await this.generateAnswer(user.companyId, dto.content, history);
 
     const assistantMessage = await this.prisma.chatMessage.create({
       data: {
@@ -126,27 +138,14 @@ export class ChatService {
     return { context, documentIds };
   }
 
-  private async generateAnswer(companyId: string, question: string) {
-    const chunks = await this.prisma.documentChunk.findMany({
-      where: { document: { companyId, status: 'READY' } },
-      include: { document: { select: { id: true, title: true, source: true } } },
-      orderBy: [{ documentId: 'asc' }, { chunkIndex: 'asc' }],
-      take: 200,
-    });
-
-    const rankedChunks = rankChunks(chunks, question, 10);
-    const { context, documentIds } = this.buildContext(rankedChunks);
-
-    const result = await this.openAiService.generateAnswer(
-      question,
-      context,
-      documentIds,
-    );
-
+  private buildSources(
+    rankedChunks: ReturnType<typeof rankChunks>,
+    sourceDocumentIds: string[],
+  ): SourceReference[] {
     const sourceChunks =
-      result.sourceDocumentIds.length > 0
+      sourceDocumentIds.length > 0
         ? rankedChunks.filter((chunk) =>
-            result.sourceDocumentIds.includes(chunk.document.id),
+            sourceDocumentIds.includes(chunk.document.id),
           )
         : rankedChunks.slice(0, 2);
 
@@ -165,14 +164,55 @@ export class ChatService {
       score: chunk.score,
     }));
 
-    const uniqueSources = sources.filter(
+    return sources.filter(
       (source, index, all) =>
         all.findIndex((item) => item.excerpt === source.excerpt) === index,
+    );
+  }
+
+  private async generateAnswer(
+    companyId: string,
+    question: string,
+    history: ChatHistoryMessage[],
+  ) {
+    const intent = classifyChatIntent(question);
+
+    if (intent === 'general') {
+      const result = await this.openAiService.generateGeneralReply(
+        question,
+        history,
+      );
+
+      return {
+        answer: result.answer,
+        sources: [],
+        confidence: result.confidence,
+        suggestTicket: result.suggestTicket,
+      };
+    }
+
+    const chunks = await this.prisma.documentChunk.findMany({
+      where: { document: { companyId, status: 'READY' } },
+      include: { document: { select: { id: true, title: true, source: true } } },
+      orderBy: [{ documentId: 'asc' }, { chunkIndex: 'asc' }],
+      take: 200,
+    });
+
+    const rankedChunks = rankChunks(chunks, question, 10);
+    const { context, documentIds } = this.buildContext(rankedChunks);
+
+    const result = await this.openAiService.generateDocumentAnswer(
+      question,
+      context,
+      documentIds,
     );
 
     return {
       answer: result.answer,
-      sources: uniqueSources.slice(0, 2),
+      sources: this.buildSources(rankedChunks, result.sourceDocumentIds).slice(
+        0,
+        2,
+      ),
       confidence: result.confidence,
       suggestTicket: result.suggestTicket,
     };

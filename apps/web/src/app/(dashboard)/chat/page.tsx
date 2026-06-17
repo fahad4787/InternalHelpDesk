@@ -1,13 +1,14 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Bot, Send, Sparkles, Trash2 } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { chatService } from '@/services/chat.service';
 import { ChatMessage } from '@/types/api.types';
+import { getErrorMessage } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 
 export default function ChatPage() {
@@ -16,6 +17,8 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isNewChat, setIsNewChat] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: sessions } = useQuery({
     queryKey: ['chat-sessions'],
@@ -23,21 +26,38 @@ export default function ChatPage() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: () => chatService.sendMessage({ content: input, sessionId }),
-    onSuccess: (res) => {
+    mutationFn: (content: string) =>
+      chatService.sendMessage({ content, sessionId }),
+    onMutate: (content) => {
+      setSendError('');
       const userMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'user',
-        content: input,
+        content,
         createdAt: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, userMsg, res.data.message]);
+      setMessages((prev) => [...prev, userMsg]);
+      setInput('');
+      return { content };
+    },
+    onSuccess: (res) => {
+      setMessages((prev) => [...prev, res.data.message]);
       setSessionId(res.data.sessionId);
       setIsNewChat(false);
-      setInput('');
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] });
     },
+    onError: (err, _content, context) => {
+      setMessages((prev) => prev.slice(0, -1));
+      if (context?.content) setInput(context.content);
+      setSendError(getErrorMessage(err));
+    },
   });
+
+  const handleSend = () => {
+    const content = input.trim();
+    if (!content || sendMutation.isPending) return;
+    sendMutation.mutate(content);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => chatService.deleteSession(id),
@@ -71,8 +91,12 @@ export default function ChatPage() {
     loadSession(sessions.data[0].id);
   }, [sessions?.data, sessionId, isNewChat, loadSession]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, sendMutation.isPending]);
+
   return (
-    <PageContainer title="AI Chat" description="Ask questions about your company documents">
+    <PageContainer title="AI Chat" description="Chat naturally or ask about your company documents">
       <div className="flex h-[calc(100vh-12rem)] gap-4">
         <div className="hidden w-64 shrink-0 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm lg:block">
           <div className="border-b border-slate-200 p-3">
@@ -165,6 +189,19 @@ export default function ChatPage() {
                 </div>
               </div>
             )}
+            {sendMutation.isPending && (
+              <div className="max-w-[80%] rounded-2xl rounded-bl-sm border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-brand-accent">
+                  <Bot className="h-3 w-3" />
+                  AI Assistant
+                </div>
+                <div className="flex items-center gap-1 py-1">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-brand/60 [animation-delay:0ms]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-brand/60 [animation-delay:150ms]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-brand/60 [animation-delay:300ms]" />
+                </div>
+              </div>
+            )}
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -195,26 +232,33 @@ export default function ChatPage() {
                 )}
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="border-t border-slate-200 p-4">
+            {sendError && (
+              <p className="mb-2 text-sm text-red-600">{sendError}</p>
+            )}
             <div className="flex gap-2">
               <Textarea
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  if (sendError) setSendError('');
+                }}
                 placeholder="Ask a question about your company docs..."
                 className="min-h-[48px] resize-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    if (input.trim()) sendMutation.mutate();
+                    handleSend();
                   }
                 }}
               />
               <Button
                 size="icon"
                 disabled={!input.trim() || sendMutation.isPending}
-                onClick={() => sendMutation.mutate()}
+                onClick={handleSend}
               >
                 <Send className="h-4 w-4" />
               </Button>

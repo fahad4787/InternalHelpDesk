@@ -13,10 +13,14 @@ export interface OpenAiAnswerResult {
   sourceDocumentIds: string[];
 }
 
-const SYSTEM_PROMPT = `You are an internal helpdesk AI assistant for a company.
+export interface ChatHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+const RAG_SYSTEM_PROMPT = `You are an internal helpdesk AI assistant for a company.
 Answer employee questions using ONLY the provided company documents.
 If the documents do not contain enough information, say you could not find that in the knowledge base and suggest creating a support ticket.
-For greetings or small talk, reply briefly and offer to help with company policies and internal documents.
 Do not invent policies, numbers, or procedures.
 
 Respond with valid JSON only:
@@ -26,6 +30,13 @@ Respond with valid JSON only:
   "confidence": number between 0 and 1,
   "sourceDocumentIds": ["document-id", ...]
 }`;
+
+const GENERAL_SYSTEM_PROMPT = `You are a friendly internal helpdesk assistant for a company.
+Respond naturally and warmly, like a helpful colleague — not robotic.
+You can have normal conversation, greet people, and answer general questions.
+When someone asks about company policies, HR, benefits, IT procedures, or internal rules, let them know you can help look that up in the company knowledge base if they ask specifically.
+Never invent company-specific policies, numbers, deadlines, or procedures.
+Keep replies concise, clear, and conversational.`;
 
 @Injectable()
 export class OpenAiService {
@@ -51,7 +62,52 @@ export class OpenAiService {
     return this.configService.get<string>('OPENAI_MODEL', 'gpt-4o-mini');
   }
 
-  async generateAnswer(
+  async generateGeneralReply(
+    question: string,
+    history: ChatHistoryMessage[] = [],
+  ): Promise<OpenAiAnswerResult> {
+    try {
+      const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+        { role: 'system', content: GENERAL_SYSTEM_PROMPT },
+        ...history.slice(-10).map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+        { role: 'user', content: question },
+      ];
+
+      const response = await this.getClient().chat.completions.create({
+        model: this.getModel(),
+        temperature: 0.75,
+        messages,
+      });
+
+      const answer = response.choices[0]?.message?.content?.trim();
+      if (!answer) {
+        throw new InternalServerErrorException('OpenAI returned an empty response');
+      }
+
+      return {
+        answer,
+        suggestTicket: false,
+        confidence: 0.85,
+        sourceDocumentIds: [],
+      };
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error;
+      }
+
+      const message =
+        error instanceof Error ? error.message : 'OpenAI request failed';
+      throw new InternalServerErrorException(message);
+    }
+  }
+
+  async generateDocumentAnswer(
     question: string,
     context: string,
     documentIds: string[],
@@ -72,7 +128,7 @@ export class OpenAiService {
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: RAG_SYSTEM_PROMPT },
           {
             role: 'user',
             content: `Available document IDs: ${documentIds.join(', ')}
