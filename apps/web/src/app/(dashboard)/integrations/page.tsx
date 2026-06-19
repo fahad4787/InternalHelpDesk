@@ -31,7 +31,8 @@ export default function IntegrationsPage() {
             const isWorkday = integration.provider === 'WORKDAY';
             const isGoogle = integration.provider === 'GOOGLE_CALENDAR';
             const isZoom = integration.provider === 'ZOOM';
-            const hasConfig = isWorkday || isGoogle || isZoom;
+            const isJira = integration.provider === 'JIRA';
+            const hasConfig = isWorkday || isGoogle || isZoom || isJira;
 
             return (
               <div
@@ -62,7 +63,9 @@ export default function IntegrationsPage() {
                         ? '/integrations/workday'
                         : isZoom
                           ? '/integrations/zoom'
-                          : '/integrations/google'
+                          : isJira
+                            ? '/integrations/jira'
+                            : '/integrations/google'
                     }
                   >
                     <Button variant="outline" size="sm" className="mt-4 w-full">
