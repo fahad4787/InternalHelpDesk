@@ -30,7 +30,8 @@ export default function IntegrationsPage() {
             .map((integration) => {
             const isWorkday = integration.provider === 'WORKDAY';
             const isGoogle = integration.provider === 'GOOGLE_CALENDAR';
-            const hasConfig = isWorkday || isGoogle;
+            const isZoom = integration.provider === 'ZOOM';
+            const hasConfig = isWorkday || isGoogle || isZoom;
 
             return (
               <div
@@ -59,7 +60,9 @@ export default function IntegrationsPage() {
                     href={
                       isWorkday
                         ? '/integrations/workday'
-                        : '/integrations/google'
+                        : isZoom
+                          ? '/integrations/zoom'
+                          : '/integrations/google'
                     }
                   >
                     <Button variant="outline" size="sm" className="mt-4 w-full">

@@ -10,11 +10,14 @@ export class IntegrationsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(user: AuthenticatedUser) {
-    const [connected, googleConnection] = await Promise.all([
+    const [connected, googleConnection, zoomConnection] = await Promise.all([
       this.prisma.integration.findMany({
         where: { companyId: user.companyId },
       }),
       this.prisma.googleCalendarConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.zoomConnection.findUnique({
         where: { userId: user.id },
       }),
     ]);
@@ -35,6 +38,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: googleConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.ZOOM) {
+        const userConnected =
+          zoomConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: zoomConnection?.updatedAt ?? null,
         };
       }
 
