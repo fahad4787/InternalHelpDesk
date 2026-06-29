@@ -6,4 +6,7 @@ export class UpdateSlackPreferencesDto {
 
   @IsBoolean()
   showChannels!: boolean;
+
+  @IsBoolean()
+  showDirectMessages!: boolean;
 }

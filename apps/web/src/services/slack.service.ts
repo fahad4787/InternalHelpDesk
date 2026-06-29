@@ -3,6 +3,7 @@ import { apiGet, apiPatch, apiPost } from '@/lib/api-client';
 export interface SlackPreferences {
   showProfile: boolean;
   showChannels: boolean;
+  showDirectMessages: boolean;
 }
 
 export interface SlackStatus {
@@ -28,6 +29,7 @@ export interface SlackChannel {
   name: string;
   memberCount: number;
   isPrivate: boolean;
+  kind: 'channel' | 'dm' | 'group_dm';
 }
 
 export interface SlackMessage {
@@ -41,6 +43,7 @@ export interface SlackMessage {
 export const DEFAULT_SLACK_PREFERENCES: SlackPreferences = {
   showProfile: true,
   showChannels: true,
+  showDirectMessages: true,
 };
 
 export const slackService = {
@@ -79,6 +82,12 @@ export const slackService = {
       channelId: string;
       messages: SlackMessage[];
     }>(`/integrations/slack/channels/${channelId}/messages`),
+
+  sendChannelMessage: (channelId: string, text: string) =>
+    apiPost<{
+      channelId: string;
+      message: SlackMessage;
+    }>(`/integrations/slack/channels/${channelId}/messages`, { text }),
 
   updatePreferences: (preferences: SlackPreferences) =>
     apiPatch<SlackPreferences>('/integrations/slack/preferences', preferences),

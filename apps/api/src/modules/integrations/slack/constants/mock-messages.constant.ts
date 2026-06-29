@@ -53,6 +53,15 @@ export const MOCK_SLACK_MESSAGES: Record<string, SlackMessage[]> = {
       timestamp: new Date(now - 600000).toISOString(),
     },
   ],
+  D001: [
+    {
+      id: 'm7',
+      text: 'Hey, can you review the deployment checklist?',
+      userId: 'U006',
+      userName: 'Arsal',
+      timestamp: new Date(now - 2400000).toISOString(),
+    },
+  ],
 };
 
 export function getMockMessagesForChannel(channelId: string): SlackMessage[] {

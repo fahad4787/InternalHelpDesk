@@ -79,7 +79,7 @@ export function SlackPreferencesCard({
           },
         };
       });
-      if (!next.showChannels) {
+      if (!next.showChannels && !next.showDirectMessages) {
         queryClient.removeQueries({ queryKey: ['slack-channels'] });
       } else {
         queryClient.invalidateQueries({ queryKey: ['slack-channels'] });
@@ -121,10 +121,17 @@ export function SlackPreferencesCard({
         />
         <ToggleRow
           label="Channels"
-          description="Show Slack channels available to the bot"
+          description="Show your Slack workspace channels"
           checked={preferences.showChannels}
           disabled={isPending}
           onChange={(value) => update('showChannels', value)}
+        />
+        <ToggleRow
+          label="Direct messages"
+          description="Show your Slack direct and group messages"
+          checked={preferences.showDirectMessages}
+          disabled={isPending}
+          onChange={(value) => update('showDirectMessages', value)}
         />
       </CardContent>
     </Card>

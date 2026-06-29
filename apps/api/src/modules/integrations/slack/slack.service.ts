@@ -31,7 +31,7 @@ interface SlackOAuthResponse {
   access_token?: string;
   bot_user_id?: string;
   team?: { id?: string; name?: string };
-  authed_user?: { id?: string };
+  authed_user?: { id?: string; access_token?: string };
 }
 
 interface SlackApiResponse {
@@ -53,10 +53,18 @@ interface SlackUserResponse extends SlackApiResponse {
 interface SlackConversationsResponse extends SlackApiResponse {
   channels?: Array<{
     id: string;
-    name: string;
+    name?: string;
     num_members?: number;
     is_private?: boolean;
+    is_im?: boolean;
+    is_mpim?: boolean;
+    user?: string;
+    updated?: number;
+    latest?: { ts?: string };
   }>;
+  response_metadata?: {
+    next_cursor?: string;
+  };
 }
 
 interface SlackHistoryResponse extends SlackApiResponse {
@@ -68,6 +76,15 @@ interface SlackHistoryResponse extends SlackApiResponse {
     ts?: string;
     bot_id?: string;
   }>;
+}
+
+interface SlackPostMessageResponse extends SlackApiResponse {
+  ts?: string;
+  message?: {
+    text?: string;
+    user?: string;
+    ts?: string;
+  };
 }
 
 @Injectable()
@@ -127,6 +144,7 @@ export class SlackService {
     const preferences: SlackPreferences = {
       showProfile: dto.showProfile,
       showChannels: dto.showChannels,
+      showDirectMessages: dto.showDirectMessages,
     };
 
     await this.prisma.slackConnection.update({
@@ -158,13 +176,16 @@ export class SlackService {
     }
 
     const state = createOAuthState(user.id, this.jwtSecret);
-    const scopes =
-      this.configService.get<string>('SLACK_SCOPES')?.trim() ??
-      'channels:read,groups:read,channels:history,groups:history,chat:write,users:read,team:read';
+    const botScopes =
+      this.configService.get<string>('SLACK_SCOPES')?.trim() ?? 'chat:write';
+    const userScopes =
+      this.configService.get<string>('SLACK_USER_SCOPES')?.trim() ??
+      'channels:read,groups:read,im:read,mpim:read,channels:history,groups:history,im:history,mpim:history,chat:write,users:read,team:read';
 
     const params = new URLSearchParams({
       client_id: clientId,
-      scope: scopes,
+      scope: botScopes,
+      user_scope: userScopes,
       redirect_uri: redirectUri,
       state,
     });
@@ -192,6 +213,11 @@ export class SlackService {
     );
 
     const encryptedAccess = encrypt(oauth.access_token, this.encryptionKey);
+    const userAccessToken = oauth.authed_user?.access_token ?? null;
+    const encryptedUserAccess =
+      userAccessToken != null
+        ? encrypt(userAccessToken, this.encryptionKey)
+        : null;
 
     await this.prisma.slackConnection.upsert({
       where: { userId },
@@ -203,6 +229,7 @@ export class SlackService {
         teamName: profile.teamName,
         botUserId: oauth.bot_user_id ?? null,
         encryptedAccessToken: encryptedAccess,
+        encryptedUserAccessToken: encryptedUserAccess,
         status: IntegrationStatus.CONNECTED,
         preferences:
           DEFAULT_SLACK_PREFERENCES as unknown as Prisma.InputJsonValue,
@@ -215,6 +242,7 @@ export class SlackService {
         teamName: profile.teamName,
         botUserId: oauth.bot_user_id ?? null,
         encryptedAccessToken: encryptedAccess,
+        encryptedUserAccessToken: encryptedUserAccess,
         status: IntegrationStatus.CONNECTED,
         lastSyncedAt: new Date(),
       },
@@ -433,15 +461,54 @@ export class SlackService {
     });
   }
 
+  async sendChannelMessage(
+    user: AuthenticatedUser,
+    channelId: string,
+    text: string,
+  ) {
+    const connection = await this.prisma.slackConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      throw new BadRequestException('Slack workspace is not connected');
+    }
+
+    const trimmed = text.trim();
+    if (!trimmed) {
+      throw new BadRequestException('Message cannot be empty');
+    }
+
+    if (this.isMockMode()) {
+      const message: SlackMessage = {
+        id: `mock-${Date.now()}`,
+        text: trimmed,
+        userId: connection.slackUserId,
+        userName: connection.slackEmail?.split('@')[0] ?? 'You',
+        timestamp: new Date().toISOString(),
+      };
+      return successResponse({ channelId, message }, 'Message sent');
+    }
+
+    const accessToken = await this.getPostingAccessToken(connection);
+    const message = await this.postSlackMessage(accessToken, channelId, trimmed);
+
+    return successResponse({ channelId, message }, 'Message sent');
+  }
+
   private resolvePreferences(value: Prisma.JsonValue | null | undefined): SlackPreferences {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       return DEFAULT_SLACK_PREFERENCES;
     }
 
-    const prefs = value as Partial<SlackPreferences>;
+    const prefs = value as Partial<SlackPreferences> & { showChannels?: boolean };
+    const showChannels =
+      prefs.showChannels ?? DEFAULT_SLACK_PREFERENCES.showChannels;
     return {
       showProfile: prefs.showProfile ?? DEFAULT_SLACK_PREFERENCES.showProfile,
-      showChannels: prefs.showChannels ?? DEFAULT_SLACK_PREFERENCES.showChannels,
+      showChannels,
+      showDirectMessages:
+        prefs.showDirectMessages ?? showChannels ?? DEFAULT_SLACK_PREFERENCES.showDirectMessages,
     };
   }
 
@@ -528,29 +595,81 @@ export class SlackService {
   }
 
   private async fetchChannels(accessToken: string): Promise<SlackChannel[]> {
-    const response = await fetch(
-      'https://slack.com/api/conversations.list?types=public_channel,private_channel&exclude_archived=true&limit=50',
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      },
-    );
+    const rawChannels: NonNullable<SlackConversationsResponse['channels']> = [];
+    let cursor: string | undefined;
 
-    const data = (await response.json()) as SlackConversationsResponse;
-    if (!data.ok || !data.channels) {
-      if (data.error === 'missing_scope') {
-        throw new BadRequestException(
-          'Slack is missing channel permissions. Add groups:read scope in Slack, reinstall the app, then disconnect and reconnect here.',
-        );
+    do {
+      const params = new URLSearchParams({
+        types: 'public_channel,private_channel,im,mpim',
+        exclude_archived: 'true',
+        limit: '200',
+      });
+      if (cursor) {
+        params.set('cursor', cursor);
       }
-      throw new BadRequestException(data.error ?? 'Failed to load Slack channels');
-    }
 
-    return data.channels.map((channel) => ({
-      id: channel.id,
-      name: channel.name,
-      memberCount: channel.num_members ?? 0,
-      isPrivate: channel.is_private === true,
-    }));
+      const response = await fetch(
+        `https://slack.com/api/users.conversations?${params.toString()}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
+
+      const data = (await response.json()) as SlackConversationsResponse;
+      if (!data.ok || !data.channels) {
+        if (data.error === 'missing_scope') {
+          throw new BadRequestException(
+            'Slack is missing conversation permissions. Add user token scopes (im:read, mpim:read, groups:read) in Slack, reinstall the app, then disconnect and reconnect here.',
+          );
+        }
+        throw new BadRequestException(data.error ?? 'Failed to load Slack channels');
+      }
+
+      rawChannels.push(...data.channels);
+      cursor = data.response_metadata?.next_cursor || undefined;
+    } while (cursor);
+
+    const dmUserIds = [
+      ...new Set(
+        rawChannels
+          .filter((channel) => channel.is_im === true && channel.user)
+          .map((channel) => channel.user as string),
+      ),
+    ];
+    const userNames = await this.resolveUserNames(accessToken, dmUserIds);
+
+    const channels = rawChannels.map((channel) => {
+      const isDirectMessage = channel.is_im === true;
+      const isGroupDm = channel.is_mpim === true;
+      const kind = isDirectMessage ? 'dm' : isGroupDm ? 'group_dm' : 'channel';
+      const dmName =
+        isDirectMessage && channel.user
+          ? userNames.get(channel.user) ?? 'Direct message'
+          : null;
+
+      return {
+        id: channel.id,
+        name: dmName ?? channel.name ?? 'conversation',
+        memberCount: channel.num_members ?? (isDirectMessage ? 2 : 0),
+        isPrivate: channel.is_private === true || isDirectMessage || isGroupDm,
+        kind,
+      } satisfies SlackChannel;
+    });
+
+    return this.sortConversations(channels);
+  }
+
+  private sortConversations(channels: SlackChannel[]): SlackChannel[] {
+    const sorter = (a: SlackChannel, b: SlackChannel) => a.name.localeCompare(b.name);
+
+    const workspaceChannels = channels
+      .filter((channel) => channel.kind === 'channel')
+      .sort(sorter);
+    const directMessages = channels
+      .filter((channel) => channel.kind === 'dm' || channel.kind === 'group_dm')
+      .sort(sorter);
+
+    return [...workspaceChannels, ...directMessages];
   }
 
   private async fetchChannelMessages(
@@ -637,13 +756,73 @@ export class SlackService {
     return names;
   }
 
-  private async getValidAccessToken(connection: {
+  private async getPostingAccessToken(connection: {
     encryptedAccessToken: string | null;
+    encryptedUserAccessToken?: string | null;
   }): Promise<string> {
-    if (!connection.encryptedAccessToken) {
-      throw new BadRequestException('Slack access token is missing');
+    return this.getValidAccessToken(connection);
+  }
+
+  private async postSlackMessage(
+    accessToken: string,
+    channelId: string,
+    text: string,
+  ): Promise<SlackMessage> {
+    const response = await fetch('https://slack.com/api/chat.postMessage', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ channel: channelId, text }),
+    });
+
+    const data = (await response.json()) as SlackPostMessageResponse;
+    if (!data.ok) {
+      if (data.error === 'missing_scope') {
+        throw new BadRequestException(
+          'Slack is missing chat:write permission. Add chat:write to user token scopes, reinstall the app, then disconnect and reconnect here.',
+        );
+      }
+      if (data.error === 'not_in_channel') {
+        throw new BadRequestException(
+          'You cannot post in this channel from HelpDesk. Open it in Slack first or invite the app.',
+        );
+      }
+      throw new BadRequestException(data.error ?? 'Failed to send Slack message');
     }
 
-    return decrypt(connection.encryptedAccessToken, this.encryptionKey);
+    const userId = data.message?.user ?? null;
+    let userName: string | null = null;
+    if (userId) {
+      const names = await this.resolveUserNames(accessToken, [userId]);
+      userName = names.get(userId) ?? null;
+    }
+
+    const ts = data.ts ?? data.message?.ts;
+    return {
+      id: ts ?? `sent-${Date.now()}`,
+      text: data.message?.text ?? text,
+      userId,
+      userName: userName ?? 'You',
+      timestamp: ts
+        ? new Date(Number.parseFloat(ts) * 1000).toISOString()
+        : new Date().toISOString(),
+    };
+  }
+
+  private async getValidAccessToken(connection: {
+    encryptedAccessToken: string | null;
+    encryptedUserAccessToken?: string | null;
+  }): Promise<string> {
+    if (connection.encryptedUserAccessToken) {
+      return decrypt(connection.encryptedUserAccessToken, this.encryptionKey);
+    }
+
+    if (connection.encryptedAccessToken) {
+      return decrypt(connection.encryptedAccessToken, this.encryptionKey);
+    }
+
+    throw new BadRequestException('Slack access token is missing');
   }
 }

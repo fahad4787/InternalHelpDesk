@@ -2,13 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { SlackChannelList } from '@/components/shared/slack-channel-list';
-import { SlackChannelMessages } from '@/components/shared/slack-channel-messages';
 import { SlackConnectionCard } from '@/components/shared/slack-connection-card';
+import { SlackMessenger } from '@/components/shared/slack-messenger';
 import { SlackPreferencesCard } from '@/components/shared/slack-preferences-card';
 import { SlackProfileCard } from '@/components/shared/slack-profile-card';
 import { Button } from '@/components/ui/button';
@@ -19,12 +18,36 @@ import {
   slackService,
 } from '@/services/slack.service';
 
+function pickDefaultChannel(
+  channels: SlackChannel[],
+  showChannels: boolean,
+  showDirectMessages: boolean,
+): SlackChannel | null {
+  if (channels.length === 0) return null;
+
+  if (showChannels) {
+    const firstChannel = channels.find((channel) => channel.kind === 'channel');
+    if (firstChannel) return firstChannel;
+  }
+
+  if (showDirectMessages) {
+    const firstDm = channels.find(
+      (channel) => channel.kind === 'dm' || channel.kind === 'group_dm',
+    );
+    if (firstDm) return firstDm;
+  }
+
+  return channels[0];
+}
+
 export default function SlackIntegrationPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<SlackChannel | null>(null);
+  const [messageInput, setMessageInput] = useState('');
+  const [sendError, setSendError] = useState('');
 
   const { data: statusData, isLoading: statusLoading } = useQuery({
     queryKey: ['slack-status'],
@@ -35,12 +58,15 @@ export default function SlackIntegrationPage() {
   const isConnected = status?.connected === true;
   const preferences = status?.preferences ?? DEFAULT_SLACK_PREFERENCES;
   const showProfile = isConnected && preferences.showProfile === true;
-  const showChannels = isConnected && preferences.showChannels === true;
+  const showChannelsPref = isConnected && preferences.showChannels === true;
+  const showDirectMessagesPref =
+    isConnected && preferences.showDirectMessages === true;
+  const showMessenger = showChannelsPref || showDirectMessagesPref;
 
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ['slack-profile'],
     queryFn: () => slackService.getProfile(),
-    enabled: showProfile,
+    enabled: isConnected && (showProfile || showMessenger),
   });
 
   const {
@@ -50,12 +76,19 @@ export default function SlackIntegrationPage() {
   } = useQuery({
     queryKey: ['slack-channels'],
     queryFn: () => slackService.getChannels(),
-    enabled: showChannels,
+    enabled: showMessenger,
   });
 
   const profile = profileData?.data?.profile ?? null;
-  const channels = channelsData?.data?.channels ?? [];
+  const allChannels = channelsData?.data?.channels ?? [];
   const channelsLoadError = channelsError ? getErrorMessage(channelsError) : null;
+
+  const visibleChannels = useMemo(() => {
+    return allChannels.filter((channel) => {
+      if (channel.kind === 'channel') return showChannelsPref;
+      return showDirectMessagesPref;
+    });
+  }, [allChannels, showChannelsPref, showDirectMessagesPref]);
 
   const {
     data: messagesData,
@@ -64,25 +97,52 @@ export default function SlackIntegrationPage() {
   } = useQuery({
     queryKey: ['slack-messages', selectedChannel?.id],
     queryFn: () => slackService.getChannelMessages(selectedChannel!.id),
-    enabled: showChannels && selectedChannel != null,
+    enabled: showMessenger && selectedChannel != null,
   });
 
   const messages = messagesData?.data?.messages ?? [];
   const messagesLoadError = messagesError ? getErrorMessage(messagesError) : null;
 
+  const sendMutation = useMutation({
+    mutationFn: (text: string) =>
+      slackService.sendChannelMessage(selectedChannel!.id, text),
+    onMutate: () => {
+      setSendError('');
+      setMessageInput('');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['slack-messages', selectedChannel?.id],
+      });
+    },
+    onError: (err, text) => {
+      setMessageInput(text);
+      setSendError(getErrorMessage(err));
+    },
+  });
+
   useEffect(() => {
-    if (channels.length === 0) {
+    if (visibleChannels.length === 0) {
       setSelectedChannel(null);
       return;
     }
 
     setSelectedChannel((current) => {
-      if (current && channels.some((channel) => channel.id === current.id)) {
+      if (current && visibleChannels.some((channel) => channel.id === current.id)) {
         return current;
       }
-      return channels[0];
+      return pickDefaultChannel(
+        visibleChannels,
+        showChannelsPref,
+        showDirectMessagesPref,
+      );
     });
-  }, [channels]);
+  }, [visibleChannels, showChannelsPref, showDirectMessagesPref]);
+
+  useEffect(() => {
+    setMessageInput('');
+    setSendError('');
+  }, [selectedChannel?.id]);
 
   useEffect(() => {
     const connected = searchParams.get('connected');
@@ -142,6 +202,12 @@ export default function SlackIntegrationPage() {
     }
   };
 
+  const handleSend = () => {
+    const text = messageInput.trim();
+    if (!text || !selectedChannel || sendMutation.isPending) return;
+    sendMutation.mutate(text);
+  };
+
   const isPending =
     connectMockMutation.isPending || disconnectMutation.isPending;
   const connectError =
@@ -153,7 +219,7 @@ export default function SlackIntegrationPage() {
     <PageContainer
       title="Slack Integration"
       description="Connect Slack for notifications and channel access"
-      action={
+      actions={
         <Link href="/integrations">
           <Button variant="outline" size="sm">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -182,27 +248,33 @@ export default function SlackIntegrationPage() {
           <SlackProfileCard profile={profile} isLoading={profileLoading} />
         )}
 
-        {showChannels && (
+        {showMessenger && (
           <>
             {channelsLoadError && (
               <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {channelsLoadError}
               </p>
             )}
-            <SlackChannelList
-              channels={channels}
-              isLoading={channelsLoading}
-              selectedChannelId={selectedChannel?.id ?? null}
+            <SlackMessenger
+              channels={visibleChannels}
+              channelsLoading={channelsLoading}
+              selectedChannel={selectedChannel}
               onSelectChannel={setSelectedChannel}
+              showChannels={showChannelsPref}
+              showDirectMessages={showDirectMessagesPref}
+              messages={messages}
+              messagesLoading={messagesLoading}
+              messagesError={messagesLoadError}
+              currentUserId={profile?.userId ?? null}
+              input={messageInput}
+              onInputChange={(value) => {
+                setMessageInput(value);
+                if (sendError) setSendError('');
+              }}
+              onSend={handleSend}
+              isSending={sendMutation.isPending}
+              sendError={sendError}
             />
-            {selectedChannel && (
-              <SlackChannelMessages
-                channelName={selectedChannel.name}
-                messages={messages}
-                isLoading={messagesLoading}
-                error={messagesLoadError}
-              />
-            )}
           </>
         )}
       </div>

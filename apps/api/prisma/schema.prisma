@@ -418,9 +418,10 @@ model SlackConnection {
   slackEmail           String?
   teamId               String?
   teamName             String?
-  botUserId            String?
-  encryptedAccessToken String?
-  status               IntegrationStatus @default(NOT_CONNECTED)
+  botUserId                 String?
+  encryptedAccessToken      String?
+  encryptedUserAccessToken  String?
+  status                    IntegrationStatus @default(NOT_CONNECTED)
   preferences          Json?
   lastSyncedAt         DateTime?
   createdAt            DateTime          @default(now())

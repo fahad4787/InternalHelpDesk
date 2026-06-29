@@ -1,8 +1,11 @@
+export type SlackConversationKind = 'channel' | 'dm' | 'group_dm';
+
 export interface SlackChannel {
   id: string;
   name: string;
   memberCount: number;
   isPrivate: boolean;
+  kind: SlackConversationKind;
 }
 
 export interface SlackMessage {

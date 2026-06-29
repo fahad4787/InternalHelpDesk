@@ -16,6 +16,7 @@ import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../../../common/types/api-response.type';
 import { UpdateSlackPreferencesDto } from './dto/update-slack-preferences.dto';
+import { SendSlackMessageDto } from './dto/send-slack-message.dto';
 import { SlackService } from './slack.service';
 
 @Controller('integrations/slack')
@@ -118,6 +119,16 @@ export class SlackController {
     @Param('channelId') channelId: string,
   ) {
     return this.slackService.getChannelMessages(user, channelId);
+  }
+
+  @Post('channels/:channelId/messages')
+  @UseGuards(JwtAuthGuard)
+  sendChannelMessage(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('channelId') channelId: string,
+    @Body() dto: SendSlackMessageDto,
+  ) {
+    return this.slackService.sendChannelMessage(user, channelId, dto.text);
   }
 
   @Patch('preferences')
