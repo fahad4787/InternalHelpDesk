@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import {
   BookOpen,
   Calendar,
@@ -8,11 +9,15 @@ import {
   HelpCircle,
   Mail,
   MessageSquare,
+  Plus,
   Users,
+  Video,
 } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { EmptyState } from '@/components/shared/empty-state';
 import { MeetEventList } from '@/components/shared/meet-event-list';
+import { ZoomMeetingList } from '@/components/shared/zoom-meeting-list';
+import { ScheduleZoomMeetingModal } from '@/components/shared/schedule-zoom-meeting-modal';
 import { GoogleDriveList, GoToDriveButton } from '@/components/shared/google-drive-list';
 import { GoogleGmailList, GoToGmailButton } from '@/components/shared/google-gmail-list';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +27,7 @@ import { useGoogleWidgets } from '@/hooks/use-google-widgets';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CreateMeetButton } from '@/components/shared/create-meet-button';
 import { dashboardService } from '@/services/dashboard.service';
+import { zoomService } from '@/services/zoom.service';
 
 const statCards = [
   { key: 'totalUsers', label: 'Total Users', icon: Users, color: 'text-cyan-600 bg-cyan-50 border-cyan-200' },
@@ -32,6 +38,8 @@ const statCards = [
 
 export default function DashboardPage() {
   const queryClient = useQueryClient();
+  const [scheduleZoomOpen, setScheduleZoomOpen] = useState(false);
+
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => dashboardService.getStats(),
@@ -50,13 +58,42 @@ export default function DashboardPage() {
     gmailLoading,
   } = useGoogleWidgets();
 
+  const { data: zoomStatusData } = useQuery({
+    queryKey: ['zoom-status'],
+    queryFn: () => zoomService.getStatus(),
+  });
+
+  const zoomStatus = zoomStatusData?.data;
+  const isZoomConnected = zoomStatus?.connected === true;
+  const showZoomMeetings =
+    isZoomConnected && zoomStatus?.preferences?.showUpcomingMeetings === true;
+
+  const { data: zoomMeetingsData, isLoading: zoomMeetingsLoading } = useQuery({
+    queryKey: ['zoom-meetings'],
+    queryFn: () => zoomService.getMeetings(),
+    enabled: showZoomMeetings,
+  });
+
   const stats = data?.data;
+  const zoomMeetings = zoomMeetingsData?.data?.meetings ?? [];
 
   return (
     <PageContainer
       title="Dashboard"
       description="Overview of your internal helpdesk activity"
+      actions={
+        isZoomConnected ? (
+          <Button onClick={() => setScheduleZoomOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Schedule New Meeting
+          </Button>
+        ) : undefined
+      }
     >
+      <ScheduleZoomMeetingModal
+        open={scheduleZoomOpen}
+        onClose={() => setScheduleZoomOpen(false)}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((card) => {
           const Icon = card.icon;
@@ -127,6 +164,64 @@ export default function DashboardPage() {
                   <Link href="/integrations/google">
                     <Button variant="outline" size="sm">
                       Manage Google
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {showZoomMeetings && (
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-brand-light/40 to-white pb-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand-muted bg-brand-light">
+                    <Video className="h-5 w-5 text-brand" />
+                  </div>
+                  Upcoming Zoom Meetings
+                </CardTitle>
+                <CardDescription className="mt-1.5">
+                  Scheduled meetings from your connected Zoom account
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                {zoomMeetings.length > 0 && (
+                  <Badge variant="success">
+                    {zoomMeetings.length} meeting{zoomMeetings.length === 1 ? '' : 's'}
+                  </Badge>
+                )}
+                <Button size="sm" onClick={() => setScheduleZoomOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Schedule New Meeting
+                </Button>
+                {zoomStatus?.zoomEmail && (
+                  <span className="text-xs text-slate-500">{zoomStatus.zoomEmail}</span>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {zoomMeetingsLoading ? (
+              <p className="text-sm text-slate-500">Loading meetings...</p>
+            ) : zoomMeetings.length === 0 ? (
+              <EmptyState
+                icon={Video}
+                title="No upcoming Zoom meetings"
+                description="Schedule a Zoom meeting to see it here"
+                actionLabel="Schedule New Meeting"
+                onAction={() => setScheduleZoomOpen(true)}
+              />
+            ) : (
+              <>
+                <ZoomMeetingList meetings={zoomMeetings} />
+                <div className="pt-2">
+                  <Link href="/integrations/zoom">
+                    <Button variant="outline" size="sm">
+                      Manage Zoom
                     </Button>
                   </Link>
                 </div>

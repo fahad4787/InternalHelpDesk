@@ -9,3 +9,6 @@ uploads/
 .DS_Store
 coverage/
 .turbo/
+bin/
+.zoom-tunnel.log
+.zoom-tunnel.url

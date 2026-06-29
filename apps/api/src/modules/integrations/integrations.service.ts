@@ -10,11 +10,20 @@ export class IntegrationsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(user: AuthenticatedUser) {
-    const [connected, googleConnection] = await Promise.all([
+    const [connected, googleConnection, zoomConnection, jiraConnection, slackConnection] = await Promise.all([
       this.prisma.integration.findMany({
         where: { companyId: user.companyId },
       }),
       this.prisma.googleCalendarConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.zoomConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.jiraConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.slackConnection.findUnique({
         where: { userId: user.id },
       }),
     ]);
@@ -35,6 +44,42 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: googleConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.ZOOM) {
+        const userConnected =
+          zoomConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: zoomConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.JIRA) {
+        const userConnected =
+          jiraConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: jiraConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.SLACK) {
+        const userConnected =
+          slackConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: slackConnection?.updatedAt ?? null,
         };
       }
 

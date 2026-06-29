@@ -1,9 +1,16 @@
+import tls from 'node:tls';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+
+try {
+  tls.setDefaultCACertificates(tls.getCACertificates('system'));
+} catch {
+  // Ignore on Node versions without system CA certificate support.
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,7 +23,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: frontendUrl,
+    origin: [frontendUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
   });
 

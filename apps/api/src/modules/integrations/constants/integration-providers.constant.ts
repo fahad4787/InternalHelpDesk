@@ -8,6 +8,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'google',
   },
   {
+    provider: IntegrationProvider.ZOOM,
+    name: 'Zoom',
+    description: 'Profile, calendar, and meetings from your linked Zoom account',
+    category: 'communication',
+  },
+  {
     provider: IntegrationProvider.WORKDAY,
     name: 'Workday',
     description: 'Sync help articles and SOPs from Workday',
