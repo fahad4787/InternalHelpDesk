@@ -8,6 +8,19 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { integrationsService } from '@/services/integrations.service';
 
+const HIDDEN_PROVIDERS = new Set(['GOOGLE_DRIVE', 'GMAIL', 'GOOGLE_MEET']);
+
+const DISPLAY_ORDER = [
+  'GOOGLE_CALENDAR',
+  'WORKDAY',
+  'JIRA',
+  'SLACK',
+  'ZOOM',
+  'MICROSOFT_TEAMS',
+  'OUTLOOK',
+  'SERVICENOW',
+];
+
 const INTEGRATION_ROUTES: Record<string, string> = {
   WORKDAY: '/integrations/workday',
   GOOGLE_CALENDAR: '/integrations/google',
@@ -23,16 +36,13 @@ export default function IntegrationsPage() {
   });
 
   const integrations = [...(data?.data ?? [])]
-    .filter((integration) => integration.provider !== 'GOOGLE_DRIVE')
+    .filter((integration) => !HIDDEN_PROVIDERS.has(integration.provider))
     .sort((a, b) => {
-      const aConnected = a.status === 'CONNECTED';
-      const bConnected = b.status === 'CONNECTED';
-
-      if (aConnected !== bConnected) {
-        return aConnected ? -1 : 1;
-      }
-
-      return a.name.localeCompare(b.name);
+      const aIndex = DISPLAY_ORDER.indexOf(a.provider);
+      const bIndex = DISPLAY_ORDER.indexOf(b.provider);
+      const aOrder = aIndex === -1 ? DISPLAY_ORDER.length : aIndex;
+      const bOrder = bIndex === -1 ? DISPLAY_ORDER.length : bIndex;
+      return aOrder - bOrder;
     });
 
   return (

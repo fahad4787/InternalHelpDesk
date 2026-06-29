@@ -17,7 +17,6 @@ import { useState } from 'react';
 const schema = z.object({
   email: z.string().email('Invalid email'),
   password: z.string().min(1, 'Password is required'),
-  companySlug: z.string().min(1, 'Company slug is required'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -45,9 +44,6 @@ export default function LoginPage() {
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to your company workspace">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <FormField label="Company Slug" error={errors.companySlug?.message}>
-          <Input placeholder="acme-corp" {...register('companySlug')} />
-        </FormField>
         <FormField label="Email" error={errors.email?.message}>
           <Input type="email" placeholder="you@company.com" {...register('email')} />
         </FormField>

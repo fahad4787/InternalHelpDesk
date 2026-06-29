@@ -69,25 +69,28 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const company = await this.prisma.company.findUnique({
-      where: { slug: dto.companySlug },
-    });
-    if (!company) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { email_companyId: { email: dto.email, companyId: company.id } },
+    const users = await this.prisma.user.findMany({
+      where: { email: dto.email, isActive: true },
+      include: { company: true },
+      orderBy: { updatedAt: 'desc' },
     });
 
-    if (!user || !user.isActive) {
+    if (users.length === 0) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) {
+    const matches: typeof users = [];
+    for (const user of users) {
+      const valid = await bcrypt.compare(dto.password, user.passwordHash);
+      if (valid) matches.push(user);
+    }
+
+    if (matches.length === 0) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
+    const user = matches[0];
+    const company = user.company;
 
     const token = this.generateToken(user);
 
@@ -205,18 +208,8 @@ export class AuthService {
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
-    const company = await this.prisma.company.findUnique({
-      where: { slug: dto.companySlug },
-    });
-    if (!company) {
-      return successResponse(
-        { message: 'If the account exists, a reset link will be sent' },
-        'Password reset initiated',
-      );
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { email_companyId: { email: dto.email, companyId: company.id } },
+    const user = await this.prisma.user.findFirst({
+      where: { email: dto.email, isActive: true },
     });
 
     if (user) {

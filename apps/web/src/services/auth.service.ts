@@ -2,7 +2,7 @@ import { apiGet, apiPost } from '@/lib/api-client';
 import { AuthResponse, User } from '@/types/api.types';
 
 export const authService = {
-  login: (data: { email: string; password: string; companySlug: string }) =>
+  login: (data: { email: string; password: string }) =>
     apiPost<AuthResponse>('/auth/login', data),
 
   register: (data: {
@@ -19,6 +19,6 @@ export const authService = {
   inviteUser: (data: { email: string; role?: string }) =>
     apiPost('/auth/invite', data),
 
-  forgotPassword: (data: { email: string; companySlug: string }) =>
+  forgotPassword: (data: { email: string }) =>
     apiPost('/auth/forgot-password', data),
 };

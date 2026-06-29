@@ -14,7 +14,6 @@ import { getErrorMessage } from '@/lib/api-client';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
-  companySlug: z.string().min(1, 'Company slug is required'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,9 +39,6 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout title="Reset password" subtitle="We'll send you a reset link if the account exists">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <FormField label="Company Slug" error={errors.companySlug?.message}>
-          <Input placeholder="acme-corp" {...register('companySlug')} />
-        </FormField>
         <FormField label="Email" error={errors.email?.message}>
           <Input type="email" placeholder="you@company.com" {...register('email')} />
         </FormField>
