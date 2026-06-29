@@ -14,6 +14,7 @@ const INTEGRATION_ROUTES: Record<string, string> = {
   ZOOM: '/integrations/zoom',
   JIRA: '/integrations/jira',
   SLACK: '/integrations/slack',
+  MICROSOFT_TEAMS: '/integrations/teams',
 };
 
 export default function IntegrationsPage() {

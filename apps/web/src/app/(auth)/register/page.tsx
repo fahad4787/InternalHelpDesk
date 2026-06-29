@@ -10,6 +10,7 @@ import { AuthLayout } from '@/components/layout/auth-layout';
 import { FormField } from '@/components/forms/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { useAuth } from '@/hooks/use-auth';
 import { authService } from '@/services/auth.service';
 import { getErrorMessage } from '@/lib/api-client';
@@ -65,7 +66,7 @@ export default function RegisterPage() {
           <Input type="email" placeholder="admin@company.com" {...register('email')} />
         </FormField>
         <FormField label="Password" error={errors.password?.message}>
-          <Input type="password" placeholder="Min. 8 characters" {...register('password')} />
+          <PasswordInput placeholder="Min. 8 characters" {...register('password')} />
         </FormField>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>

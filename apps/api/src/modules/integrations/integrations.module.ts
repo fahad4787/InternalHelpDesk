@@ -11,18 +11,21 @@ import { JiraModule } from './jira/jira.module';
 import { JiraController } from './jira/jira.controller';
 import { SlackModule } from './slack/slack.module';
 import { SlackController } from './slack/slack.controller';
+import { TeamsModule } from './teams/teams.module';
+import { TeamsController } from './teams/teams.controller';
 
 @Module({
-  imports: [WorkdayModule, GoogleCalendarModule, ZoomModule, JiraModule, SlackModule],
+  imports: [WorkdayModule, GoogleCalendarModule, ZoomModule, JiraModule, SlackModule, TeamsModule],
   controllers: [
     WorkdayController,
     GoogleCalendarController,
     ZoomController,
     JiraController,
     SlackController,
+    TeamsController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
-  exports: [IntegrationsService, WorkdayModule, GoogleCalendarModule, ZoomModule, JiraModule, SlackModule],
+  exports: [IntegrationsService, WorkdayModule, GoogleCalendarModule, ZoomModule, JiraModule, SlackModule, TeamsModule],
 })
 export class IntegrationsModule {}
