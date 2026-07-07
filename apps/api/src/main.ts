@@ -66,6 +66,15 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
+  const server = app.getHttpAdapter();
+  server.get('/', (_req, res) => {
+    res.status(200).json({
+      success: true,
+      message: 'Workhub API is running',
+      data: { health: '/api/health' },
+    });
+  });
+
   await app.listen(port, host);
   console.log(`API running on http://${host}:${port}/api`);
 
