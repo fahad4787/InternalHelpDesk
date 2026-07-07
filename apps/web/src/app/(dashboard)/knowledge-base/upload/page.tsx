@@ -40,7 +40,7 @@ export default function UploadDocumentPage() {
             <FormField label="Document Title">
               <Input value={title} onChange={(e) => setTitle(e.target.value)} />
             </FormField>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted">
               Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)
             </p>
             {error && <p className="text-sm text-red-600">{error}</p>}

@@ -133,6 +133,7 @@ model User {
   zoomConnection            ZoomConnection?
   jiraConnection            JiraConnection?
   slackConnection           SlackConnection?
+  outlookConnection         OutlookConnection?
 
   @@unique([email, companyId])
   @@index([companyId])
@@ -199,6 +200,7 @@ model Document {
 
   @@unique([companyId, source, externalId])
   @@index([companyId])
+  @@index([companyId, status])
   @@index([status])
   @@index([source])
 }
@@ -273,6 +275,7 @@ model Ticket {
 
   @@unique([companyId, ticketNumber])
   @@index([companyId])
+  @@index([companyId, status])
   @@index([status])
   @@index([category])
   @@index([createdById])
@@ -399,6 +402,22 @@ model JiraConnection {
   jiraAccountId         String?
   jiraCloudId           String?
   jiraSiteUrl           String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OutlookConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  outlookEmail          String?
   encryptedAccessToken  String?
   encryptedRefreshToken String?
   tokenExpiresAt        DateTime?

@@ -1,22 +1,10 @@
 import { format } from 'date-fns';
-import { ExternalLink, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { GoogleGmailMessage } from '@/services/google-calendar.service';
 
 export const GMAIL_INBOX_URL = 'https://mail.google.com/mail/u/0/#inbox';
 const MAX_MESSAGES = 10;
-
-export function GoToGmailButton() {
-  return (
-    <a href={GMAIL_INBOX_URL} target="_blank" rel="noopener noreferrer">
-      <Button size="sm">
-        <Mail className="mr-2 h-4 w-4" />
-        Go to Gmail
-      </Button>
-    </a>
-  );
-}
 
 interface GoogleGmailListProps {
   messages: GoogleGmailMessage[];
@@ -33,7 +21,7 @@ export function GoogleGmailList({ messages }: GoogleGmailListProps) {
           className={`flex items-start justify-between gap-4 rounded-2xl border bg-white p-4 shadow-sm transition-colors hover:border-brand-muted hover:shadow-md ${
             message.isUnread
               ? 'border-brand-muted/80 bg-brand-light/20'
-              : 'border-slate-200'
+              : 'border-border-warm'
           }`}
         >
           <div className="min-w-0 flex-1">
@@ -41,8 +29,8 @@ export function GoogleGmailList({ messages }: GoogleGmailListProps) {
               <p
                 className={`truncate text-sm ${
                   message.isUnread
-                    ? 'font-semibold text-slate-900'
-                    : 'font-medium text-slate-800'
+                    ? 'font-semibold text-ink'
+                    : 'font-medium text-ink'
                 }`}
               >
                 {message.from}
@@ -51,15 +39,15 @@ export function GoogleGmailList({ messages }: GoogleGmailListProps) {
             </div>
             <p
               className={`mt-1 truncate text-sm ${
-                message.isUnread ? 'font-semibold text-slate-900' : 'text-slate-800'
+                message.isUnread ? 'font-semibold text-ink' : 'text-ink'
               }`}
             >
               {message.subject}
             </p>
-            <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+            <p className="mt-1 line-clamp-2 text-sm text-muted">
               {message.snippet}
             </p>
-            <p className="mt-2 text-xs text-slate-400">
+            <p className="mt-2 text-xs text-muted">
               {format(new Date(message.receivedAt), 'MMM d, yyyy · h:mm a')}
             </p>
           </div>

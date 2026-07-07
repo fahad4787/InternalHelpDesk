@@ -6,6 +6,7 @@ import { Hash, MessageCircle, Send, UsersRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { SlackChannel, SlackMessage } from '@/services/slack.service';
+import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { cn } from '@/lib/utils';
 
 interface SlackChatPanelProps {
@@ -62,8 +63,8 @@ export function SlackChatPanel({
         <div className="rounded-full border border-brand-muted bg-brand-light p-5">
           <MessageCircle className="h-10 w-10 text-brand" />
         </div>
-        <p className="text-sm font-medium text-slate-900">Select a conversation</p>
-        <p className="max-w-sm text-sm text-slate-500">
+        <p className="text-sm font-medium text-ink">Select a conversation</p>
+        <p className="max-w-sm text-sm text-muted">
           Choose a channel or direct message from the sidebar to view and send messages.
         </p>
       </div>
@@ -74,13 +75,13 @@ export function SlackChatPanel({
 
   return (
     <div className="flex min-w-0 flex-1 flex-col bg-white">
-      <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-3.5">
+      <div className="flex items-center gap-3 border-b border-border-warm px-5 py-3.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand-accent">
           <ChannelIcon channel={channel} />
         </div>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-900">{title}</p>
-          <p className="text-xs text-slate-500">
+          <p className="truncate text-sm font-semibold text-ink">{title}</p>
+          <p className="text-xs text-muted">
             {channel.kind === 'dm'
               ? 'Direct message'
               : channel.kind === 'group_dm'
@@ -94,14 +95,14 @@ export function SlackChatPanel({
 
       <div className="flex-1 space-y-3 overflow-y-auto p-5">
         {isLoading ? (
-          <p className="text-sm text-slate-500">Loading messages...</p>
+          <WidgetContentSkeleton lines={5} />
         ) : error ? (
           <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </p>
         ) : messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-sm text-slate-500">No messages yet. Start the conversation below.</p>
+            <p className="text-sm text-muted">No messages yet. Start the conversation below.</p>
           </div>
         ) : (
           messages.map((message) => {
@@ -117,7 +118,7 @@ export function SlackChatPanel({
                   'max-w-[85%] rounded-2xl px-4 py-3 text-sm',
                   isOwn
                     ? 'ml-auto rounded-br-sm bg-brand text-white shadow-md shadow-brand/20'
-                    : 'rounded-bl-sm border border-slate-200 bg-slate-50 text-slate-700',
+                    : 'rounded-bl-sm border border-border-warm bg-canvas text-ink',
                 )}
               >
                 {!isOwn && (
@@ -129,7 +130,7 @@ export function SlackChatPanel({
                 <p
                   className={cn(
                     'mt-1.5 text-[11px]',
-                    isOwn ? 'text-white/70' : 'text-slate-400',
+                    isOwn ? 'text-white/70' : 'text-muted',
                   )}
                 >
                   {format(new Date(message.timestamp), 'MMM d · h:mm a')}
@@ -141,7 +142,7 @@ export function SlackChatPanel({
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-slate-200 p-4">
+      <div className="border-t border-border-warm p-4">
         {sendError && (
           <p className="mb-2 text-sm text-red-600">{sendError}</p>
         )}

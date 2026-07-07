@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-const buttonVariants = cva(
+export const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
   {
     variants: {
@@ -10,15 +10,12 @@ const buttonVariants = cva(
         default:
           'bg-brand text-white shadow-md shadow-brand/25 hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/30',
         secondary:
-          'bg-slate-100 text-slate-800 border border-slate-200 hover:bg-slate-200 hover:border-slate-300',
+          'bg-canvas text-ink border border-border-warm hover:bg-white hover:border-border-warm',
         outline:
-          'border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-brand hover:bg-brand-light hover:text-brand',
-        ghost:
-          'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-        destructive:
-          'bg-red-600 text-white shadow-sm hover:bg-red-700',
-        link:
-          'text-brand underline-offset-4 hover:text-brand-hover hover:underline p-0 h-auto shadow-none',
+          'border border-border-warm bg-white text-ink shadow-sm hover:border-brand hover:bg-brand-light hover:text-brand',
+        ghost: 'text-muted hover:bg-canvas hover:text-ink',
+        destructive: 'bg-red-600 text-white shadow-sm hover:bg-red-700',
+        link: 'text-brand underline-offset-4 hover:text-brand-hover hover:underline p-0 h-auto shadow-none',
       },
       size: {
         default: 'h-10 px-5 py-2',

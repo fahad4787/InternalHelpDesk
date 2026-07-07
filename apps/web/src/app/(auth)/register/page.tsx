@@ -72,7 +72,7 @@ export default function RegisterPage() {
           {isSubmitting ? 'Creating...' : 'Create Company'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-muted">
         Already have an account?{' '}
         <Link href="/login" className="text-brand hover:text-brand-accent hover:underline">
           Sign in

@@ -69,7 +69,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="flex flex-col gap-4 border-b border-slate-100 bg-gradient-to-r from-brand-light/40 to-white pb-4 sm:flex-row sm:items-center sm:justify-between">
+      <CardHeader className="flex flex-col gap-4 widget-card-header pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle className="text-lg">Zoom Calendar</CardTitle>
           <CardDescription className="mt-1">
@@ -78,7 +78,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
           </CardDescription>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-lg border border-slate-200 bg-white">
+          <div className="flex items-center rounded-lg border border-border-warm bg-white">
             <Button
               type="button"
               variant="ghost"
@@ -88,7 +88,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="min-w-36 px-2 text-center text-sm font-semibold text-slate-900">
+            <span className="min-w-36 px-2 text-center text-sm font-semibold text-ink">
               {format(currentMonth, 'MMMM yyyy')}
             </span>
             <Button
@@ -114,7 +114,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
           {WEEKDAY_LABELS.map((label) => (
             <div
               key={label}
-              className="text-center text-xs font-semibold uppercase tracking-wide text-slate-500"
+              className="text-center text-xs font-semibold uppercase tracking-wide text-muted"
             >
               {label}
             </div>
@@ -135,8 +135,8 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
                   inCurrentMonth
                     ? isToday
                       ? 'border-brand-muted bg-brand-light/20'
-                      : 'border-slate-200 bg-white'
-                    : 'border-slate-100 bg-slate-50/70'
+                      : 'border-border-warm bg-white'
+                    : 'border-border-warm bg-canvas/70'
                 }`}
               >
                 <div className="mb-2 flex items-center justify-between">
@@ -145,8 +145,8 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
                       inCurrentMonth
                         ? isToday
                           ? 'text-brand'
-                          : 'text-slate-900'
-                        : 'text-slate-400'
+                          : 'text-ink'
+                        : 'text-muted'
                     }`}
                   >
                     {format(day, 'd')}
@@ -166,7 +166,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
                         className={`block rounded-md border px-2 py-1.5 text-left transition ${
                           past
                             ? 'border-red-200 bg-red-50 text-red-900 shadow-sm shadow-red-100 hover:border-red-300 hover:shadow-md hover:shadow-red-100'
-                            : 'border-brand-muted bg-white text-slate-900 shadow-sm hover:border-brand hover:shadow'
+                            : 'border-brand-muted bg-white text-ink shadow-sm hover:border-brand hover:shadow'
                         }`}
                       >
                         <p className="truncate text-[11px] font-semibold sm:text-xs">
@@ -174,7 +174,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
                         </p>
                         <p
                           className={`mt-0.5 text-[10px] sm:text-[11px] ${
-                            past ? 'text-red-700' : 'text-slate-500'
+                            past ? 'text-red-700' : 'text-muted'
                           }`}
                         >
                           {format(new Date(meeting.start), 'h:mm a')}
@@ -183,7 +183,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
                     );
                   })}
                   {dayMeetings.length > 3 && (
-                    <p className="text-center text-[10px] font-medium text-slate-500">
+                    <p className="text-center text-[10px] font-medium text-muted">
                       +{dayMeetings.length - 3} more
                     </p>
                   )}
@@ -193,7 +193,7 @@ export function ZoomMonthCalendar({ meetings, email }: ZoomMonthCalendarProps) {
           })}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted">
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded border border-brand-muted bg-white shadow-sm" />
             <span>Upcoming meetings</span>

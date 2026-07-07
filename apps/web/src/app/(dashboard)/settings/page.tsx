@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { PageContainer } from '@/components/shared/page-container';
+import { FormCardSkeleton } from '@/components/shared/loading-state';
 import { FormField } from '@/components/forms/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +49,15 @@ export default function SettingsPage() {
     onError: (err) => setError(getErrorMessage(err)),
   });
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading...</p>;
+  if (isLoading) {
+    return (
+      <PageContainer title="Settings" description="Manage your company profile">
+        <div className="mx-auto max-w-xl">
+          <FormCardSkeleton />
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer title="Settings" description="Manage your company profile">
@@ -68,10 +77,10 @@ export default function SettingsPage() {
               <FormField label="Description">
                 <Textarea {...register('description')} />
               </FormField>
-              <div className="text-sm text-slate-500">
+              <div className="text-sm text-muted">
                 Slug: <span className="font-mono">{company?.slug}</span>
               </div>
-              {message && <p className="text-sm text-emerald-600">{message}</p>}
+              {message && <p className="text-sm text-positive">{message}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
               <Button type="submit" disabled={updateMutation.isPending}>
                 {updateMutation.isPending ? 'Saving...' : 'Save Changes'}

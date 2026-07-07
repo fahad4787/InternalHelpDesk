@@ -10,7 +10,7 @@ export class IntegrationsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(user: AuthenticatedUser) {
-    const [connected, googleConnection, zoomConnection, jiraConnection, slackConnection] = await Promise.all([
+    const [connected, googleConnection, zoomConnection, jiraConnection, slackConnection, outlookConnection] = await Promise.all([
       this.prisma.integration.findMany({
         where: { companyId: user.companyId },
       }),
@@ -24,6 +24,9 @@ export class IntegrationsService {
         where: { userId: user.id },
       }),
       this.prisma.slackConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.outlookConnection.findUnique({
         where: { userId: user.id },
       }),
     ]);
@@ -80,6 +83,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: slackConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.OUTLOOK) {
+        const userConnected =
+          outlookConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: outlookConnection?.updatedAt ?? null,
         };
       }
 

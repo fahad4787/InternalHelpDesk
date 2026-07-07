@@ -33,10 +33,10 @@ function ToggleRow({
   onChange,
 }: ToggleRowProps) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border-warm bg-white p-4">
       <div>
-        <p className="font-medium text-slate-900">{label}</p>
-        <p className="mt-0.5 text-sm text-slate-500">{description}</p>
+        <p className="font-medium text-ink">{label}</p>
+        <p className="mt-0.5 text-sm text-muted">{description}</p>
       </div>
       <button
         type="button"
@@ -45,7 +45,7 @@ function ToggleRow({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-          checked ? 'bg-brand' : 'bg-slate-200'
+          checked ? 'bg-brand' : 'bg-border-warm'
         } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
       >
         <span

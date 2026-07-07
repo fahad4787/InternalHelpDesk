@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { FullPageLoader } from '@/components/shared/loading-state';
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -15,11 +16,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   }, [isAuthenticated, isLoading, router]);
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-      </div>
-    );
+    return <FullPageLoader />;
   }
 
   if (!isAuthenticated) return null;

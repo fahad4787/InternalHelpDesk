@@ -14,7 +14,7 @@ import { zoomService } from '@/services/zoom.service';
 const scheduleMeetingSchema = z.object({
   topic: z.string().min(1, 'Meeting topic is required').max(200),
   startTime: z.string().min(1, 'Start time is required'),
-  duration: z.coerce
+  duration: z
     .number()
     .min(15, 'Duration must be at least 15 minutes')
     .max(480, 'Duration cannot exceed 8 hours'),
@@ -122,7 +122,7 @@ export function ScheduleZoomMeetingModal({
             min={15}
             max={480}
             step={15}
-            {...register('duration')}
+            {...register('duration', { valueAsNumber: true })}
           />
         </FormField>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+import { TableSkeleton } from '@/components/shared/loading-state';
 
 export interface Column<T> {
   key: string;
@@ -18,22 +19,18 @@ interface DataTableProps<T> {
 
 export function DataTable<T>({ columns, data, keyExtractor, isLoading }: DataTableProps<T>) {
   if (isLoading) {
-    return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
-        Loading...
-      </div>
-    );
+    return <TableSkeleton rows={8} columns={columns.length || 4} />;
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border-warm bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
+          <tr className="border-b border-border-warm bg-canvas">
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`px-4 py-3 text-left font-medium text-slate-600 ${col.className ?? ''}`}
+                className={`px-4 py-3 text-left font-medium text-muted ${col.className ?? ''}`}
               >
                 {col.header}
               </th>
@@ -44,10 +41,10 @@ export function DataTable<T>({ columns, data, keyExtractor, isLoading }: DataTab
           {data.map((row) => (
             <tr
               key={keyExtractor(row)}
-              className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+              className="border-b border-border-warm/70 last:border-0 hover:bg-canvas/60"
             >
               {columns.map((col) => (
-                <td key={col.key} className={`px-4 py-3 text-slate-700 ${col.className ?? ''}`}>
+                <td key={col.key} className={`px-4 py-3 text-ink ${col.className ?? ''}`}>
                   {col.cell(row)}
                 </td>
               ))}

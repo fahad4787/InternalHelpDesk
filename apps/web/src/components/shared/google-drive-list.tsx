@@ -1,21 +1,9 @@
 import { format } from 'date-fns';
-import { ExternalLink, File, FileSpreadsheet, FileText, FolderOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ExternalLink, File, FileSpreadsheet, FileText } from 'lucide-react';
 import { GoogleDriveFile } from '@/services/google-calendar.service';
 
 export const GOOGLE_DRIVE_URL = 'https://drive.google.com/drive/my-drive';
 const MAX_FILES = 10;
-
-export function GoToDriveButton() {
-  return (
-    <a href={GOOGLE_DRIVE_URL} target="_blank" rel="noopener noreferrer">
-      <Button size="sm">
-        <FolderOpen className="mr-2 h-4 w-4" />
-        Go to Drive
-      </Button>
-    </a>
-  );
-}
 
 interface GoogleDriveListProps {
   files: GoogleDriveFile[];
@@ -35,7 +23,7 @@ function FileIcon({ mimeType }: { mimeType: string }) {
   if (mimeType.includes('pdf') || mimeType.includes('document')) {
     return <FileText className="h-5 w-5 text-brand" />;
   }
-  return <File className="h-5 w-5 text-slate-500" />;
+  return <File className="h-5 w-5 text-muted" />;
 }
 
 export function GoogleDriveList({ files }: GoogleDriveListProps) {
@@ -46,15 +34,15 @@ export function GoogleDriveList({ files }: GoogleDriveListProps) {
       {visibleFiles.map((file) => (
         <div
           key={file.id}
-          className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-brand-muted hover:shadow-md"
+          className="flex items-center justify-between rounded-2xl border border-border-warm bg-white p-4 shadow-sm transition-colors hover:border-brand-muted hover:shadow-md"
         >
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-warm bg-canvas">
               <FileIcon mimeType={file.mimeType} />
             </div>
             <div className="min-w-0">
-              <p className="truncate font-medium text-slate-900">{file.name}</p>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="truncate font-medium text-ink">{file.name}</p>
+              <p className="mt-0.5 text-xs text-muted">
                 {formatFileSize(file.size)} ·{' '}
                 {format(new Date(file.modifiedAt), 'MMM d, yyyy')}
               </p>

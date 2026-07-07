@@ -42,9 +42,9 @@ export function ToastContainer() {
           key={toast.id}
           className={cn(
             'rounded-xl border px-4 py-3 text-sm shadow-lg',
-            toast.type === 'success' && 'border-emerald-200 bg-emerald-50 text-emerald-800',
+            toast.type === 'success' && 'border-positive-muted bg-positive-light text-positive',
             toast.type === 'error' && 'border-red-200 bg-red-50 text-red-800',
-            toast.type === 'info' && 'border-slate-200 bg-white text-slate-700',
+            toast.type === 'info' && 'border-border-warm bg-white text-ink',
           )}
         >
           {toast.message}

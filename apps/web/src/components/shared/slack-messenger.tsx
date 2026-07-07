@@ -3,6 +3,7 @@
 import { SlackSidebar } from '@/components/shared/slack-sidebar';
 import { SlackChatPanel } from '@/components/shared/slack-chat-panel';
 import { SlackChannel, SlackMessage } from '@/services/slack.service';
+import { cn } from '@/lib/utils';
 
 interface SlackMessengerProps {
   channels: SlackChannel[];
@@ -20,6 +21,7 @@ interface SlackMessengerProps {
   onSend: () => void;
   isSending: boolean;
   sendError: string | null;
+  compact?: boolean;
 }
 
 export function SlackMessenger({
@@ -38,9 +40,15 @@ export function SlackMessenger({
   onSend,
   isSending,
   sendError,
+  compact = false,
 }: SlackMessengerProps) {
   return (
-    <div className="flex h-[calc(100vh-14rem)] min-h-[520px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div
+      className={cn(
+        'flex overflow-hidden rounded-2xl border border-border-warm bg-white shadow-sm',
+        compact ? 'h-[280px]' : 'h-[calc(100vh-14rem)] min-h-[520px]',
+      )}
+    >
       <SlackSidebar
         channels={channels}
         isLoading={channelsLoading}

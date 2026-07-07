@@ -13,7 +13,7 @@ interface JiraProfileCardProps {
 export function JiraProfileCard({ profile }: JiraProfileCardProps) {
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 bg-gradient-to-r from-brand-light/40 to-white pb-4">
+      <CardHeader className="flex flex-row items-center justify-between widget-card-header pb-4">
         <div>
           <CardTitle className="text-lg">Jira Profile</CardTitle>
           <CardDescription className="mt-1">
@@ -30,38 +30,38 @@ export function JiraProfileCard({ profile }: JiraProfileCardProps) {
         )}
       </CardHeader>
       <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
-        <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="flex items-start gap-3 rounded-xl border border-border-warm bg-white p-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
             <User className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm text-slate-500">Name</p>
-            <p className="font-semibold text-slate-900">
+            <p className="text-sm text-muted">Name</p>
+            <p className="font-semibold text-ink">
               {profile.displayName ?? 'Jira user'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="flex items-start gap-3 rounded-xl border border-border-warm bg-white p-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
             <Mail className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm text-slate-500">Email</p>
-            <p className="break-all font-semibold text-slate-900">
+            <p className="text-sm text-muted">Email</p>
+            <p className="break-all font-semibold text-ink">
               {profile.email ?? '—'}
             </p>
           </div>
         </div>
 
         {profile.siteName && (
-          <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:col-span-2">
+          <div className="flex items-start gap-3 rounded-xl border border-border-warm bg-white p-4 sm:col-span-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
               <Globe className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">Jira Site</p>
-              <p className="font-semibold text-slate-900">{profile.siteName}</p>
+              <p className="text-sm text-muted">Jira Site</p>
+              <p className="font-semibold text-ink">{profile.siteName}</p>
               {profile.siteUrl && (
                 <Badge variant="secondary" className="mt-2 font-mono text-xs">
                   {profile.siteUrl}

@@ -1,9 +1,14 @@
+'use client';
+
 import { format } from 'date-fns';
-import { CheckCircle2, Hash, Mail, Unplug } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { CheckCircle2, Mail, Unplug, User } from 'lucide-react';
+import { IntegrationIcon } from '@/components/shared/integration-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { SlackStatus } from '@/services/slack.service';
+import { ConnectionCardSkeleton } from '@/components/shared/loading-state';
+import { SlackStatus, slackService } from '@/services/slack.service';
 
 interface SlackConnectionCardProps {
   status?: SlackStatus;
@@ -26,40 +31,42 @@ export function SlackConnectionCard({
   onConnect,
   onDisconnect,
 }: SlackConnectionCardProps) {
+  const { data: profileData } = useQuery({
+    queryKey: ['slack-profile'],
+    queryFn: () => slackService.getProfile(),
+    enabled: isConnected,
+  });
+
+  const profile = profileData?.data?.profile ?? null;
+
   if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-5">
-          <p className="text-sm text-slate-500">Loading connection...</p>
-        </CardContent>
-      </Card>
-    );
+    return <ConnectionCardSkeleton />;
   }
+
+  const teamName = status?.teamName ?? profile?.teamName;
+  const email = status?.slackEmail ?? profile?.email;
 
   return (
     <Card
       className={
         isConnected
-          ? 'overflow-hidden border-brand-muted bg-gradient-to-r from-brand-light/50 via-white to-white'
+          ? 'connected-card overflow-hidden'
           : 'overflow-hidden'
       }
     >
       <CardContent className="p-0">
         <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-start gap-4">
-            <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${
-                isConnected
-                  ? 'border-brand-muted bg-white text-brand shadow-sm'
-                  : 'border-slate-200 bg-slate-50 text-slate-500'
-              }`}
-            >
-              <Hash className="h-6 w-6" />
-            </div>
+            <IntegrationIcon
+              provider="SLACK"
+              size="lg"
+              tile
+              dimmed={!isConnected}
+            />
 
             <div className="min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-base font-semibold text-slate-900">
+                <h2 className="text-base font-semibold text-ink">
                   Slack Workspace
                 </h2>
                 <Badge variant={isConnected ? 'success' : 'secondary'}>
@@ -74,27 +81,38 @@ export function SlackConnectionCard({
                 </Badge>
               </div>
 
-              {status?.teamName ? (
-                <p className="truncate text-sm font-medium text-slate-700">
-                  {status.teamName}
+              {teamName ? (
+                <p className="truncate text-sm font-medium text-ink">
+                  {teamName}
                 </p>
               ) : (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted">
                   Connect Slack for notifications and channel access
                 </p>
               )}
 
-              {status?.slackEmail && (
-                <p className="flex items-center gap-1.5 truncate text-sm text-slate-600">
+              {profile?.displayName && (
+                <p className="flex items-center gap-1.5 truncate text-sm text-ink">
+                  <User className="h-3.5 w-3.5 shrink-0 text-brand" />
+                  {profile.displayName}
+                </p>
+              )}
+
+              {email && (
+                <p className="flex items-center gap-1.5 truncate text-sm text-muted">
                   <Mail className="h-3.5 w-3.5 shrink-0 text-brand" />
-                  {status.slackEmail}
+                  {email}
                 </p>
               )}
 
               {isConnected && status?.lastSyncedAt && (
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted">
                   Last synced {format(new Date(status.lastSyncedAt), 'MMM d, yyyy · h:mm a')}
                 </p>
+              )}
+
+              {isConnected && profile?.teamId && (
+                <p className="text-xs text-muted">Team ID: {profile.teamId}</p>
               )}
             </div>
           </div>
@@ -119,7 +137,7 @@ export function SlackConnectionCard({
         </div>
 
         {(status?.mockMode || authError || connectError) && (
-          <div className="space-y-2 border-t border-slate-100 bg-white/70 px-5 py-3">
+          <div className="space-y-2 border-t border-border-warm bg-white/70 px-5 py-3">
             {status?.mockMode && (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                 Mock mode is enabled. Configure SLACK_MODE=live and Slack OAuth credentials to use live authentication.

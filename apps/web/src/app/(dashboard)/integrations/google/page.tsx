@@ -4,20 +4,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ArrowLeft, Calendar, FolderOpen, Mail } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { EmptyState } from '@/components/shared/empty-state';
-import { MeetEventList } from '@/components/shared/meet-event-list';
-import { GoogleCalendarEmbed } from '@/components/shared/google-calendar-embed';
 import { GoogleCalendarConnectionCard } from '@/components/shared/google-calendar-connection-card';
 import { GooglePreferencesCard } from '@/components/shared/google-preferences-card';
-import { GoogleDriveList, GoToDriveButton } from '@/components/shared/google-drive-list';
-import { GoogleGmailList, GoToGmailButton } from '@/components/shared/google-gmail-list';
-import { CreateMeetButton } from '@/components/shared/create-meet-button';
+import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
 import { ToastContainer } from '@/components/shared/toast';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getErrorMessage } from '@/lib/api-client';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { useGoogleWidgets } from '@/hooks/use-google-widgets';
@@ -27,22 +20,7 @@ export default function GoogleIntegrationPage() {
   const searchParams = useSearchParams();
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const {
-    status,
-    statusLoading,
-    isConnected,
-    preferences,
-    showMeet,
-    showDrive,
-    showGmail,
-    showCalendarEmbed,
-    events,
-    eventsLoading,
-    files,
-    driveLoading,
-    messages,
-    gmailLoading,
-  } = useGoogleWidgets();
+  const { status, statusLoading, isConnected, preferences } = useGoogleWidgets();
 
   useEffect(() => {
     const connected = searchParams.get('connected');
@@ -134,128 +112,9 @@ export default function GoogleIntegrationPage() {
           onDisconnect={() => disconnectMutation.mutate()}
         />
 
-        {isConnected && (
-          <GooglePreferencesCard preferences={preferences} />
-        )}
+        {isConnected && <GooglePreferencesCard preferences={preferences} />}
 
-        {showMeet && (
-          <Card className="overflow-hidden">
-            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-brand-light/40 to-white pb-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="text-lg">Upcoming Google Meet</CardTitle>
-                  <CardDescription className="mt-1">
-                    Video meetings with a Google Meet link from your calendar
-                  </CardDescription>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <CreateMeetButton
-                    onCreated={() =>
-                      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] })
-                    }
-                  />
-                  {events.length > 0 && (
-                    <Badge variant="success" className="w-fit">
-                      {events.length} meeting{events.length === 1 ? '' : 's'}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {eventsLoading ? (
-                <p className="text-sm text-slate-500">Loading meetings...</p>
-              ) : events.length === 0 ? (
-                <EmptyState
-                  icon={Calendar}
-                  title="No upcoming Google Meet meetings"
-                  description="Only calendar events with a Google Meet link are shown"
-                />
-              ) : (
-                <MeetEventList events={events} />
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {showDrive && (
-          <Card className="overflow-hidden">
-            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-brand-light/40 to-white pb-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="text-lg">Google Drive</CardTitle>
-                  <CardDescription className="mt-1">
-                    Last 10 files from your My Drive
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  {files.length > 0 && (
-                    <Badge variant="success" className="w-fit">
-                      {files.length} file{files.length === 1 ? '' : 's'}
-                    </Badge>
-                  )}
-                  <GoToDriveButton />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {driveLoading ? (
-                <p className="text-sm text-slate-500">Loading files...</p>
-              ) : files.length === 0 ? (
-                <EmptyState
-                  icon={FolderOpen}
-                  title="No files found"
-                  description="Your My Drive folder has no files to show"
-                />
-              ) : (
-                <GoogleDriveList files={files} />
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {showGmail && (
-          <Card className="overflow-hidden">
-            <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-brand-light/40 to-white pb-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="text-lg">Gmail</CardTitle>
-                  <CardDescription className="mt-1">
-                    Last 10 emails from your inbox
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  {messages.length > 0 && (
-                    <Badge variant="success" className="w-fit">
-                      {messages.length} email{messages.length === 1 ? '' : 's'}
-                    </Badge>
-                  )}
-                  <GoToGmailButton />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {gmailLoading ? (
-                <p className="text-sm text-slate-500">Loading emails...</p>
-              ) : messages.length === 0 ? (
-                <EmptyState
-                  icon={Mail}
-                  title="No emails found"
-                  description="Your inbox has no emails to show"
-                />
-              ) : (
-                <GoogleGmailList messages={messages} />
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {showCalendarEmbed && status?.googleEmail && (
-          <GoogleCalendarEmbed
-            email={status.googleEmail}
-            description={`Weekly view for ${status.googleEmail}`}
-          />
-        )}
+        {isConnected && <IntegrationWidgetsSection provider="GOOGLE_CALENDAR" />}
       </div>
     </PageContainer>
   );

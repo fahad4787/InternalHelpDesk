@@ -1,16 +1,21 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Bricolage_Grotesque, Inter, JetBrains_Mono } from 'next/font/google';
 import { QueryProvider } from '@/providers/query-provider';
 import { appConfig } from '@/config/app.config';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const bricolage = Bricolage_Grotesque({
+  variable: '--font-bricolage',
+  subsets: ['latin'],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains',
   subsets: ['latin'],
 });
 
@@ -25,9 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="bg-slate-50" suppressHydrationWarning>
+    <html lang="en" className="bg-canvas" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-slate-50 text-slate-900 antialiased`}
+        className={`${inter.variable} ${bricolage.variable} ${jetbrainsMono.variable} min-h-screen bg-canvas font-sans text-ink antialiased`}
         suppressHydrationWarning
       >
         <QueryProvider>{children}</QueryProvider>

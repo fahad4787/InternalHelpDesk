@@ -1,7 +1,6 @@
 import { apiGet, apiPatch, apiPost } from '@/lib/api-client';
 
 export interface SlackPreferences {
-  showProfile: boolean;
   showChannels: boolean;
   showDirectMessages: boolean;
 }
@@ -41,7 +40,6 @@ export interface SlackMessage {
 }
 
 export const DEFAULT_SLACK_PREFERENCES: SlackPreferences = {
-  showProfile: true,
   showChannels: true,
   showDirectMessages: true,
 };

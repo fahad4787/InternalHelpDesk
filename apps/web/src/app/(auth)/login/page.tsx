@@ -59,7 +59,7 @@ export default function LoginPage() {
         <Link href="/forgot-password" className="text-brand hover:text-brand-accent hover:underline">
           Forgot password?
         </Link>
-        <p className="text-slate-500">
+        <p className="text-muted">
           Don&apos;t have an account?{' '}
           <Link href="/register" className="text-brand hover:text-brand-accent hover:underline">
             Register your company

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Hash, Lock, MessageCircle, Search, UsersRound } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SlackChannel } from '@/services/slack.service';
+import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { cn } from '@/lib/utils';
 
 interface SlackSidebarProps {
@@ -41,7 +42,7 @@ function ConversationButton({
         'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm transition-all',
         isSelected
           ? 'bg-brand text-white shadow-sm'
-          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+          : 'text-muted hover:bg-canvas hover:text-ink',
       )}
     >
       {isDirectMessage ? (
@@ -49,7 +50,7 @@ function ConversationButton({
       ) : isGroupDm ? (
         <UsersRound className={cn('h-4 w-4 shrink-0', isSelected ? 'text-white' : 'text-brand')} />
       ) : channel.isPrivate ? (
-        <Lock className={cn('h-4 w-4 shrink-0', isSelected ? 'text-white/80' : 'text-slate-400')} />
+        <Lock className={cn('h-4 w-4 shrink-0', isSelected ? 'text-white/80' : 'text-muted')} />
       ) : (
         <Hash className={cn('h-4 w-4 shrink-0', isSelected ? 'text-white' : 'text-brand')} />
       )}
@@ -73,7 +74,7 @@ function Section({
 
   return (
     <div className="px-2 pb-2">
-      <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted">
         {title}
       </p>
       <div className="space-y-0.5">
@@ -121,30 +122,32 @@ export function SlackSidebar({
   }, [channels, search, showChannels, showDirectMessages]);
 
   return (
-    <div className="flex h-full w-full flex-col border-r border-slate-200 bg-slate-50/80 lg:w-72 lg:shrink-0">
-      <div className="border-b border-slate-200 p-3">
+    <div className="flex h-full w-full flex-col border-r border-border-warm bg-canvas/80 lg:w-72 lg:shrink-0">
+      <div className="border-b border-border-warm p-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search conversations..."
-            className="border-slate-200 bg-white pl-9"
+            className="border-border-warm bg-white pl-9"
           />
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto py-2">
         {isLoading ? (
-          <p className="px-5 py-4 text-sm text-slate-500">Loading conversations...</p>
+          <div className="px-5 py-4">
+            <WidgetContentSkeleton lines={4} />
+          </div>
         ) : !showChannels && !showDirectMessages ? (
-          <p className="px-5 py-4 text-sm text-slate-500">
+          <p className="px-5 py-4 text-sm text-muted">
             Enable channels or direct messages in preferences.
           </p>
         ) : channels.length === 0 ? (
-          <p className="px-5 py-4 text-sm text-slate-500">No conversations found.</p>
+          <p className="px-5 py-4 text-sm text-muted">No conversations found.</p>
         ) : workspaceChannels.length === 0 && directMessages.length === 0 ? (
-          <p className="px-5 py-4 text-sm text-slate-500">No matches for your search.</p>
+          <p className="px-5 py-4 text-sm text-muted">No matches for your search.</p>
         ) : (
           <>
             {showChannels && (

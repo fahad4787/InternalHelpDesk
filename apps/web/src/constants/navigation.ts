@@ -1,5 +1,8 @@
 import {
+  Award,
   BookOpen,
+  CalendarDays,
+  CheckSquare,
   LayoutDashboard,
   MessageSquare,
   Plug,
@@ -7,13 +10,31 @@ import {
   Upload,
   Users,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { REAL_INTEGRATION_META } from './dashboard-integrations';
 
-export const mainNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+export const MARKETPLACE_APP_COUNT = Object.keys(REAL_INTEGRATION_META).length;
+
+export interface NavItem {
+  href: string | null;
+  label: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+  badge?: number;
+}
+
+export const workhubNavItems: NavItem[] = [
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
+  { href: '/integrations', label: 'Integrations', icon: Plug, badge: MARKETPLACE_APP_COUNT },
+  { href: null, label: 'My tasks', icon: CheckSquare, disabled: true },
+  { href: null, label: 'Time off', icon: CalendarDays, disabled: true },
+  { href: null, label: 'Recognition', icon: Award, disabled: true },
+  { href: '/settings', label: 'Settings', icon: Settings },
+];
+
+export const workspaceNavItems: NavItem[] = [
   { href: '/chat', label: 'AI Chat', icon: MessageSquare },
   { href: '/knowledge-base', label: 'Documents', icon: BookOpen },
   { href: '/knowledge-base/upload', label: 'Upload', icon: Upload },
   { href: '/users', label: 'Users', icon: Users },
-  { href: '/integrations', label: 'Integrations', icon: Plug },
-  { href: '/settings', label: 'Settings', icon: Settings },
-] as const;
+];

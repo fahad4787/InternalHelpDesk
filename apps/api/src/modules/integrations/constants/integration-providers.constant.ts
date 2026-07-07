@@ -40,7 +40,7 @@ export const INTEGRATION_PROVIDERS = [
   {
     provider: IntegrationProvider.OUTLOOK,
     name: 'Outlook',
-    description: 'Integrate with Outlook email',
+    description: 'Inbox and email from your linked Microsoft account',
     category: 'communication',
   },
   {

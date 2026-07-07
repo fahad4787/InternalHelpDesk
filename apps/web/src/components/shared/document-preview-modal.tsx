@@ -6,6 +6,7 @@ import { ExternalLink } from 'lucide-react';
 import { Modal } from '@/components/shared/modal';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Badge } from '@/components/ui/badge';
+import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { knowledgeBaseService } from '@/services/knowledge-base.service';
 
 interface DocumentPreviewModalProps {
@@ -35,7 +36,7 @@ export function DocumentPreviewModal({
       className="flex max-h-[90vh] max-w-4xl flex-col overflow-hidden"
     >
       {isLoading ? (
-        <p className="text-sm text-slate-500">Loading...</p>
+        <WidgetContentSkeleton lines={8} />
       ) : !doc ? (
         <p className="text-sm text-red-600">Document not found</p>
       ) : (
@@ -43,7 +44,7 @@ export function DocumentPreviewModal({
           <div className="flex flex-wrap items-center gap-2">
             {doc.source === 'WORKDAY' && <Badge variant="info">Workday</Badge>}
             <StatusBadge type="document-status" value={doc.status} />
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted">
               {doc.source === 'WORKDAY' ? 'Workday' : doc.fileName} ·{' '}
               {(doc.fileSize / 1024).toFixed(1)} KB · {doc._count?.chunks ?? 0} chunks
             </span>
@@ -51,43 +52,43 @@ export function DocumentPreviewModal({
 
           <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-3">
             <div className="min-h-0 lg:col-span-2">
-              <pre className="max-h-[50vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+              <pre className="max-h-[50vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-border-warm bg-canvas p-4 text-sm leading-relaxed text-ink">
                 {doc.content || 'No content available'}
               </pre>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-              <p className="font-medium text-slate-900">Details</p>
+            <div className="space-y-3 rounded-xl border border-border-warm bg-canvas p-4 text-sm">
+              <p className="font-medium text-ink">Details</p>
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Source</span>
-                <span className="font-medium text-slate-900">
+                <span className="text-muted">Source</span>
+                <span className="font-medium text-ink">
                   {doc.source === 'WORKDAY' ? 'Workday' : 'Manual Upload'}
                 </span>
               </div>
               {doc.category && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">Category</span>
-                  <span className="font-medium text-slate-900">{doc.category}</span>
+                  <span className="text-muted">Category</span>
+                  <span className="font-medium text-ink">{doc.category}</span>
                 </div>
               )}
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Uploaded by</span>
-                <span className="font-medium text-slate-900">
+                <span className="text-muted">Uploaded by</span>
+                <span className="font-medium text-ink">
                   {doc.uploadedBy
                     ? `${doc.uploadedBy.firstName} ${doc.uploadedBy.lastName}`
                     : '—'}
                 </span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-slate-500">Created</span>
-                <span className="font-medium text-slate-900">
+                <span className="text-muted">Created</span>
+                <span className="font-medium text-ink">
                   {format(new Date(doc.createdAt), 'MMM d, yyyy')}
                 </span>
               </div>
               {doc.lastSyncedAt && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">Last synced</span>
-                  <span className="font-medium text-slate-900">
+                  <span className="text-muted">Last synced</span>
+                  <span className="font-medium text-ink">
                     {format(new Date(doc.lastSyncedAt), 'MMM d, yyyy')}
                   </span>
                 </div>

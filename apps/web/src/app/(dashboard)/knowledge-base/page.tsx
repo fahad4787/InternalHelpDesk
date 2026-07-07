@@ -10,6 +10,7 @@ import { DocumentPreviewModal } from '@/components/shared/document-preview-modal
 import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
 import { EmptyState } from '@/components/shared/empty-state';
+import { ListSkeleton } from '@/components/shared/loading-state';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,7 +54,7 @@ export default function DocumentsPage() {
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-slate-500">Loading...</p>
+          <ListSkeleton count={6} />
         ) : documents.length === 0 ? (
           <EmptyState
             icon={BookOpen}
@@ -68,15 +69,15 @@ export default function DocumentsPage() {
               {documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-brand-muted hover:shadow-md"
+                  className="flex items-center justify-between rounded-2xl border border-border-warm bg-white p-4 shadow-sm transition-colors hover:border-brand-muted hover:shadow-md"
                 >
                   <button
                     type="button"
                     onClick={() => setPreviewId(doc.id)}
                     className="min-w-0 flex-1 text-left"
                   >
-                    <h3 className="font-medium text-slate-900">{doc.title}</h3>
-                    <p className="text-xs text-slate-500">
+                    <h3 className="font-medium text-ink">{doc.title}</h3>
+                    <p className="text-xs text-muted">
                       {doc.source === 'WORKDAY' ? 'Workday' : doc.fileName} ·{' '}
                       {(doc.fileSize / 1024).toFixed(1)} KB ·{' '}
                       {doc._count?.chunks ?? 0} chunks ·{' '}

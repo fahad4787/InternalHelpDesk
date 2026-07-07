@@ -142,7 +142,6 @@ export class SlackService {
     }
 
     const preferences: SlackPreferences = {
-      showProfile: dto.showProfile,
       showChannels: dto.showChannels,
       showDirectMessages: dto.showDirectMessages,
     };
@@ -505,7 +504,6 @@ export class SlackService {
     const showChannels =
       prefs.showChannels ?? DEFAULT_SLACK_PREFERENCES.showChannels;
     return {
-      showProfile: prefs.showProfile ?? DEFAULT_SLACK_PREFERENCES.showProfile,
       showChannels,
       showDirectMessages:
         prefs.showDirectMessages ?? showChannels ?? DEFAULT_SLACK_PREFERENCES.showDirectMessages,

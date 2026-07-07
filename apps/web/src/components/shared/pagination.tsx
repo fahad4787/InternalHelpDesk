@@ -13,7 +13,7 @@ export function Pagination({ meta, onPageChange }: PaginationProps) {
 
   return (
     <div className="flex items-center justify-between pt-4">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-muted">
         Showing page {meta.page} of {meta.totalPages} ({meta.total} total)
       </p>
       <div className="flex gap-2">

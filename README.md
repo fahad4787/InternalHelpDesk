@@ -17,7 +17,7 @@ A scalable multi-tenant SaaS platform for AI-powered internal support. Companies
 ├── apps/
 │   ├── api/          # NestJS backend
 │   └── web/          # Next.js frontend
-├── docker-compose.yml
+├── docker-compose.ym
 └── package.json      # Monorepo root
 ```
 
@@ -44,7 +44,7 @@ brew services start postgresql@16
 npm run db:setup
 ```
 
-This creates a permanent `helpdesk` database. **Data survives page refreshes and server restarts.**
+This creates a permanent `helpdesk` database. **Dat survives page refreshes and server restarts.**
 
 **Option B — Docker:**
 
@@ -107,7 +107,7 @@ npm run dev
 ### Dashboard
 - Key metrics and recent activity
 - Most asked topics by category
-
+a
 ### Integrations (Placeholder)
 - Architecture ready for Slack, Teams, Google Drive, Jira, ServiceNow, Workday, and more
 

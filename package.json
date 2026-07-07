@@ -15,7 +15,9 @@
     "db:push": "npm run prisma:push --workspace=apps/api",
     "db:studio": "npm run prisma:studio --workspace=apps/api",
     "db:setup": "bash scripts/setup-local-db.sh",
-    "tunnel:zoom": "powershell -ExecutionPolicy Bypass -File scripts/start-zoom-tunnel.ps1"
+    "tunnel:oauth": "bash scripts/start-oauth-tunnel.sh",
+    "tunnel:web": "bash scripts/start-web-tunnel.sh",
+    "tunnel:zoom": "bash scripts/start-oauth-tunnel.sh"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

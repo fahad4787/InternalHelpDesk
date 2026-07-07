@@ -38,7 +38,7 @@ export function GoogleCalendarEmbed({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 bg-gradient-to-r from-brand-light/40 to-white pb-4">
+      <CardHeader className="flex flex-row items-center justify-between widget-card-header pb-4">
         <div>
           <CardTitle className="text-lg">{title}</CardTitle>
           <CardDescription className="mt-1">{description}</CardDescription>
@@ -59,7 +59,7 @@ export function GoogleCalendarEmbed({
             loading="lazy"
           />
         </div>
-        <p className="border-t border-slate-100 px-6 py-3 text-xs text-slate-500">
+        <p className="border-t border-border-warm px-6 py-3 text-xs text-muted">
           Showing calendar for <span className="font-medium">{email}</span>. The embed
           may display a different calendar if another Google account is signed in to
           this browser. Meet meetings above always use the connected account.

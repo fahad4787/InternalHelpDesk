@@ -13,7 +13,7 @@ export function JiraProjectList({ projects }: JiraProjectListProps) {
       {projects.map((project) => (
         <article
           key={project.id}
-          className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-brand-muted hover:shadow-md"
+          className="flex items-start justify-between gap-3 rounded-2xl border border-border-warm bg-white p-4 shadow-sm transition-all hover:border-brand-muted hover:shadow-md"
         >
           <div className="min-w-0">
             <div className="mb-2 flex items-center gap-2">
@@ -22,9 +22,9 @@ export function JiraProjectList({ projects }: JiraProjectListProps) {
               </div>
               <Badge variant="info">{project.key}</Badge>
             </div>
-            <h3 className="font-semibold text-slate-900">{project.name}</h3>
+            <h3 className="font-semibold text-ink">{project.name}</h3>
             {project.projectType && (
-              <p className="mt-1 text-sm capitalize text-slate-500">
+              <p className="mt-1 text-sm capitalize text-muted">
                 {project.projectType.replace(/_/g, ' ')}
               </p>
             )}

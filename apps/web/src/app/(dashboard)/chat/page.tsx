@@ -98,8 +98,8 @@ export default function ChatPage() {
   return (
     <PageContainer title="AI Chat" description="Chat naturally or ask about your company documents">
       <div className="flex h-[calc(100vh-12rem)] gap-4">
-        <div className="hidden w-64 shrink-0 overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm lg:block">
-          <div className="border-b border-slate-200 p-3">
+        <div className="hidden w-64 shrink-0 overflow-y-auto rounded-2xl border border-border-warm bg-white shadow-sm lg:block">
+          <div className="border-b border-border-warm p-3">
             <Button
               variant="outline"
               size="sm"
@@ -118,7 +118,7 @@ export default function ChatPage() {
                   key={s.id}
                   className={cn(
                     'group mb-1 flex items-center gap-1 rounded-xl transition-all',
-                    isActive ? 'bg-brand shadow-sm' : 'hover:bg-slate-100',
+                    isActive ? 'bg-brand shadow-sm' : 'hover:bg-canvas',
                   )}
                 >
                   <button
@@ -128,7 +128,7 @@ export default function ChatPage() {
                       'min-w-0 flex-1 truncate px-3 py-2.5 text-left text-sm',
                       isActive
                         ? 'text-white'
-                        : 'text-slate-600 group-hover:text-slate-900',
+                        : 'text-muted group-hover:text-ink',
                     )}
                   >
                     {s.title || 'Untitled chat'}
@@ -156,14 +156,14 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-3.5">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border-warm bg-white shadow-sm">
+          <div className="flex items-center gap-3 border-b border-border-warm px-5 py-3.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand-accent">
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900">AI Assistant</p>
-              <p className="text-xs text-slate-500">Powered by your knowledge base</p>
+              <p className="text-sm font-semibold text-ink">AI Assistant</p>
+              <p className="text-xs text-muted">Powered by your knowledge base</p>
             </div>
           </div>
 
@@ -173,7 +173,7 @@ export default function ChatPage() {
                 <div className="rounded-full border border-brand-muted bg-brand-light p-5">
                   <Bot className="h-10 w-10 text-brand" />
                 </div>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted">
                   Ask about HR policies, IT guides, or company procedures
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
@@ -181,7 +181,7 @@ export default function ChatPage() {
                     <button
                       key={q}
                       onClick={() => setInput(q)}
-                      className="rounded-full border border-slate-300 bg-white px-4 py-1.5 text-xs text-slate-600 shadow-sm transition-colors hover:border-brand hover:bg-brand-light hover:text-brand"
+                      className="rounded-full border border-border-warm bg-white px-4 py-1.5 text-xs text-muted shadow-sm transition-colors hover:border-brand hover:bg-brand-light hover:text-brand"
                     >
                       {q}
                     </button>
@@ -190,7 +190,7 @@ export default function ChatPage() {
               </div>
             )}
             {sendMutation.isPending && (
-              <div className="max-w-[80%] rounded-2xl rounded-bl-sm border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <div className="max-w-[80%] rounded-2xl rounded-bl-sm border border-border-warm bg-canvas px-4 py-3 text-sm text-ink">
                 <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-brand-accent">
                   <Bot className="h-3 w-3" />
                   AI Assistant
@@ -209,7 +209,7 @@ export default function ChatPage() {
                   'max-w-[80%] rounded-2xl px-4 py-3 text-sm',
                   msg.role === 'user'
                     ? 'ml-auto rounded-br-sm bg-brand text-white shadow-md shadow-brand/20'
-                    : 'rounded-bl-sm border border-slate-200 bg-slate-50 text-slate-700',
+                    : 'rounded-bl-sm border border-border-warm bg-canvas text-ink',
                 )}
               >
                 {msg.role === 'assistant' && (
@@ -220,10 +220,10 @@ export default function ChatPage() {
                 )}
                 <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                 {msg.sources && Array.isArray(msg.sources) && msg.sources.length > 0 && (
-                  <div className="mt-3 border-t border-slate-200 pt-2">
-                    <p className="text-xs font-medium text-slate-500">Sources</p>
+                  <div className="mt-3 border-t border-border-warm pt-2">
+                    <p className="text-xs font-medium text-muted">Sources</p>
                     {(msg.sources as { documentTitle: string; section?: string; excerpt: string }[]).map((s, i) => (
-                      <p key={i} className="mt-1 text-xs text-slate-500">
+                      <p key={i} className="mt-1 text-xs text-muted">
                         {s.documentTitle}
                         {s.section ? ` · ${s.section.replace(/^\d+\.\s+/, '')}` : ''}: {s.excerpt}
                       </p>
@@ -235,7 +235,7 @@ export default function ChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-slate-200 p-4">
+          <div className="border-t border-border-warm p-4">
             {sendError && (
               <p className="mb-2 text-sm text-red-600">{sendError}</p>
             )}

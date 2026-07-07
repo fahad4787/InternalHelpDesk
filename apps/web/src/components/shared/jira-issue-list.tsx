@@ -23,7 +23,7 @@ function JiraIssueCard({ issue }: { issue: JiraIssue }) {
   const updated = new Date(issue.updatedAt);
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-brand-muted hover:shadow-md">
+    <article className="rounded-2xl border border-border-warm bg-white p-4 shadow-sm transition-all hover:border-brand-muted hover:shadow-md">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -33,9 +33,9 @@ function JiraIssueCard({ issue }: { issue: JiraIssue }) {
             <Badge variant="secondary">{issue.issueType}</Badge>
           </div>
 
-          <h3 className="text-base font-semibold text-slate-900">{issue.summary}</h3>
+          <h3 className="text-base font-semibold text-ink">{issue.summary}</h3>
 
-          <div className="mt-3 space-y-1.5 text-sm text-slate-600">
+          <div className="mt-3 space-y-1.5 text-sm text-muted">
             {issue.assignee && (
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 shrink-0 text-brand" />
@@ -48,7 +48,7 @@ function JiraIssueCard({ issue }: { issue: JiraIssue }) {
                 <span>Reporter: {issue.reporter}</span>
               </div>
             )}
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted">
               Updated {format(updated, 'MMM d, yyyy')} ·{' '}
               {formatDistanceToNow(updated, { addSuffix: true })}
             </p>

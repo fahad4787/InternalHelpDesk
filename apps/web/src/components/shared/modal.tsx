@@ -30,12 +30,12 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
       <div className="absolute inset-0 bg-slate-900/50" onClick={onClose} />
       <div
         className={cn(
-          'relative z-10 w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl',
+          'relative z-10 w-full max-w-lg rounded-2xl border border-border-warm bg-white p-6 shadow-2xl',
           className,
         )}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+          <h2 className="text-lg font-semibold text-ink">{title}</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>

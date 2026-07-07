@@ -43,12 +43,12 @@ export default function ForgotPasswordPage() {
           <Input type="email" placeholder="you@company.com" {...register('email')} />
         </FormField>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        {message && <p className="text-sm text-emerald-600">{message}</p>}
+        {message && <p className="text-sm text-positive">{message}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Sending...' : 'Send Reset Link'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-6 text-center text-sm text-muted">
         <Link href="/login" className="text-brand hover:text-brand-accent hover:underline">
           Back to sign in
         </Link>

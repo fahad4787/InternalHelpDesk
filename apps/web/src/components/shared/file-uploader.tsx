@@ -37,7 +37,7 @@ export function FileUploader({
           'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all duration-200',
           dragOver
             ? 'border-brand bg-brand-light'
-            : 'border-slate-300 bg-slate-50 hover:border-brand hover:bg-brand-light/50',
+            : 'border-border-warm bg-canvas hover:border-brand hover:bg-brand-light/50',
         )}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
@@ -51,10 +51,10 @@ export function FileUploader({
         <div className="mb-3 rounded-full border border-brand-muted bg-brand-light p-3">
           <Upload className="h-6 w-6 text-brand" />
         </div>
-        <p className="text-sm font-medium text-slate-700">
+        <p className="text-sm font-medium text-ink">
           Drop your file here or click to browse
         </p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted">
           Supports TXT, MD, PDF, DOC, JSON (max {maxSizeMB}MB)
         </p>
         <input

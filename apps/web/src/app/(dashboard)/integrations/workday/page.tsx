@@ -6,8 +6,10 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { ArrowLeft, RefreshCw, RotateCcw, ScrollText } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
+import { PageSpinner, WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { ToastContainer, showToast } from '@/components/shared/toast';
 import { EmptyState } from '@/components/shared/empty-state';
+import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
 import { Modal } from '@/components/shared/modal';
 import { DataTable, Column } from '@/components/tables/data-table';
 import { FormField } from '@/components/forms/form-field';
@@ -27,7 +29,6 @@ import {
   WorkdaySyncLog,
   workdayService,
 } from '@/services/workday.service';
-import { Document } from '@/types/api.types';
 
 const syncLogColumns: Column<WorkdaySyncLog>[] = [
   {
@@ -91,14 +92,8 @@ export default function WorkdayIntegrationPage() {
     queryFn: () => workdayService.getSyncLogs(),
   });
 
-  const { data: articlesData, isLoading: articlesLoading } = useQuery({
-    queryKey: ['workday-articles'],
-    queryFn: () => workdayService.getArticles({ limit: 10 }),
-  });
-
   const status = statusData?.data;
   const logs = logsData?.data ?? [];
-  const articles = articlesData?.data ?? [];
 
   useEffect(() => {
     if (!status) return;
@@ -177,7 +172,14 @@ export default function WorkdayIntegrationPage() {
   };
 
   if (statusLoading) {
-    return <p className="text-sm text-slate-500">Loading...</p>;
+    return (
+      <PageContainer
+        title="Workday Integration"
+        description="Sync help articles and internal SOPs from Workday into your knowledge base"
+      >
+        <PageSpinner label="Loading Workday…" />
+      </PageContainer>
+    );
   }
 
   return (
@@ -219,6 +221,12 @@ export default function WorkdayIntegrationPage() {
         {status?.mockMode && (
           <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
             Mock Mode: using sample Workday help articles for development.
+          </div>
+        )}
+
+        {status?.connected && (
+          <div className="mb-6">
+            <IntegrationWidgetsSection provider="WORKDAY" />
           </div>
         )}
 
@@ -292,9 +300,9 @@ export default function WorkdayIntegrationPage() {
             </Card>
 
             <div>
-              <h2 className="mb-3 text-lg font-semibold text-slate-900">Sync Logs</h2>
+              <h2 className="mb-3 text-lg font-semibold text-ink">Sync Logs</h2>
               {logsLoading ? (
-                <p className="text-sm text-slate-500">Loading logs...</p>
+                <WidgetContentSkeleton lines={4} />
               ) : logs.length === 0 ? (
                 <EmptyState
                   icon={ScrollText}
@@ -318,61 +326,34 @@ export default function WorkdayIntegrationPage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Last Sync</span>
-                  <span className="font-medium text-slate-900">
+                  <span className="text-muted">Last Sync</span>
+                  <span className="font-medium text-ink">
                     {status?.lastSyncedAt
                       ? format(new Date(status.lastSyncedAt), 'MMM d, yyyy h:mm a')
                       : 'Never'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Last Tested</span>
-                  <span className="font-medium text-slate-900">
+                  <span className="text-muted">Last Tested</span>
+                  <span className="font-medium text-ink">
                     {status?.lastTestedAt
                       ? format(new Date(status.lastTestedAt), 'MMM d, yyyy h:mm a')
                       : 'Never'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Total Synced Articles</span>
-                  <span className="font-medium text-slate-900">
+                  <span className="text-muted">Total Synced Articles</span>
+                  <span className="font-medium text-ink">
                     {status?.totalSyncedArticles ?? 0}
                   </span>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Synced Articles</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {articlesLoading ? (
-                  <p className="text-sm text-slate-500">Loading...</p>
-                ) : articles.length === 0 ? (
-                  <p className="text-sm text-slate-500">No articles synced yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {articles.map((article: Document) => (
-                      <div
-                        key={article.id}
-                        className="rounded-xl border border-slate-200 p-3"
-                      >
-                        <p className="font-medium text-slate-900">{article.title}</p>
-                        <p className="text-xs text-slate-500">
-                          {article.category} · {article._count?.chunks ?? 0} chunks
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </PageContainer>
       <Modal open={resetOpen} onClose={() => setResetOpen(false)} title="Reset Workday Integration">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted">
           This will remove the Workday connection settings, all synced Workday articles from the
           knowledge base, and all sync logs. This action cannot be undone.
         </p>

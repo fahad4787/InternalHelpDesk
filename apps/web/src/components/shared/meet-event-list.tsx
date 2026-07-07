@@ -50,9 +50,9 @@ function getStartsInStyles(start: Date): string {
     return 'border-amber-200 bg-amber-50 text-amber-800';
   }
   if (hoursUntil < 24 * 7) {
-    return 'border-brand-muted bg-brand-light text-brand';
+    return 'border-amber-muted bg-amber-light text-amber-accent';
   }
-  return 'border-slate-200 bg-slate-50 text-slate-700';
+  return 'border-border-warm bg-canvas text-ink';
 }
 
 function MeetEventCard({ event }: { event: CalendarEvent }) {
@@ -62,17 +62,17 @@ function MeetEventCard({ event }: { event: CalendarEvent }) {
   const startsInStyles = getStartsInStyles(start);
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-brand-muted hover:shadow-md">
+    <article className="group overflow-hidden rounded-2xl border border-border-warm bg-white shadow-sm transition-all hover:border-brand-muted hover:shadow-md">
       <div className="flex">
-        <div className="flex w-28 shrink-0 flex-col items-center justify-center gap-3 border-r border-brand-muted/60 bg-gradient-to-b from-brand-light to-white px-3 py-5 text-center sm:w-32">
+        <div className="flex w-28 shrink-0 flex-col items-center justify-center gap-3 border-r border-amber-muted/60 bg-gradient-to-b from-amber-light to-white px-3 py-5 text-center sm:w-32">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wide text-brand">
+            <span className="text-xs font-semibold uppercase tracking-wide text-amber-accent">
               {format(start, 'MMM')}
             </span>
-            <span className="mt-0.5 block text-3xl font-bold leading-none text-slate-900">
+            <span className="mt-0.5 block text-3xl font-bold leading-none text-ink">
               {format(start, 'd')}
             </span>
-            <span className="mt-1 block text-xs text-slate-500">
+            <span className="mt-1 block text-xs text-muted">
               {format(start, 'EEE')}
             </span>
           </div>
@@ -94,32 +94,32 @@ function MeetEventCard({ event }: { event: CalendarEvent }) {
                   </Badge>
                 )}
               </div>
-              <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
+              <h3 className="text-base font-semibold text-ink sm:text-lg">
                 {event.title}
               </h3>
             </div>
           </div>
 
           <div className="mt-3 space-y-2">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <Clock className="h-4 w-4 shrink-0 text-brand" />
+            <div className="flex items-center gap-2 text-sm text-muted">
+              <Clock className="h-4 w-4 shrink-0 text-amber-accent" />
               <span>{formatSchedule(event)}</span>
             </div>
 
             {(event.organizerName || event.organizerEmail) && (
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className="flex items-center gap-2 text-sm text-muted">
                 <User className="h-4 w-4 shrink-0 text-brand" />
                 <span>
                   {event.organizerName ?? event.organizerEmail}
                   {event.organizerName && event.organizerEmail && (
-                    <span className="text-slate-400"> · {event.organizerEmail}</span>
+                    <span className="text-muted"> · {event.organizerEmail}</span>
                   )}
                 </span>
               </div>
             )}
 
             {event.attendeeCount > 0 && (
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className="flex items-center gap-2 text-sm text-muted">
                 <Users className="h-4 w-4 shrink-0 text-brand" />
                 <span>
                   {event.attendeeCount} attendee{event.attendeeCount === 1 ? '' : 's'}
@@ -128,20 +128,20 @@ function MeetEventCard({ event }: { event: CalendarEvent }) {
             )}
 
             {event.location && !event.location.includes('meet.google.com') && (
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className="flex items-center gap-2 text-sm text-muted">
                 <MapPin className="h-4 w-4 shrink-0 text-brand" />
                 <span className="truncate">{event.location}</span>
               </div>
             )}
 
             {description && (
-              <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">
+              <p className="line-clamp-2 text-sm leading-relaxed text-muted">
                 {description}
               </p>
             )}
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border-warm pt-4">
             {event.meetLink && (
               <a
                 href={event.meetLink}
