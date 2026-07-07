@@ -17,7 +17,8 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT', 3001);
+  const port =
+    Number(process.env.PORT) || Number(configService.get('PORT')) || 3001;
   const frontendUrl = configService.get<string>(
     'FRONTEND_URL',
     'http://localhost:3000',
@@ -41,8 +42,8 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  await app.listen(port);
-  console.log(`API running on http://localhost:${port}/api`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`API running on port ${port}`);
 }
 
 bootstrap().catch((error) => {
