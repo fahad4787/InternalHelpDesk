@@ -10,7 +10,7 @@
     "dev:api": "npm run start:dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=apps/web && node scripts/prepare-hostinger-standalone.mjs",
-    "start": "node apps/web/.next/standalone/apps/web/server.js",
+    "start": "node deploy/apps/web/server.js",
     "build:all": "npm run build --workspace=apps/api && npm run build --workspace=apps/web",
     "build:web": "npm run build --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
