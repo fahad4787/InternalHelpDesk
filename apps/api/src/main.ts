@@ -17,15 +17,20 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const configService = app.get(ConfigService);
-  const port =
-    Number(process.env.PORT) || Number(configService.get('PORT')) || 3001;
+  const port = Number(process.env.PORT ?? configService.get('PORT') ?? 3001);
+  const host = process.env.HOST ?? '0.0.0.0';
   const frontendUrl = configService.get<string>(
     'FRONTEND_URL',
     'http://localhost:3000',
   );
 
   app.enableCors({
-    origin: [frontendUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: [
+      frontendUrl,
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://internalhelpdesk.fixelcloud.co',
+    ],
     credentials: true,
   });
 
@@ -42,8 +47,8 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  await app.listen(port, '0.0.0.0');
-  console.log(`API running on port ${port}`);
+  await app.listen(port, host);
+  console.log(`API running on http://${host}:${port}/api`);
 }
 
 bootstrap().catch((error) => {

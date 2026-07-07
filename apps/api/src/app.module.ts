@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AppController } from './app.controller';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CompaniesModule } from './modules/companies/companies.module';
@@ -28,5 +29,6 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
     DashboardModule,
     IntegrationsModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
