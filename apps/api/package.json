@@ -11,7 +11,7 @@
     "start": "node scripts/with-system-ca.mjs start",
     "start:dev": "node scripts/with-system-ca.mjs start --watch",
     "start:debug": "node scripts/with-system-ca.mjs start --debug --watch",
-    "start:prod": "node --use-system-ca dist/main",
+    "start:prod": "node --use-system-ca dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
