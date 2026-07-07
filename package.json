@@ -12,6 +12,7 @@
     "build": "npm run build --workspace=apps/api && npm run build --workspace=apps/web",
     "build:web": "npm run build --workspace=apps/web",
     "build:api": "npm run build --workspace=apps/api",
+    "build:hostinger": "npm run build --workspace=apps/web && rm -rf .next && ln -sfn apps/web/.next .next",
     "db:generate": "npm run prisma:generate --workspace=apps/api",
     "db:migrate": "npm run prisma:migrate --workspace=apps/api",
     "db:push": "npm run prisma:push --workspace=apps/api",
