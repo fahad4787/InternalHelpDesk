@@ -15,7 +15,6 @@ const oauthCallbackRewrites = [
 }));
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   async rewrites() {
     return oauthCallbackRewrites;
   },
