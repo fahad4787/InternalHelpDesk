@@ -5,11 +5,30 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { PrismaService } from './database/prisma.service';
 
 try {
   tls.setDefaultCACertificates(tls.getCACertificates('system'));
 } catch {
   // Ignore on Node versions without system CA certificate support.
+}
+
+async function connectDatabase(prisma: PrismaService) {
+  const maxAttempts = 5;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await prisma.$connect();
+      console.log('Database connected');
+      return;
+    } catch (error) {
+      console.error(`Database connection attempt ${attempt} failed`, error);
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
+    }
+  }
 }
 
 async function bootstrap() {
@@ -49,9 +68,11 @@ async function bootstrap() {
 
   await app.listen(port, host);
   console.log(`API running on http://${host}:${port}/api`);
+
+  await connectDatabase(app.get(PrismaService));
 }
 
 bootstrap().catch((error) => {
-  console.error(error);
+  console.error('Failed to start API', error);
   process.exit(1);
 });
