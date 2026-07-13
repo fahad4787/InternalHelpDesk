@@ -1,13 +1,14 @@
 #!/usr/bin/env node
+import { createServer } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawn } from "node:child_process";
+import { parse } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const webDir = path.join(root, "apps", "web");
 const webNext = path.join(webDir, ".next");
-const rootNext = path.join(root, ".next");
 
 function readBuildId(dir) {
   try {
@@ -17,33 +18,43 @@ function readBuildId(dir) {
   }
 }
 
-const nextDir = existsSync(webNext) ? webNext : existsSync(rootNext) ? rootNext : null;
-if (!nextDir) {
-  console.error("Missing apps/web/.next (or root .next). Run npm run build first.");
+if (!existsSync(webNext)) {
+  console.error("Missing apps/web/.next. Run npm run build first.");
   process.exit(1);
 }
 
-const cwd = nextDir === webNext ? webDir : root;
-const port = process.env.PORT ?? "3000";
+const port = Number(process.env.PORT ?? 3000);
 const hostname = process.env.HOSTNAME ?? "0.0.0.0";
+const buildId = readBuildId(webNext) ?? "unknown";
 
-const nextBin = path.join(root, "node_modules", "next", "dist", "bin", "next");
-const nextBinFallback = path.join(webDir, "node_modules", "next", "dist", "bin", "next");
-const bin = existsSync(nextBin) ? nextBin : nextBinFallback;
+// Hostinger requires the entry process itself to call listen() within ~3s.
+// Spawning `next start` as a child fails that check and causes 503.
+const require = createRequire(path.join(webDir, "package.json"));
+const next = require("next");
 
-if (!existsSync(bin)) {
-  console.error("Missing next binary. Run npm install from the repo root.");
-  process.exit(1);
-}
+const app = next({
+  dev: false,
+  dir: webDir,
+  hostname,
+  port,
+});
+const handle = app.getRequestHandler();
 
 console.log(
-  `[hostinger] starting Next cwd=${cwd} BUILD_ID=${readBuildId(nextDir) ?? "unknown"} on ${hostname}:${port}`,
+  `[hostinger] preparing Next dir=${webDir} BUILD_ID=${buildId} on ${hostname}:${port}`,
 );
 
-const child = spawn(process.execPath, [bin, "start", "-H", hostname, "-p", port], {
-  cwd,
-  stdio: "inherit",
-  env: process.env,
-});
+try {
+  await app.prepare();
+} catch (error) {
+  console.error("[hostinger] Next prepare failed:", error);
+  process.exit(1);
+}
 
-child.on("exit", (code) => process.exit(code ?? 1));
+createServer((req, res) => {
+  handle(req, res, parse(req.url ?? "/", true));
+}).listen(port, hostname, () => {
+  console.log(
+    `[hostinger] listening BUILD_ID=${buildId} http://${hostname}:${port}`,
+  );
+});
