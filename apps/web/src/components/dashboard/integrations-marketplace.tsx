@@ -57,29 +57,31 @@ function buildEntries(
   integrations: Integration[],
   visibleWidgetIds: DashboardWidgetId[],
 ): MarketplaceEntry[] {
+  const byProvider = new Map(
+    integrations.map((item) => [item.provider, item] as const),
+  );
   const entries: MarketplaceEntry[] = [];
 
-  for (const item of integrations) {
-    if (HIDDEN_PROVIDERS.has(item.provider)) continue;
-    const meta = REAL_INTEGRATION_META[item.provider];
-    if (!meta) continue;
+  for (const meta of Object.values(REAL_INTEGRATION_META)) {
+    if (HIDDEN_PROVIDERS.has(meta.provider)) continue;
 
-    const widgetLabels = getWidgetLabelsForProvider(item.provider);
+    const item = byProvider.get(meta.provider);
+    const widgetLabels = getWidgetLabelsForProvider(meta.provider);
     const dashboardWidgetCount = countDashboardWidgetsForProvider(
-      item.provider,
+      meta.provider,
       visibleWidgetIds,
     );
 
     entries.push({
       id: meta.widgetId,
-      name: item.name,
-      description: item.description,
+      name: item?.name ?? meta.name,
+      description: item?.description ?? meta.description,
       category: meta.category,
       categoryLabel: meta.categoryLabel,
       meta,
-      status: item.status,
-      connectedAt: item.connectedAt,
-      isConnected: item.status === 'CONNECTED',
+      status: item?.status ?? 'NOT_CONNECTED',
+      connectedAt: item?.connectedAt ?? null,
+      isConnected: item?.status === 'CONNECTED',
       dashboardWidgetCount,
       widgetLabels,
     });
