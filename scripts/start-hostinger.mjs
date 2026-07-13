@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const webNext = path.join(root, "apps", "web", ".next");
+const webDir = path.join(root, "apps", "web");
+const webNext = path.join(webDir, ".next");
 
 if (!existsSync(webNext)) {
   console.error("Missing apps/web/.next. Run npm run build first.");
@@ -18,9 +19,9 @@ const hostname = process.env.HOSTNAME ?? "0.0.0.0";
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
 const child = spawn(
   npmCmd,
-  ["run", "start", "--workspace=apps/web", "--", "-H", hostname, "-p", port],
+  ["run", "start", "--", "-H", hostname, "-p", port],
   {
-    cwd: root,
+    cwd: webDir,
     stdio: "inherit",
     env: process.env,
   },
