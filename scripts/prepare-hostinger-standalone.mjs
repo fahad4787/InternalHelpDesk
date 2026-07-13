@@ -1,4 +1,4 @@
-import { cpSync, existsSync, lstatSync, readdirSync, rmSync, symlinkSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,11 +24,31 @@ function isNextBuildDir(dir) {
 function describe(dir) {
   if (!existsSync(dir)) return "missing";
   try {
-    const names = readdirSync(dir).slice(0, 12).join(", ");
+    const names = readdirSync(dir).slice(0, 8).join(", ");
     return `exists (${names}${names ? ", ..." : ""})`;
   } catch (error) {
     return `unreadable: ${error instanceof Error ? error.message : String(error)}`;
   }
+}
+
+function readBuildId(dir) {
+  try {
+    return readFileSync(path.join(dir, "BUILD_ID"), "utf8").trim();
+  } catch {
+    return null;
+  }
+}
+
+function detectPublicHtml(repoRoot) {
+  const marker = `${path.sep}.builds${path.sep}source${path.sep}repository`;
+  const idx = repoRoot.lastIndexOf(marker);
+  if (idx === -1) return null;
+  return repoRoot.slice(0, idx);
+}
+
+function replaceDir(source, dest) {
+  rmSync(dest, { recursive: true, force: true });
+  cpSync(source, dest, { recursive: true });
 }
 
 console.log(`[prepare] repo root: ${root}`);
@@ -43,50 +63,47 @@ const sourceNext = isNextBuildDir(webNext)
 
 if (!sourceNext) {
   console.error(
-    "Missing Next.js build output. Expected apps/web/.next (or root .next) after `next build`.",
-  );
-  console.error(
-    "If the build log says Compiled successfully, Hostinger may be out of inodes and could not finish writing .next.",
+    "Missing Next.js build output. Expected apps/web/.next after `next build`.",
   );
   process.exit(1);
 }
 
-if (sourceNext === rootNext) {
-  console.log("[prepare] Using existing root .next");
-  process.exit(0);
+const buildId = readBuildId(sourceNext);
+console.log(`[prepare] BUILD_ID=${buildId ?? "unknown"}`);
+
+// Real directory (not symlink): Hostinger publishes from repo root and
+// broken symlinks leave public_html stuck on an old build.
+if (sourceNext !== rootNext) {
+  try {
+    replaceDir(sourceNext, rootNext);
+    console.log("[prepare] Copied apps/web/.next -> .next");
+  } catch (error) {
+    console.error(
+      `[prepare] failed copying to root .next: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    process.exit(1);
+  }
 }
 
-// Hostinger often checks for repo-root .next. Prefer a symlink so we do not
-// double inode usage under the account file limit.
-try {
-  rmSync(rootNext, { recursive: true, force: true });
-} catch (error) {
-  console.warn(
-    `[prepare] could not clear root .next: ${error instanceof Error ? error.message : String(error)}`,
-  );
+const publicHtml = detectPublicHtml(root);
+if (publicHtml) {
+  const publicNext = path.join(publicHtml, ".next");
+  console.log(`[prepare] Hostinger public_html: ${publicHtml}`);
+  try {
+    replaceDir(sourceNext, publicNext);
+    console.log(`[prepare] Copied build -> ${publicNext}`);
+    console.log(`[prepare] public_html BUILD_ID=${readBuildId(publicNext) ?? "unknown"}`);
+  } catch (error) {
+    console.error(
+      `[prepare] failed publishing to public_html/.next: ${error instanceof Error ? error.message : String(error)}`,
+    );
+    console.error(
+      "Live site may keep serving the previous build until this copy succeeds (often inode limit).",
+    );
+    process.exit(1);
+  }
+} else {
+  console.log("[prepare] Not a Hostinger .builds path; skipped public_html publish");
 }
 
-try {
-  symlinkSync(sourceNext, rootNext, "dir");
-  console.log("[prepare] Linked .next -> apps/web/.next");
-  process.exit(0);
-} catch (symlinkError) {
-  console.warn(
-    `[prepare] symlink failed (${symlinkError instanceof Error ? symlinkError.message : String(symlinkError)}); copying instead`,
-  );
-}
-
-try {
-  cpSync(sourceNext, rootNext, { recursive: true });
-  console.log("[prepare] Copied apps/web/.next -> .next");
-} catch (copyError) {
-  console.error(
-    `[prepare] copy failed: ${copyError instanceof Error ? copyError.message : String(copyError)}`,
-  );
-  console.error(
-    "Build output exists at apps/web/.next; start script can still use that path.",
-  );
-  // Do not fail the deploy solely because the Hostinger root mirror failed.
-  // start-hostinger.mjs serves apps/web/.next directly.
-  process.exit(0);
-}
+console.log("[prepare] Done");

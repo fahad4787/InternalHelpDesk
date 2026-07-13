@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
@@ -9,15 +9,21 @@ const webDir = path.join(root, "apps", "web");
 const webNext = path.join(webDir, ".next");
 const rootNext = path.join(root, ".next");
 
-if (!existsSync(webNext) && !existsSync(rootNext)) {
+function readBuildId(dir) {
+  try {
+    return readFileSync(path.join(dir, "BUILD_ID"), "utf8").trim();
+  } catch {
+    return null;
+  }
+}
+
+const nextDir = existsSync(webNext) ? webNext : existsSync(rootNext) ? rootNext : null;
+if (!nextDir) {
   console.error("Missing apps/web/.next (or root .next). Run npm run build first.");
   process.exit(1);
 }
 
-if (!existsSync(webNext) && existsSync(rootNext)) {
-  console.warn("[hostinger] apps/web/.next missing; using root .next via cwd fallback");
-}
-
+const cwd = nextDir === webNext ? webDir : root;
 const port = process.env.PORT ?? "3000";
 const hostname = process.env.HOSTNAME ?? "0.0.0.0";
 
@@ -31,11 +37,11 @@ if (!existsSync(bin)) {
 }
 
 console.log(
-  `[hostinger] starting Next from ${webDir} (release build) on ${hostname}:${port}`,
+  `[hostinger] starting Next cwd=${cwd} BUILD_ID=${readBuildId(nextDir) ?? "unknown"} on ${hostname}:${port}`,
 );
 
 const child = spawn(process.execPath, [bin, "start", "-H", hostname, "-p", port], {
-  cwd: webDir,
+  cwd,
   stdio: "inherit",
   env: process.env,
 });
