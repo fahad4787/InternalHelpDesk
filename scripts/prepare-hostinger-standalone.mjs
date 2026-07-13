@@ -1,4 +1,12 @@
-import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  lstatSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -71,8 +79,6 @@ if (!sourceNext) {
 const buildId = readBuildId(sourceNext);
 console.log(`[prepare] BUILD_ID=${buildId ?? "unknown"}`);
 
-// Real directory (not symlink): Hostinger publishes from repo root and
-// broken symlinks leave public_html stuck on an old build.
 if (sourceNext !== rootNext) {
   try {
     replaceDir(sourceNext, rootNext);
@@ -88,20 +94,61 @@ if (sourceNext !== rootNext) {
 const publicHtml = detectPublicHtml(root);
 if (publicHtml) {
   const publicNext = path.join(publicHtml, ".next");
+  const startJs = path.join(publicHtml, "start-hostinger-bridge.cjs");
+  const packageJson = path.join(publicHtml, "package.json");
+  const relRepo = path.relative(publicHtml, root).split(path.sep).join("/");
+
   console.log(`[prepare] Hostinger public_html: ${publicHtml}`);
   try {
     replaceDir(sourceNext, publicNext);
     console.log(`[prepare] Copied build -> ${publicNext}`);
-    console.log(`[prepare] public_html BUILD_ID=${readBuildId(publicNext) ?? "unknown"}`);
+    console.log(
+      `[prepare] public_html BUILD_ID=${readBuildId(publicNext) ?? "unknown"}`,
+    );
   } catch (error) {
     console.error(
       `[prepare] failed publishing to public_html/.next: ${error instanceof Error ? error.message : String(error)}`,
     );
-    console.error(
-      "Live site may keep serving the previous build until this copy succeeds (often inode limit).",
-    );
     process.exit(1);
   }
+
+  // Hostinger often runs npm start from public_html. The old 20-byte package.json
+  // there cannot start the monorepo app and causes 503 after deploy.
+  writeFileSync(
+    startJs,
+    `#!/usr/bin/env node
+const { spawn } = require("node:child_process");
+const path = require("node:path");
+
+const repoRoot = path.resolve(__dirname, ${JSON.stringify(relRepo)});
+const script = path.join(repoRoot, "scripts", "start-hostinger.mjs");
+
+console.log("[bridge] launching", script);
+const child = spawn(process.execPath, [script], {
+  cwd: repoRoot,
+  stdio: "inherit",
+  env: process.env,
+});
+child.on("exit", (code) => process.exit(code ?? 1));
+`,
+  );
+
+  writeFileSync(
+    packageJson,
+    `${JSON.stringify(
+      {
+        name: "internalhelpdesk-hostinger",
+        private: true,
+        scripts: {
+          start: "node ./start-hostinger-bridge.cjs",
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  console.log(`[prepare] Wrote public_html bridge -> ${relRepo}/scripts/start-hostinger.mjs`);
 } else {
   console.log("[prepare] Not a Hostinger .builds path; skipped public_html publish");
 }
