@@ -2,10 +2,12 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
 import { outlookService } from '@/services/outlook.service';
 import { slackService } from '@/services/slack.service';
+import { trelloService } from '@/services/trello.service';
 import { workdayService } from '@/services/workday.service';
 import { zoomService } from '@/services/zoom.service';
 import { resolveVisibleDashboardWidgets } from '@/lib/dashboard-widget-utils';
@@ -22,6 +24,18 @@ export function useDashboardVisibleWidgets() {
   const jiraQuery = useQuery({
     queryKey: ['jira-status'],
     queryFn: () => jiraService.getStatus(),
+    staleTime: STATUS_STALE_MS,
+  });
+
+  const trelloQuery = useQuery({
+    queryKey: ['trello-status'],
+    queryFn: () => trelloService.getStatus(),
+    staleTime: STATUS_STALE_MS,
+  });
+
+  const calendlyQuery = useQuery({
+    queryKey: ['calendly-status'],
+    queryFn: () => calendlyService.getStatus(),
     staleTime: STATUS_STALE_MS,
   });
 
@@ -54,6 +68,8 @@ export function useDashboardVisibleWidgets() {
       resolveVisibleDashboardWidgets({
         google: googleQuery.data?.data,
         jira: jiraQuery.data?.data,
+        trello: trelloQuery.data?.data,
+        calendly: calendlyQuery.data?.data,
         slack: slackQuery.data?.data,
         zoom: zoomQuery.data?.data,
         outlook: outlookQuery.data?.data,
@@ -62,6 +78,8 @@ export function useDashboardVisibleWidgets() {
     [
       googleQuery.data?.data,
       jiraQuery.data?.data,
+      trelloQuery.data?.data,
+      calendlyQuery.data?.data,
       slackQuery.data?.data,
       zoomQuery.data?.data,
       outlookQuery.data?.data,
@@ -72,6 +90,8 @@ export function useDashboardVisibleWidgets() {
   const isLoading =
     googleQuery.isLoading ||
     jiraQuery.isLoading ||
+    trelloQuery.isLoading ||
+    calendlyQuery.isLoading ||
     slackQuery.isLoading ||
     zoomQuery.isLoading ||
     outlookQuery.isLoading ||
@@ -83,6 +103,8 @@ export function useDashboardVisibleWidgets() {
     statuses: {
       google: googleQuery.data?.data,
       jira: jiraQuery.data?.data,
+      trello: trelloQuery.data?.data,
+      calendly: calendlyQuery.data?.data,
       slack: slackQuery.data?.data,
       zoom: zoomQuery.data?.data,
       outlook: outlookQuery.data?.data,

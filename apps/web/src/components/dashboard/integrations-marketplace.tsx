@@ -14,6 +14,7 @@ import {
   IntegrationIcon,
   isIntegrationIconProvider,
 } from '@/components/shared/integration-icon';
+import { SearchInput } from '@/components/shared/search-input';
 import { integrationsService } from '@/services/integrations.service';
 import { Integration } from '@/types/api.types';
 import {
@@ -131,7 +132,7 @@ function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-auto flex flex-wrap gap-2 pt-4">
         {isConnected ? (
           meta.configureRoute && (
             <Link href={meta.configureRoute} className={buttonVariants({ size: 'sm' })}>
@@ -231,7 +232,7 @@ function ConnectedAppDetailCard({
 
 export function IntegrationsMarketplace() {
   const queryClient = useQueryClient();
-  const { category, setCategory, searchQuery, integrationsTab, setIntegrationsTab } =
+  const { category, setCategory, searchQuery, setSearchQuery, integrationsTab, setIntegrationsTab } =
     useDashboardUi();
   const { visibleWidgetIds } = useDashboardVisibleWidgets();
 
@@ -275,14 +276,6 @@ export function IntegrationsMarketplace() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="font-heading text-2xl font-bold text-ink">Integrations</h2>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
-          Connect your tools, then toggle widgets on each integration page. Enabled widgets appear
-          on your dashboard automatically.
-        </p>
-      </header>
-
       <div
         className="inline-flex rounded-xl border border-border-warm bg-canvas p-1"
         role="tablist"
@@ -311,23 +304,32 @@ export function IntegrationsMarketplace() {
         <IntegrationMarketplaceSkeleton count={6} />
       ) : integrationsTab === 'browse' ? (
         <>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
-            {MARKETPLACE_CATEGORY_FILTERS.map((filter) => (
-              <button
-                key={filter.id}
-                type="button"
-                onClick={() => setCategory(filter.id)}
-                className={cn(
-                  'rounded-full border px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
-                  category === filter.id
-                    ? 'border-brand bg-brand text-white'
-                    : 'border-border-warm bg-white text-ink hover:bg-canvas',
-                )}
-                aria-pressed={category === filter.id}
-              >
-                {filter.label}
-              </button>
-            ))}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by category">
+              {MARKETPLACE_CATEGORY_FILTERS.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  onClick={() => setCategory(filter.id)}
+                  className={cn(
+                    'rounded-full border px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
+                    category === filter.id
+                      ? 'border-brand bg-brand text-white'
+                      : 'border-border-warm bg-white text-ink hover:bg-canvas',
+                  )}
+                  aria-pressed={category === filter.id}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+            <div className="w-full sm:w-64">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search apps…"
+              />
+            </div>
           </div>
 
           {filteredBrowse.length === 0 ? (

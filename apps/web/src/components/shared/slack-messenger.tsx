@@ -5,7 +5,7 @@ import { SlackChatPanel } from '@/components/shared/slack-chat-panel';
 import { SlackChannel, SlackMessage } from '@/services/slack.service';
 import { cn } from '@/lib/utils';
 
-interface SlackMessengerProps {
+export interface SlackMessengerProps {
   channels: SlackChannel[];
   channelsLoading: boolean;
   selectedChannel: SlackChannel | null;
@@ -21,7 +21,7 @@ interface SlackMessengerProps {
   onSend: () => void;
   isSending: boolean;
   sendError: string | null;
-  compact?: boolean;
+  className?: string;
 }
 
 export function SlackMessenger({
@@ -40,15 +40,10 @@ export function SlackMessenger({
   onSend,
   isSending,
   sendError,
-  compact = false,
+  className,
 }: SlackMessengerProps) {
   return (
-    <div
-      className={cn(
-        'flex overflow-hidden rounded-2xl border border-border-warm bg-white shadow-sm',
-        compact ? 'h-[280px]' : 'h-[calc(100vh-14rem)] min-h-[520px]',
-      )}
-    >
+    <div className={cn('flex h-full min-h-0 overflow-hidden bg-white', className)}>
       <SlackSidebar
         channels={channels}
         isLoading={channelsLoading}

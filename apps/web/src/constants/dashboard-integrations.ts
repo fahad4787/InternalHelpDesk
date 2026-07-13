@@ -33,6 +33,22 @@ export const REAL_INTEGRATION_META: Record<string, MarketplaceAppMeta> = {
     configureRoute: '/integrations/jira',
     isReal: true,
   },
+  TRELLO: {
+    provider: 'TRELLO',
+    widgetId: 'trello',
+    category: 'developer',
+    categoryLabel: 'Developer',
+    configureRoute: '/integrations/trello',
+    isReal: true,
+  },
+  CALENDLY: {
+    provider: 'CALENDLY',
+    widgetId: 'calendly',
+    category: 'calendar',
+    categoryLabel: 'Calendar',
+    configureRoute: '/integrations/calendly',
+    isReal: true,
+  },
   SLACK: {
     provider: 'SLACK',
     widgetId: 'slack',

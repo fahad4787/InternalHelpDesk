@@ -1,16 +1,18 @@
 'use client';
 
-import { DashboardTopBar } from '@/components/dashboard/dashboard-top-bar';
-import { DashboardTabs } from '@/components/dashboard/dashboard-tabs';
+import { PageContainer } from '@/components/shared/page-container';
 import { IntegrationsMarketplace } from '@/components/dashboard/integrations-marketplace';
 import { DashboardShell } from '@/components/dashboard/dashboard-shell';
 
 export default function IntegrationsPage() {
   return (
     <DashboardShell>
-      <DashboardTopBar showSearch />
-      <DashboardTabs />
-      <IntegrationsMarketplace />
+      <PageContainer
+        title="Integrations"
+        description="Connect your tools, then toggle widgets on each integration page. Enabled widgets appear on your dashboard automatically."
+      >
+        <IntegrationsMarketplace />
+      </PageContainer>
     </DashboardShell>
   );
 }

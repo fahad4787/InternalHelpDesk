@@ -6,6 +6,8 @@ export type IntegrationIconProvider =
   | 'GOOGLE_DRIVE'
   | 'GMAIL'
   | 'JIRA'
+  | 'TRELLO'
+  | 'CALENDLY'
   | 'SLACK'
   | 'ZOOM'
   | 'OUTLOOK'
@@ -94,6 +96,28 @@ function JiraIcon({ className }: { className?: string }) {
       <path
         fill="#0052CC"
         d="M11.53 6.2 7.7 11.5c-.7.95-1.1 2.08-1.1 3.25 0 1.17.95 2.12 2.12 2.12.7 0 1.35-.35 1.74-.92l1.07-1.52 1.07 1.52c.39.57 1.04.92 1.74.92 1.17 0 2.12-.95 2.12-2.12 0-1.17-.4-2.3-1.1-3.25L11.53 6.2z"
+      />
+    </svg>
+  );
+}
+
+function TrelloIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <rect fill="#0079BF" width="24" height="24" rx="4" />
+      <rect fill="#fff" x="4.5" y="4.5" width="6" height="12" rx="1.2" />
+      <rect fill="#fff" x="13.5" y="4.5" width="6" height="8" rx="1.2" />
+    </svg>
+  );
+}
+
+function CalendlyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <rect fill="#006BFF" width="24" height="24" rx="5" />
+      <path
+        fill="#fff"
+        d="M7 6.5h10a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 17 18.5H7A1.5 1.5 0 0 1 5.5 17V8A1.5 1.5 0 0 1 7 6.5zm1.2 3.2v1.1h7.6V9.7H8.2zm0 3v1.1h5.2v-1.1H8.2z"
       />
     </svg>
   );
@@ -198,6 +222,10 @@ function BrandGlyph({
       return <GmailIcon className={className} />;
     case 'JIRA':
       return <JiraIcon className={className} />;
+    case 'TRELLO':
+      return <TrelloIcon className={className} />;
+    case 'CALENDLY':
+      return <CalendlyIcon className={className} />;
     case 'SLACK':
       return <SlackIcon className={className} />;
     case 'ZOOM':
@@ -224,6 +252,8 @@ export function isIntegrationIconProvider(
     'GOOGLE_DRIVE',
     'GMAIL',
     'JIRA',
+    'TRELLO',
+    'CALENDLY',
     'SLACK',
     'ZOOM',
     'OUTLOOK',

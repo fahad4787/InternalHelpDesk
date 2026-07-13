@@ -10,7 +10,16 @@ export class IntegrationsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(user: AuthenticatedUser) {
-    const [connected, googleConnection, zoomConnection, jiraConnection, slackConnection, outlookConnection] = await Promise.all([
+    const [
+      connected,
+      googleConnection,
+      zoomConnection,
+      jiraConnection,
+      trelloConnection,
+      calendlyConnection,
+      slackConnection,
+      outlookConnection,
+    ] = await Promise.all([
       this.prisma.integration.findMany({
         where: { companyId: user.companyId },
       }),
@@ -21,6 +30,12 @@ export class IntegrationsService {
         where: { userId: user.id },
       }),
       this.prisma.jiraConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.trelloConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.calendlyConnection.findUnique({
         where: { userId: user.id },
       }),
       this.prisma.slackConnection.findUnique({
@@ -71,6 +86,30 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: jiraConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.TRELLO) {
+        const userConnected =
+          trelloConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: trelloConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.CALENDLY) {
+        const userConnected =
+          calendlyConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: calendlyConnection?.updatedAt ?? null,
         };
       }
 

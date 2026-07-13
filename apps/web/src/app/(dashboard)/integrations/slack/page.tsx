@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
+import { SlackChannelsMessagesSection } from '@/components/shared/slack-channels-messages-section';
 import { SlackConnectionCard } from '@/components/shared/slack-connection-card';
 import { SlackPreferencesCard } from '@/components/shared/slack-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {
@@ -125,9 +125,10 @@ export default function SlackIntegrationPage() {
           <SlackPreferencesCard preferences={preferences} disabled={isPending} />
         )}
 
-        {isConnected && (
-          <IntegrationWidgetsSection provider="SLACK" skeletonCount={1} />
-        )}
+        {isConnected &&
+          (preferences.showChannels || preferences.showDirectMessages) && (
+            <SlackChannelsMessagesSection />
+          )}
       </div>
     </PageContainer>
   );

@@ -51,15 +51,16 @@ export function SlackChatPanel({
   isSending,
   sendError,
 }: SlackChatPanelProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (container) container.scrollTop = container.scrollHeight;
   }, [messages, isSending, channel?.id]);
 
   if (!channel) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-white p-8 text-center">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-white p-8 text-center">
         <div className="rounded-full border border-brand-muted bg-brand-light p-5">
           <MessageCircle className="h-10 w-10 text-brand" />
         </div>
@@ -74,8 +75,8 @@ export function SlackChatPanel({
   const title = getChannelTitle(channel);
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col bg-white">
-      <div className="flex items-center gap-3 border-b border-border-warm px-5 py-3.5">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border-warm px-5 py-3.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand-accent">
           <ChannelIcon channel={channel} />
         </div>
@@ -93,7 +94,10 @@ export function SlackChatPanel({
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-5">
+      <div
+        ref={messagesContainerRef}
+        className="min-h-0 flex-1 space-y-3 overflow-y-auto p-5"
+      >
         {isLoading ? (
           <WidgetContentSkeleton lines={5} />
         ) : error ? (
@@ -139,10 +143,9 @@ export function SlackChatPanel({
             );
           })
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-border-warm p-4">
+      <div className="shrink-0 border-t border-border-warm p-4">
         {sendError && (
           <p className="mb-2 text-sm text-red-600">{sendError}</p>
         )}

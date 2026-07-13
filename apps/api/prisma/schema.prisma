@@ -52,6 +52,8 @@ enum IntegrationProvider {
   GMAIL
   OUTLOOK
   JIRA
+  TRELLO
+  CALENDLY
   SERVICENOW
   WORKDAY
   GOOGLE_CALENDAR
@@ -132,6 +134,8 @@ model User {
   googleCalendarConnection  GoogleCalendarConnection?
   zoomConnection            ZoomConnection?
   jiraConnection            JiraConnection?
+  trelloConnection          TrelloConnection?
+  calendlyConnection        CalendlyConnection?
   slackConnection           SlackConnection?
   outlookConnection         OutlookConnection?
 
@@ -395,6 +399,25 @@ model ZoomConnection {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model CalendlyConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  calendlyEmail         String?
+  calendlyName          String?
+  calendlyUserUri       String?
+  schedulingUrl         String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model JiraConnection {
   id                    String            @id @default(uuid())
   userId                String            @unique
@@ -410,6 +433,23 @@ model JiraConnection {
   lastSyncedAt          DateTime?
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TrelloConnection {
+  id                   String            @id @default(uuid())
+  userId               String            @unique
+  trelloMemberId       String?
+  trelloUsername       String?
+  trelloFullName       String?
+  trelloEmail          String?
+  encryptedAccessToken String?
+  status               IntegrationStatus @default(NOT_CONNECTED)
+  preferences          Json?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

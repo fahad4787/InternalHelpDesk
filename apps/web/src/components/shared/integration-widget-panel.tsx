@@ -6,7 +6,6 @@ import {
 } from '@/constants/dashboard-widget-registry';
 import { useIntegrationWidgets } from '@/hooks/use-integration-widgets';
 import { INTEGRATION_FULL_WIDTH_WIDGETS } from '@/lib/dashboard-widget-utils';
-import { SlackMessengerDashboardWidget } from '@/components/dashboard/widgets/slack-dashboard-widgets';
 import { DashboardWidgetsSkeleton } from '@/components/shared/loading-state';
 import {
   IntegrationWidgetGrid,
@@ -18,20 +17,6 @@ interface IntegrationWidgetPanelProps {
   className?: string;
 }
 
-function renderIntegrationWidget(widgetId: DashboardWidgetId) {
-  if (widgetId === 'slack-messenger') {
-    return (
-      <SlackMessengerDashboardWidget
-        compact={false}
-        className="max-h-[34rem]"
-      />
-    );
-  }
-
-  const Widget = DASHBOARD_WIDGET_COMPONENTS[widgetId];
-  return <Widget />;
-}
-
 export function IntegrationWidgetPanel({
   widgetIds,
   className,
@@ -40,14 +25,17 @@ export function IntegrationWidgetPanel({
 
   return (
     <IntegrationWidgetGrid className={className}>
-      {widgetIds.map((widgetId) => (
-        <IntegrationWidgetGridItem
-          key={widgetId}
-          fullWidth={INTEGRATION_FULL_WIDTH_WIDGETS.has(widgetId)}
-        >
-          {renderIntegrationWidget(widgetId)}
-        </IntegrationWidgetGridItem>
-      ))}
+      {widgetIds.map((widgetId) => {
+        const Widget = DASHBOARD_WIDGET_COMPONENTS[widgetId];
+        return (
+          <IntegrationWidgetGridItem
+            key={widgetId}
+            fullWidth={INTEGRATION_FULL_WIDTH_WIDGETS.has(widgetId)}
+          >
+            <Widget />
+          </IntegrationWidgetGridItem>
+        );
+      })}
     </IntegrationWidgetGrid>
   );
 }

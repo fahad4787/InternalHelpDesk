@@ -122,8 +122,8 @@ export function SlackSidebar({
   }, [channels, search, showChannels, showDirectMessages]);
 
   return (
-    <div className="flex h-full w-full flex-col border-r border-border-warm bg-canvas/80 lg:w-72 lg:shrink-0">
-      <div className="border-b border-border-warm p-3">
+    <div className="flex min-h-0 w-full flex-col border-r border-border-warm bg-canvas/80 lg:w-72 lg:shrink-0">
+      <div className="shrink-0 border-b border-border-warm p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <Input
@@ -135,7 +135,7 @@ export function SlackSidebar({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="min-h-0 flex-1 overflow-y-auto py-2">
         {isLoading ? (
           <div className="px-5 py-4">
             <WidgetContentSkeleton lines={4} />

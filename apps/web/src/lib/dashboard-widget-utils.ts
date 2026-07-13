@@ -2,9 +2,14 @@ import {
   DEFAULT_GOOGLE_PREFERENCES,
   type GoogleCalendarStatus,
 } from '@/services/google-calendar.service';
+import {
+  DEFAULT_CALENDLY_PREFERENCES,
+  type CalendlyStatus,
+} from '@/services/calendly.service';
 import { DEFAULT_JIRA_PREFERENCES, type JiraStatus } from '@/services/jira.service';
 import { DEFAULT_OUTLOOK_PREFERENCES, type OutlookStatus } from '@/services/outlook.service';
 import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
+import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
 import { DEFAULT_ZOOM_PREFERENCES, type ZoomStatus } from '@/services/zoom.service';
 import type { WorkdayStatus } from '@/services/workday.service';
 import {
@@ -16,6 +21,8 @@ import {
 export interface DashboardIntegrationStatuses {
   google?: GoogleCalendarStatus | null;
   jira?: JiraStatus | null;
+  trello?: TrelloStatus | null;
+  calendly?: CalendlyStatus | null;
   slack?: SlackStatus | null;
   zoom?: ZoomStatus | null;
   outlook?: OutlookStatus | null;
@@ -43,6 +50,19 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showAssignedIssues) visible.push('jira-assigned');
     if (preferences.showReportedIssues) visible.push('jira-reported');
     if (preferences.showProjects) visible.push('jira-projects');
+  }
+
+  const trello = statuses.trello;
+  if (trello?.connected) {
+    const preferences = trello.preferences ?? DEFAULT_TRELLO_PREFERENCES;
+    if (preferences.showBoards) visible.push('trello-boards');
+  }
+
+  const calendly = statuses.calendly;
+  if (calendly?.connected) {
+    const preferences = calendly.preferences ?? DEFAULT_CALENDLY_PREFERENCES;
+    if (preferences.showEventTypes) visible.push('calendly-event-types');
+    if (preferences.showUpcomingEvents) visible.push('calendly-events');
   }
 
   const slack = statuses.slack;
@@ -88,6 +108,12 @@ export function getConnectedIntegrationRoutes(
   if (statuses.jira?.connected) {
     routes.push({ provider: 'JIRA', route: '/integrations/jira', label: 'Jira' });
   }
+  if (statuses.trello?.connected) {
+    routes.push({ provider: 'TRELLO', route: '/integrations/trello', label: 'Trello' });
+  }
+  if (statuses.calendly?.connected) {
+    routes.push({ provider: 'CALENDLY', route: '/integrations/calendly', label: 'Calendly' });
+  }
   if (statuses.slack?.connected) {
     routes.push({ provider: 'SLACK', route: '/integrations/slack', label: 'Slack' });
   }
@@ -115,4 +141,5 @@ export function filterWidgetsByProvider(
 
 export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'slack-messenger',
+  'trello-boards',
 ]);

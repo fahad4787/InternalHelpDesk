@@ -1,5 +1,9 @@
 import type { ComponentType } from 'react';
 import {
+  CalendlyEventTypesDashboardWidget,
+  CalendlyUpcomingEventsDashboardWidget,
+} from '@/components/dashboard/widgets/calendly-dashboard-widgets';
+import {
   GoogleCalendarEmbedDashboardWidget,
   GoogleDriveDashboardWidget,
   GoogleGmailDashboardWidget,
@@ -20,6 +24,9 @@ import {
   SlackProfileDashboardWidget,
 } from '@/components/dashboard/widgets/slack-dashboard-widgets';
 import {
+  TrelloBoardsDashboardWidget,
+} from '@/components/dashboard/widgets/trello-dashboard-widgets';
+import {
   ZoomCalendarDashboardWidget,
   ZoomMeetingsDashboardWidget,
   ZoomProfileDashboardWidget,
@@ -35,6 +42,9 @@ export const DASHBOARD_WIDGET_IDS = [
   'jira-assigned',
   'jira-reported',
   'jira-projects',
+  'trello-boards',
+  'calendly-event-types',
+  'calendly-events',
   'slack-profile',
   'slack-messenger',
   'zoom-profile',
@@ -112,6 +122,27 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/jira',
     order: 23,
   },
+  'trello-boards': {
+    id: 'trello-boards',
+    label: 'Boards',
+    provider: 'TRELLO',
+    configureRoute: '/integrations/trello',
+    order: 25,
+  },
+  'calendly-event-types': {
+    id: 'calendly-event-types',
+    label: 'Event types',
+    provider: 'CALENDLY',
+    configureRoute: '/integrations/calendly',
+    order: 27,
+  },
+  'calendly-events': {
+    id: 'calendly-events',
+    label: 'Upcoming events',
+    provider: 'CALENDLY',
+    configureRoute: '/integrations/calendly',
+    order: 28,
+  },
   'slack-profile': {
     id: 'slack-profile',
     label: 'Workspace profile',
@@ -179,6 +210,9 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'jira-assigned': JiraAssignedDashboardWidget,
   'jira-reported': JiraReportedDashboardWidget,
   'jira-projects': JiraProjectsDashboardWidget,
+  'trello-boards': TrelloBoardsDashboardWidget,
+  'calendly-event-types': CalendlyEventTypesDashboardWidget,
+  'calendly-events': CalendlyUpcomingEventsDashboardWidget,
   'slack-profile': SlackProfileDashboardWidget,
   'slack-messenger': SlackMessengerDashboardWidget,
   'zoom-profile': ZoomProfileDashboardWidget,
@@ -192,6 +226,8 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
 export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   GOOGLE_CALENDAR: '/integrations/google',
   JIRA: '/integrations/jira',
+  TRELLO: '/integrations/trello',
+  CALENDLY: '/integrations/calendly',
   SLACK: '/integrations/slack',
   ZOOM: '/integrations/zoom',
   OUTLOOK: '/integrations/outlook',

@@ -13,19 +13,44 @@ import { SlackModule } from './slack/slack.module';
 import { SlackController } from './slack/slack.controller';
 import { OutlookModule } from './outlook/outlook.module';
 import { OutlookController } from './outlook/outlook.controller';
+import { TrelloModule } from './trello/trello.module';
+import { TrelloController } from './trello/trello.controller';
+import { CalendlyModule } from './calendly/calendly.module';
+import { CalendlyController } from './calendly/calendly.controller';
 
 @Module({
-  imports: [WorkdayModule, GoogleCalendarModule, ZoomModule, JiraModule, SlackModule, OutlookModule],
+  imports: [
+    WorkdayModule,
+    GoogleCalendarModule,
+    ZoomModule,
+    JiraModule,
+    TrelloModule,
+    CalendlyModule,
+    SlackModule,
+    OutlookModule,
+  ],
   controllers: [
     WorkdayController,
     GoogleCalendarController,
     ZoomController,
     JiraController,
+    TrelloController,
+    CalendlyController,
     SlackController,
     OutlookController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
-  exports: [IntegrationsService, WorkdayModule, GoogleCalendarModule, ZoomModule, JiraModule, SlackModule, OutlookModule],
+  exports: [
+    IntegrationsService,
+    WorkdayModule,
+    GoogleCalendarModule,
+    ZoomModule,
+    JiraModule,
+    TrelloModule,
+    CalendlyModule,
+    SlackModule,
+    OutlookModule,
+  ],
 })
 export class IntegrationsModule {}

@@ -20,6 +20,18 @@ export const INTEGRATION_PROVIDERS = [
     category: 'project-management',
   },
   {
+    provider: IntegrationProvider.TRELLO,
+    name: 'Trello',
+    description: 'Boards and cards from your linked Trello account',
+    category: 'project-management',
+  },
+  {
+    provider: IntegrationProvider.CALENDLY,
+    name: 'Calendly',
+    description: 'Event types and upcoming meetings from your Calendly account',
+    category: 'calendar',
+  },
+  {
     provider: IntegrationProvider.SLACK,
     name: 'Slack',
     description: 'Connect Slack for notifications and chatbot access',
