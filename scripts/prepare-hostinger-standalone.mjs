@@ -1,4 +1,4 @@
-import { cpSync, existsSync, rmSync } from "node:fs";
+import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,7 +11,7 @@ if (!existsSync(webNext)) {
   process.exit(1);
 }
 
+// Avoid a second full .next tree — Hostinger inode limits are tight.
 rmSync(rootNext, { recursive: true, force: true });
-cpSync(webNext, rootNext, { recursive: true });
 
-console.log("Prepared Hostinger output at .next");
+console.log("Hostinger will serve apps/web/.next (removed duplicate root .next)");

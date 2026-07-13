@@ -16,15 +16,23 @@ if (!existsSync(webNext)) {
 const port = process.env.PORT ?? "3000";
 const hostname = process.env.HOSTNAME ?? "0.0.0.0";
 
-const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
-const child = spawn(
-  npmCmd,
-  ["run", "start", "--", "-H", hostname, "-p", port],
-  {
-    cwd: webDir,
-    stdio: "inherit",
-    env: process.env,
-  },
+const nextBin = path.join(root, "node_modules", "next", "dist", "bin", "next");
+const nextBinFallback = path.join(webDir, "node_modules", "next", "dist", "bin", "next");
+const bin = existsSync(nextBin) ? nextBin : nextBinFallback;
+
+if (!existsSync(bin)) {
+  console.error("Missing next binary. Run npm install from the repo root.");
+  process.exit(1);
+}
+
+console.log(
+  `[hostinger] starting Next from ${webDir} (release build) on ${hostname}:${port}`,
 );
+
+const child = spawn(process.execPath, [bin, "start", "-H", hostname, "-p", port], {
+  cwd: webDir,
+  stdio: "inherit",
+  env: process.env,
+});
 
 child.on("exit", (code) => process.exit(code ?? 1));

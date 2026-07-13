@@ -1,1 +1,1 @@
-export const APP_RELEASE = "2026-07-13-trello-calendly";
+export const APP_RELEASE = "2026-07-13-lockfile-fix";
