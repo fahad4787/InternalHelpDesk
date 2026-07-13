@@ -27,6 +27,10 @@ const port = Number(process.env.PORT ?? 3000);
 const hostname = process.env.HOSTNAME ?? "0.0.0.0";
 const buildId = readBuildId(webNext) ?? "unknown";
 
+console.log(
+  `[hostinger] boot PORT=${process.env.PORT ?? "(unset→3000)"} HOSTNAME=${hostname} BUILD_ID=${buildId}`,
+);
+
 const require = createRequire(path.join(webDir, "package.json"));
 const next = require("next");
 
@@ -51,19 +55,26 @@ const preparePromise = app
     console.error("[hostinger] Next prepare failed:", error);
   });
 
-// Hostinger requires listen() within ~3s. Do not await prepare() first.
 const server = createServer((req, res) => {
   if (prepareError) {
     res.statusCode = 500;
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.end("Application failed to start");
     return;
   }
+
+  // Hostinger probes the process right after listen(). Returning 503 here
+  // causes hCDN to mark the app unavailable permanently.
   if (!ready) {
-    res.statusCode = 503;
-    res.setHeader("Retry-After", "2");
-    res.end("Application is starting");
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    res.end(
+      "<!doctype html><html><body style=\"font-family:sans-serif;padding:2rem\">Starting Workhub…</body></html>",
+    );
     return;
   }
+
   handle(req, res, parse(req.url ?? "/", true));
 });
 
