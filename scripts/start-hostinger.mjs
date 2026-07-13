@@ -7,10 +7,15 @@ import { spawn } from "node:child_process";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const webDir = path.join(root, "apps", "web");
 const webNext = path.join(webDir, ".next");
+const rootNext = path.join(root, ".next");
 
-if (!existsSync(webNext)) {
-  console.error("Missing apps/web/.next. Run npm run build first.");
+if (!existsSync(webNext) && !existsSync(rootNext)) {
+  console.error("Missing apps/web/.next (or root .next). Run npm run build first.");
   process.exit(1);
+}
+
+if (!existsSync(webNext) && existsSync(rootNext)) {
+  console.warn("[hostinger] apps/web/.next missing; using root .next via cwd fallback");
 }
 
 const port = process.env.PORT ?? "3000";
