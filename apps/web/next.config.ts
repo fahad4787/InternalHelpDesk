@@ -24,25 +24,18 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
   },
   async headers() {
+    const noStore = [
+      {
+        key: "Cache-Control",
+        value: "private, no-cache, no-store, max-age=0, must-revalidate",
+      },
+      { key: "CDN-Cache-Control", value: "no-store" },
+      { key: "Cloudflare-CDN-Cache-Control", value: "no-store" },
+    ];
+
     return [
-      {
-        source: "/integrations/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "private, no-cache, no-store, must-revalidate",
-          },
-        ],
-      },
-      {
-        source: "/integrations",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "private, no-cache, no-store, must-revalidate",
-          },
-        ],
-      },
+      { source: "/:path*", headers: noStore },
+      { source: "/", headers: noStore },
     ];
   },
   async rewrites() {

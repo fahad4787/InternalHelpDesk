@@ -1,1 +1,1 @@
-export const APP_RELEASE = "2026-07-14-prepare-fix";
+export const APP_RELEASE = "2026-07-14-cdn-bust";
