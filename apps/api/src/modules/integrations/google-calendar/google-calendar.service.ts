@@ -11,9 +11,6 @@ import { PrismaService } from '../../../database/prisma.service';
 import { AuthenticatedUser } from '../../../common/types/api-response.type';
 import { decrypt, encrypt } from '../../../common/utils/encryption.util';
 import { successResponse } from '../../../common/utils/api-response.util';
-import { MOCK_CALENDAR_EVENTS } from './constants/mock-events.constant';
-import { MOCK_DRIVE_FILES } from './constants/mock-drive-files.constant';
-import { MOCK_GMAIL_MESSAGES } from './constants/mock-gmail-messages.constant';
 import { UpdateGooglePreferencesDto } from './dto/update-google-preferences.dto';
 import { CreateMeetDto } from './dto/create-meet.dto';
 import {
@@ -22,6 +19,10 @@ import {
   GoogleGmailMessage,
   GooglePreferences,
 } from './types/google-preferences.type';
+import {
+  GoogleChatMessage,
+  GoogleChatSpace,
+} from './types/google-chat.type';
 import { createOAuthState, verifyOAuthState } from './utils/oauth-state.util';
 import { extractMeetLink, extractMeetCode, isLikelyGoogleMeetEvent } from './utils/meet-link.util';
 
@@ -31,12 +32,24 @@ const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/calendar.events',
   'https://www.googleapis.com/auth/drive.readonly',
   'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/chat.spaces.readonly',
+  'https://www.googleapis.com/auth/chat.messages.readonly',
+  'https://www.googleapis.com/auth/chat.messages',
+  'https://www.googleapis.com/auth/chat.memberships.readonly',
 ].join(' ');
 
 const CALENDAR_WRITE_SCOPES = [
   'https://www.googleapis.com/auth/calendar.events',
   'https://www.googleapis.com/auth/calendar',
 ];
+
+const CHAT_REQUIRED_SCOPES = [
+  'https://www.googleapis.com/auth/chat.spaces.readonly',
+  'https://www.googleapis.com/auth/chat.messages.readonly',
+  'https://www.googleapis.com/auth/chat.messages',
+  'https://www.googleapis.com/auth/chat.memberships.readonly',
+];
+
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
@@ -44,6 +57,7 @@ const GOOGLE_CALENDAR_LIST_URL =
   'https://www.googleapis.com/calendar/v3/users/me/calendarList';
 const GOOGLE_DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files';
 const GMAIL_API_URL = 'https://gmail.googleapis.com/gmail/v1';
+const GOOGLE_CHAT_API_URL = 'https://chat.googleapis.com/v1';
 
 export interface CalendarEvent {
   id: string;
@@ -98,7 +112,6 @@ interface GoogleEventsResponse {
 export class GoogleCalendarService {
   private encryptionKey: string;
   private jwtSecret: string;
-  private mockCreatedEvents = new Map<string, CalendarEvent[]>();
 
   constructor(
     private prisma: PrismaService,
@@ -114,12 +127,6 @@ export class GoogleCalendarService {
     );
   }
 
-  isMockMode(): boolean {
-    const mode = this.configService.get<string>('GOOGLE_CALENDAR_MODE', 'mock');
-    if (mode === 'mock') return true;
-    return !this.configService.get<string>('GOOGLE_CLIENT_ID');
-  }
-
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.googleCalendarConnection.findUnique({
       where: { userId: user.id },
@@ -128,10 +135,13 @@ export class GoogleCalendarService {
     const connected = connection?.status === IntegrationStatus.CONNECTED;
     let needsReconnect = false;
 
-    if (connected && !this.isMockMode() && connection?.encryptedAccessToken) {
+    if (connected && connection?.encryptedAccessToken) {
       try {
         const accessToken = await this.getValidAccessToken(connection);
-        needsReconnect = !(await this.tokenHasCalendarWriteScope(accessToken));
+        const hasCalendarWrite =
+          await this.tokenHasCalendarWriteScope(accessToken);
+        const hasChatScopes = await this.tokenHasChatScopes(accessToken);
+        needsReconnect = !hasCalendarWrite || !hasChatScopes;
       } catch {
         needsReconnect = true;
       }
@@ -139,7 +149,6 @@ export class GoogleCalendarService {
 
     return successResponse({
       connected,
-      mockMode: this.isMockMode(),
       status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
       googleEmail: connection?.googleEmail ?? null,
       lastSyncedAt: connection?.lastSyncedAt?.toISOString() ?? null,
@@ -165,6 +174,7 @@ export class GoogleCalendarService {
       showCalendarEmbed: dto.showCalendarEmbed,
       showGoogleDrive: dto.showGoogleDrive,
       showGmail: dto.showGmail,
+      showGoogleChat: dto.showGoogleChat,
     };
 
     await this.prisma.googleCalendarConnection.update({
@@ -183,17 +193,7 @@ export class GoogleCalendarService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         files: [] as GoogleDriveFile[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        googleEmail: connection.googleEmail,
-        files: MOCK_DRIVE_FILES.slice(0, limit),
       });
     }
 
@@ -202,7 +202,6 @@ export class GoogleCalendarService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       googleEmail: connection.googleEmail,
       files,
     });
@@ -231,7 +230,79 @@ export class GoogleCalendarService {
         typeof prefs.showGmail === 'boolean'
           ? prefs.showGmail
           : DEFAULT_GOOGLE_PREFERENCES.showGmail,
+      showGoogleChat:
+        typeof prefs.showGoogleChat === 'boolean'
+          ? prefs.showGoogleChat
+          : DEFAULT_GOOGLE_PREFERENCES.showGoogleChat,
     };
+  }
+
+  async getChatSpaces(user: AuthenticatedUser) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        spaces: [] as GoogleChatSpace[],
+      });
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const spaces = await this.fetchChatSpaces(accessToken);
+
+    return successResponse({
+      connected: true,
+      spaces,
+    });
+  }
+
+  async getChatMessages(user: AuthenticatedUser, spaceId: string) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        spaceId,
+        messages: [] as GoogleChatMessage[],
+      });
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const messages = await this.fetchChatMessages(accessToken, spaceId);
+
+    return successResponse({
+      connected: true,
+      spaceId,
+      messages,
+    });
+  }
+
+  async sendChatMessage(
+    user: AuthenticatedUser,
+    spaceId: string,
+    text: string,
+  ) {
+    const connection = await this.prisma.googleCalendarConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      throw new BadRequestException('Google account is not connected');
+    }
+
+    const trimmed = text.trim();
+    if (!trimmed) {
+      throw new BadRequestException('Message cannot be empty');
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const message = await this.postChatMessage(accessToken, spaceId, trimmed);
+
+    return successResponse({ spaceId, message }, 'Message sent');
   }
 
   async getGmailMessages(user: AuthenticatedUser, limit = 10) {
@@ -242,17 +313,7 @@ export class GoogleCalendarService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         messages: [] as GoogleGmailMessage[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        googleEmail: connection.googleEmail,
-        messages: MOCK_GMAIL_MESSAGES.slice(0, limit),
       });
     }
 
@@ -261,7 +322,6 @@ export class GoogleCalendarService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       googleEmail: connection.googleEmail,
       messages,
     });
@@ -420,12 +480,6 @@ export class GoogleCalendarService {
   }
 
   getAuthUrl(user: AuthenticatedUser) {
-    if (this.isMockMode()) {
-      throw new BadRequestException(
-        'Google OAuth is disabled in mock mode. Use the mock connect action instead.',
-      );
-    }
-
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     const redirectUri = this.getRedirectUri();
     if (!clientId || !redirectUri) {
@@ -509,51 +563,7 @@ export class GoogleCalendarService {
     return userId;
   }
 
-  async connectMock(user: AuthenticatedUser) {
-    if (!this.isMockMode()) {
-      throw new BadRequestException('Mock connect is only available in mock mode');
-    }
-
-    await this.prisma.googleCalendarConnection.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        googleEmail: user.email,
-        status: IntegrationStatus.CONNECTED,
-        preferences: DEFAULT_GOOGLE_PREFERENCES as unknown as Prisma.InputJsonValue,
-        lastSyncedAt: new Date(),
-      },
-      update: {
-        googleEmail: user.email,
-        status: IntegrationStatus.CONNECTED,
-        lastSyncedAt: new Date(),
-      },
-    });
-
-    await this.prisma.integration.upsert({
-      where: {
-        companyId_provider: {
-          companyId: user.companyId,
-          provider: IntegrationProvider.GOOGLE_CALENDAR,
-        },
-      },
-      create: {
-        companyId: user.companyId,
-        provider: IntegrationProvider.GOOGLE_CALENDAR,
-        status: IntegrationStatus.CONNECTED,
-      },
-      update: { status: IntegrationStatus.CONNECTED },
-    });
-
-    return successResponse(
-      { connected: true, mockMode: true, googleEmail: user.email },
-      'Google Calendar connected (mock mode)',
-    );
-  }
-
   async disconnect(user: AuthenticatedUser) {
-    this.mockCreatedEvents.delete(user.id);
-
     await this.prisma.googleCalendarConnection.deleteMany({
       where: { userId: user.id },
     });
@@ -583,22 +593,7 @@ export class GoogleCalendarService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         events: [] as CalendarEvent[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      const created = this.mockCreatedEvents.get(user.id) ?? [];
-      const events = [...created, ...MOCK_CALENDAR_EVENTS]
-        .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-        .slice(0, limit);
-
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        googleEmail: connection.googleEmail,
-        events,
       });
     }
 
@@ -616,7 +611,6 @@ export class GoogleCalendarService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       googleEmail: connection.googleEmail,
       events,
     });
@@ -639,30 +633,6 @@ export class GoogleCalendarService {
     const end = new Date(start.getTime() + dto.durationMinutes * 60_000);
     if (end <= start) {
       throw new BadRequestException('Meeting end must be after start');
-    }
-
-    if (this.isMockMode()) {
-      const meetCode = `mock-${Date.now().toString(36).slice(-3)}-${Math.random().toString(36).slice(2, 5)}`;
-      const event: CalendarEvent = {
-        id: `mock-created-${Date.now()}`,
-        title: dto.title.trim(),
-        description: dto.description?.trim() ?? null,
-        start: start.toISOString(),
-        end: end.toISOString(),
-        location: 'Google Meet',
-        htmlLink: 'https://calendar.google.com',
-        meetLink: `https://meet.google.com/${meetCode}`,
-        meetCode,
-        allDay: false,
-        organizerName: connection.googleEmail?.split('@')[0] ?? null,
-        organizerEmail: connection.googleEmail,
-        attendeeCount: dto.attendeeEmails?.length ?? 0,
-      };
-
-      const existing = this.mockCreatedEvents.get(user.id) ?? [];
-      this.mockCreatedEvents.set(user.id, [event, ...existing]);
-
-      return successResponse(event, 'Google Meet created');
     }
 
     const accessToken = await this.getValidAccessToken(connection);
@@ -1109,5 +1079,276 @@ export class GoogleCalendarService {
     const granted = data.scope?.split(' ') ?? [];
 
     return CALENDAR_WRITE_SCOPES.some((scope) => granted.includes(scope));
+  }
+
+  private async tokenHasChatScopes(accessToken: string): Promise<boolean> {
+    const response = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`,
+    );
+
+    if (!response.ok) return false;
+
+    const data = (await response.json()) as { scope?: string };
+    const granted = data.scope?.split(' ') ?? [];
+
+    return CHAT_REQUIRED_SCOPES.every((scope) => granted.includes(scope));
+  }
+
+  private toSpaceResourceName(spaceId: string): string {
+    return spaceId.startsWith('spaces/') ? spaceId : `spaces/${spaceId}`;
+  }
+
+  private fromSpaceResourceName(name: string): string {
+    return name.startsWith('spaces/') ? name.slice('spaces/'.length) : name;
+  }
+
+  private parseGoogleChatError(status: number, error: string): never {
+    if (
+      status === 403 &&
+      (error.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
+        error.includes('insufficientPermissions') ||
+        error.includes('PERMISSION_DENIED'))
+    ) {
+      throw new BadRequestException(
+        'Google Chat needs updated permissions. Click Reconnect Google and approve Chat access again.',
+      );
+    }
+
+    if (
+      status === 403 &&
+      (error.includes('SERVICE_DISABLED') ||
+        error.includes('Chat API has not been used') ||
+        error.includes('API has not been used'))
+    ) {
+      throw new BadRequestException(
+        'Google Chat API is not enabled on this Google Cloud project. Enable the Chat API, then reconnect Google.',
+      );
+    }
+
+    throw new BadRequestException(
+      `Failed to fetch Google Chat data (${status}): ${error.slice(0, 400)}`,
+    );
+  }
+
+  private async fetchChatSpaces(accessToken: string): Promise<GoogleChatSpace[]> {
+    const spaces: GoogleChatSpace[] = [];
+    let pageToken: string | undefined;
+
+    do {
+      const params = new URLSearchParams({
+        pageSize: '100',
+        filter:
+          'spaceType = "SPACE" OR spaceType = "GROUP_CHAT" OR spaceType = "DIRECT_MESSAGE"',
+      });
+      if (pageToken) params.set('pageToken', pageToken);
+
+      const response = await fetch(`${GOOGLE_CHAT_API_URL}/spaces?${params}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!response.ok) {
+        return this.parseGoogleChatError(response.status, await response.text());
+      }
+
+      const data = (await response.json()) as {
+        spaces?: Array<{
+          name: string;
+          displayName?: string;
+          spaceType?: string;
+          singleUserBotDm?: boolean;
+        }>;
+        nextPageToken?: string;
+      };
+
+      for (const space of data.spaces ?? []) {
+        const spaceType = space.spaceType ?? 'SPACE';
+        const kind =
+          spaceType === 'DIRECT_MESSAGE'
+            ? 'dm'
+            : spaceType === 'GROUP_CHAT'
+              ? 'group_dm'
+              : 'space';
+
+        spaces.push({
+          id: this.fromSpaceResourceName(space.name),
+          name:
+            space.displayName?.trim() ||
+            (kind === 'dm' ? 'Direct message' : 'Untitled space'),
+          memberCount: kind === 'dm' ? 2 : 0,
+          isPrivate: kind !== 'space',
+          kind,
+        });
+      }
+
+      pageToken = data.nextPageToken;
+    } while (pageToken);
+
+    await this.resolveChatSpaceDisplayNames(accessToken, spaces);
+    return this.sortChatSpaces(spaces);
+  }
+
+  private async resolveChatSpaceDisplayNames(
+    accessToken: string,
+    spaces: GoogleChatSpace[],
+  ) {
+    const unresolved = spaces.filter(
+      (space) =>
+        (space.kind === 'dm' || space.kind === 'group_dm') &&
+        (space.name === 'Direct message' || space.name === 'Untitled space'),
+    );
+
+    await Promise.all(
+      unresolved.slice(0, 40).map(async (space) => {
+        const name = await this.fetchChatSpaceMemberLabel(accessToken, space.id);
+        if (name) space.name = name;
+      }),
+    );
+  }
+
+  private async fetchChatSpaceMemberLabel(
+    accessToken: string,
+    spaceId: string,
+  ): Promise<string | null> {
+    const parent = this.toSpaceResourceName(spaceId);
+    const response = await fetch(
+      `${GOOGLE_CHAT_API_URL}/${parent}/members?pageSize=10`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as {
+      memberships?: Array<{
+        member?: {
+          name?: string;
+          displayName?: string;
+          type?: string;
+        };
+      }>;
+    };
+
+    const humans = (data.memberships ?? [])
+      .map((entry) => entry.member)
+      .filter(
+        (member): member is { name?: string; displayName?: string; type?: string } =>
+          !!member && member.type !== 'BOT',
+      );
+
+    const labels = humans
+      .map((member) => member.displayName?.trim())
+      .filter((label): label is string => !!label);
+
+    if (labels.length === 0) return null;
+    if (labels.length === 1) return labels[0];
+    return labels.slice(0, 3).join(', ');
+  }
+
+  private sortChatSpaces(spaces: GoogleChatSpace[]): GoogleChatSpace[] {
+    const sorter = (a: GoogleChatSpace, b: GoogleChatSpace) =>
+      a.name.localeCompare(b.name);
+
+    return [
+      ...spaces.filter((space) => space.kind === 'space').sort(sorter),
+      ...spaces
+        .filter((space) => space.kind === 'dm' || space.kind === 'group_dm')
+        .sort(sorter),
+    ];
+  }
+
+  private async fetchChatMessages(
+    accessToken: string,
+    spaceId: string,
+  ): Promise<GoogleChatMessage[]> {
+    const parent = this.toSpaceResourceName(spaceId);
+    const params = new URLSearchParams({
+      pageSize: '25',
+      orderBy: 'createTime desc',
+    });
+
+    const response = await fetch(
+      `${GOOGLE_CHAT_API_URL}/${parent}/messages?${params}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!response.ok) {
+      return this.parseGoogleChatError(response.status, await response.text());
+    }
+
+    const data = (await response.json()) as {
+      messages?: Array<{
+        name: string;
+        text?: string;
+        createTime?: string;
+        sender?: {
+          name?: string;
+          displayName?: string;
+          type?: string;
+        };
+      }>;
+    };
+
+    const messages = (data.messages ?? [])
+      .map((message) => ({
+        id: message.name,
+        text: message.text ?? '',
+        userId: message.sender?.name ?? null,
+        userName: message.sender?.displayName ?? null,
+        timestamp: message.createTime ?? new Date().toISOString(),
+      }))
+      .filter((message) => message.text.trim().length > 0)
+      .reverse();
+
+    return messages;
+  }
+
+  private async postChatMessage(
+    accessToken: string,
+    spaceId: string,
+    text: string,
+  ): Promise<GoogleChatMessage> {
+    const parent = this.toSpaceResourceName(spaceId);
+
+    const response = await fetch(`${GOOGLE_CHAT_API_URL}/${parent}/messages`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      if (
+        response.status === 403 &&
+        (error.includes('ACCESS_TOKEN_SCOPE_INSUFFICIENT') ||
+          error.includes('insufficientPermissions'))
+      ) {
+        throw new BadRequestException(
+          'Google Chat needs updated permissions. Click Reconnect Google and approve Chat access again.',
+        );
+      }
+      throw new InternalServerErrorException(
+        `Failed to send Google Chat message: ${error}`,
+      );
+    }
+
+    const data = (await response.json()) as {
+      name: string;
+      text?: string;
+      createTime?: string;
+      sender?: {
+        name?: string;
+        displayName?: string;
+      };
+    };
+
+    return {
+      id: data.name,
+      text: data.text ?? text,
+      userId: data.sender?.name ?? null,
+      userName: data.sender?.displayName ?? null,
+      timestamp: data.createTime ?? new Date().toISOString(),
+    };
   }
 }

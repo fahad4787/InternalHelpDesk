@@ -5,8 +5,10 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { IntegrationIcon } from '@/components/shared/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { MeetEventList } from '@/components/shared/meet-event-list';
+import { GoogleChatMessenger } from '@/components/shared/google-chat-messenger';
 import { GoogleDriveList } from '@/components/shared/google-drive-list';
 import { GoogleGmailList } from '@/components/shared/google-gmail-list';
+import { useGoogleChatMessenger } from '@/hooks/use-google-chat-messenger';
 import { useGoogleWidgets } from '@/hooks/use-google-widgets';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 
@@ -128,6 +130,30 @@ export function GoogleGmailDashboardWidget() {
       ) : (
         <GoogleGmailList messages={messages} />
       )}
+    </DashboardWidgetCard>
+  );
+}
+
+export function GoogleChatDashboardWidget({
+  className,
+}: {
+  className?: string;
+}) {
+  const messenger = useGoogleChatMessenger();
+
+  return (
+    <DashboardWidgetCard
+      source="Google"
+      sourceLogo={<IntegrationIcon provider="GOOGLE_CALENDAR" />}
+      title="Google Chat"
+      deepLinkHref="/integrations/google"
+      deepLinkLabel="Open Google"
+      fillContent
+      className={className}
+    >
+      <div className="h-[280px] overflow-hidden rounded-xl border border-border-warm">
+        <GoogleChatMessenger {...messenger} />
+      </div>
     </DashboardWidgetCard>
   );
 }

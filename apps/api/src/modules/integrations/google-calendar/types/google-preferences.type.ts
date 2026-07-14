@@ -3,6 +3,7 @@ export interface GooglePreferences {
   showCalendarEmbed: boolean;
   showGoogleDrive: boolean;
   showGmail: boolean;
+  showGoogleChat: boolean;
 }
 
 export const DEFAULT_GOOGLE_PREFERENCES: GooglePreferences = {
@@ -10,6 +11,7 @@ export const DEFAULT_GOOGLE_PREFERENCES: GooglePreferences = {
   showCalendarEmbed: true,
   showGoogleDrive: true,
   showGmail: true,
+  showGoogleChat: true,
 };
 
 export interface GoogleDriveFile {

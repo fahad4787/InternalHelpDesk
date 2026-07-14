@@ -12,4 +12,7 @@ export class UpdateGooglePreferencesDto {
 
   @IsBoolean()
   showGmail: boolean;
+
+  @IsBoolean()
+  showGoogleChat: boolean;
 }

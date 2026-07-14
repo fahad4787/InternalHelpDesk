@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Logger,
+  Param,
   Patch,
   Post,
   Query,
@@ -17,6 +18,7 @@ import type { AuthenticatedUser } from '../../../common/types/api-response.type'
 import { GoogleCalendarService } from './google-calendar.service';
 import { UpdateGooglePreferencesDto } from './dto/update-google-preferences.dto';
 import { CreateMeetDto } from './dto/create-meet.dto';
+import { SendGoogleChatMessageDto } from './dto/send-google-chat-message.dto';
 
 @Controller('integrations/google-calendar')
 export class GoogleCalendarController {
@@ -72,12 +74,6 @@ export class GoogleCalendarController {
     }
   }
 
-  @Post('connect-mock')
-  @UseGuards(JwtAuthGuard)
-  connectMock(@CurrentUser() user: AuthenticatedUser) {
-    return this.googleCalendarService.connectMock(user);
-  }
-
   @Post('disconnect')
   @UseGuards(JwtAuthGuard)
   disconnect(@CurrentUser() user: AuthenticatedUser) {
@@ -100,6 +96,31 @@ export class GoogleCalendarController {
   @UseGuards(JwtAuthGuard)
   getGmailMessages(@CurrentUser() user: AuthenticatedUser) {
     return this.googleCalendarService.getGmailMessages(user);
+  }
+
+  @Get('chat/spaces')
+  @UseGuards(JwtAuthGuard)
+  getChatSpaces(@CurrentUser() user: AuthenticatedUser) {
+    return this.googleCalendarService.getChatSpaces(user);
+  }
+
+  @Get('chat/spaces/:spaceId/messages')
+  @UseGuards(JwtAuthGuard)
+  getChatMessages(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('spaceId') spaceId: string,
+  ) {
+    return this.googleCalendarService.getChatMessages(user, spaceId);
+  }
+
+  @Post('chat/spaces/:spaceId/messages')
+  @UseGuards(JwtAuthGuard)
+  sendChatMessage(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('spaceId') spaceId: string,
+    @Body() dto: SendGoogleChatMessageDto,
+  ) {
+    return this.googleCalendarService.sendChatMessage(user, spaceId, dto.text);
   }
 
   @Post('events/meet')

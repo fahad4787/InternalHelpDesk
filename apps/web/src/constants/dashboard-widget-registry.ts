@@ -5,6 +5,7 @@ import {
 } from '@/components/dashboard/widgets/calendly-dashboard-widgets';
 import {
   GoogleCalendarEmbedDashboardWidget,
+  GoogleChatDashboardWidget,
   GoogleDriveDashboardWidget,
   GoogleGmailDashboardWidget,
   GoogleMeetDashboardWidget,
@@ -38,6 +39,7 @@ export const DASHBOARD_WIDGET_IDS = [
   'google-calendar',
   'google-drive',
   'google-gmail',
+  'google-chat',
   'jira-profile',
   'jira-assigned',
   'jira-reported',
@@ -93,6 +95,13 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     provider: 'GOOGLE_CALENDAR',
     configureRoute: '/integrations/google',
     order: 13,
+  },
+  'google-chat': {
+    id: 'google-chat',
+    label: 'Google Chat',
+    provider: 'GOOGLE_CALENDAR',
+    configureRoute: '/integrations/google',
+    order: 14,
   },
   'jira-profile': {
     id: 'jira-profile',
@@ -206,6 +215,7 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'google-calendar': GoogleCalendarEmbedDashboardWidget,
   'google-drive': GoogleDriveDashboardWidget,
   'google-gmail': GoogleGmailDashboardWidget,
+  'google-chat': GoogleChatDashboardWidget,
   'jira-profile': JiraProfileDashboardWidget,
   'jira-assigned': JiraAssignedDashboardWidget,
   'jira-reported': JiraReportedDashboardWidget,

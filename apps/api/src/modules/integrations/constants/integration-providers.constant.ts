@@ -4,7 +4,7 @@ export const INTEGRATION_PROVIDERS = [
   {
     provider: IntegrationProvider.GOOGLE_CALENDAR,
     name: 'Google',
-    description: 'Calendar, Google Meet, and Drive from your linked Google account',
+    description: 'Calendar, Google Meet, Drive, Gmail, and Chat from your linked Google account',
     category: 'google',
   },
   {

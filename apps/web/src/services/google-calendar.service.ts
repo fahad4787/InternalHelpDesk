@@ -6,11 +6,11 @@ export interface GooglePreferences {
   showCalendarEmbed: boolean;
   showGoogleDrive: boolean;
   showGmail: boolean;
+  showGoogleChat: boolean;
 }
 
 export interface GoogleCalendarStatus {
   connected: boolean;
-  mockMode: boolean;
   status: string;
   googleEmail: string | null;
   lastSyncedAt: string | null;
@@ -20,7 +20,6 @@ export interface GoogleCalendarStatus {
 
 export interface GoogleCalendarEventsResponse {
   connected: boolean;
-  mockMode: boolean;
   googleEmail?: string | null;
   events: CalendarEvent[];
 }
@@ -36,7 +35,6 @@ export interface GoogleDriveFile {
 
 export interface GoogleDriveFilesResponse {
   connected: boolean;
-  mockMode: boolean;
   googleEmail?: string | null;
   files: GoogleDriveFile[];
 }
@@ -55,9 +53,24 @@ export interface GoogleGmailMessage {
 
 export interface GoogleGmailMessagesResponse {
   connected: boolean;
-  mockMode: boolean;
   googleEmail?: string | null;
   messages: GoogleGmailMessage[];
+}
+
+export interface GoogleChatSpace {
+  id: string;
+  name: string;
+  memberCount: number;
+  isPrivate: boolean;
+  kind: 'space' | 'dm' | 'group_dm';
+}
+
+export interface GoogleChatMessage {
+  id: string;
+  text: string;
+  userId: string | null;
+  userName: string | null;
+  timestamp: string;
 }
 
 export const DEFAULT_GOOGLE_PREFERENCES: GooglePreferences = {
@@ -65,6 +78,7 @@ export const DEFAULT_GOOGLE_PREFERENCES: GooglePreferences = {
   showCalendarEmbed: true,
   showGoogleDrive: true,
   showGmail: true,
+  showGoogleChat: true,
 };
 
 export const googleCalendarService = {
@@ -73,11 +87,6 @@ export const googleCalendarService = {
 
   getAuthUrl: () =>
     apiGet<{ url: string }>('/integrations/google-calendar/auth-url'),
-
-  connectMock: () =>
-    apiPost<{ connected: boolean; mockMode: boolean; googleEmail: string }>(
-      '/integrations/google-calendar/connect-mock',
-    ),
 
   disconnect: () => apiPost('/integrations/google-calendar/disconnect'),
 
@@ -90,6 +99,30 @@ export const googleCalendarService = {
   getGmailMessages: () =>
     apiGet<GoogleGmailMessagesResponse>(
       '/integrations/google-calendar/gmail/messages',
+    ),
+
+  getChatSpaces: () =>
+    apiGet<{
+      connected: boolean;
+      spaces: GoogleChatSpace[];
+    }>('/integrations/google-calendar/chat/spaces'),
+
+  getChatMessages: (spaceId: string) =>
+    apiGet<{
+      connected: boolean;
+      spaceId: string;
+      messages: GoogleChatMessage[];
+    }>(
+      `/integrations/google-calendar/chat/spaces/${encodeURIComponent(spaceId)}/messages`,
+    ),
+
+  sendChatMessage: (spaceId: string, text: string) =>
+    apiPost<{
+      spaceId: string;
+      message: GoogleChatMessage;
+    }>(
+      `/integrations/google-calendar/chat/spaces/${encodeURIComponent(spaceId)}/messages`,
+      { text },
     ),
 
   updatePreferences: (preferences: GooglePreferences) =>

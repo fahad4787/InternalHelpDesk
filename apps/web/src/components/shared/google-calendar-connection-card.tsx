@@ -76,7 +76,7 @@ export function GoogleCalendarConnectionCard({
                 </p>
               ) : (
                 <p className="text-sm text-muted">
-                  Link your Google account for Calendar, Meet, Drive, and Gmail
+                  Link your Google account for Calendar, Meet, Drive, Gmail, and Chat
                 </p>
               )}
 
@@ -88,7 +88,7 @@ export function GoogleCalendarConnectionCard({
 
               {isConnected && (
                 <p className="text-xs text-muted">
-                  Calendar, Meet, Drive, and Gmail use this connected Google account.
+                  Calendar, Meet, Drive, Gmail, and Chat use this connected Google account.
                 </p>
               )}
             </div>
@@ -97,7 +97,7 @@ export function GoogleCalendarConnectionCard({
           <div className="flex shrink-0 items-center gap-2 sm:pl-4">
             {!isConnected ? (
               <Button onClick={onConnect} disabled={isPending} className="w-full sm:w-auto">
-                {status?.mockMode ? 'Connect (Mock)' : 'Connect with Google'}
+                Connect with Google
               </Button>
             ) : (
               <>
@@ -120,16 +120,11 @@ export function GoogleCalendarConnectionCard({
           </div>
         </div>
 
-        {(status?.mockMode || status?.needsReconnect || authError || connectError) && (
+        {(status?.needsReconnect || authError || connectError) && (
           <div className="space-y-2 border-t border-border-warm bg-white/70 px-5 py-3">
             {status?.needsReconnect && (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                Calendar permissions are outdated. Click <strong>Reconnect Google</strong> to allow creating new Google Meet meetings.
-              </p>
-            )}
-            {status?.mockMode && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                Mock mode is on. Set GOOGLE_CALENDAR_MODE=live for real Google OAuth.
+                Calendar permissions are outdated. Click <strong>Reconnect Google</strong> to allow Meet creation and Google Chat.
               </p>
             )}
             {authError && (

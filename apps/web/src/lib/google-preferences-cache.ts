@@ -50,4 +50,12 @@ export function syncGoogleWidgetQueries(
   } else {
     queryClient.invalidateQueries({ queryKey: ['google-gmail-messages'] });
   }
+
+  if (!preferences.showGoogleChat) {
+    queryClient.removeQueries({ queryKey: ['google-chat-spaces'] });
+    queryClient.removeQueries({ queryKey: ['google-chat-messages'] });
+  } else {
+    queryClient.invalidateQueries({ queryKey: ['google-chat-spaces'] });
+    queryClient.invalidateQueries({ queryKey: ['google-chat-messages'] });
+  }
 }

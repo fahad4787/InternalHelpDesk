@@ -138,6 +138,13 @@ export function GooglePreferencesCard({
           disabled={isPending}
           onChange={(value) => update('showGmail', value)}
         />
+        <ToggleRow
+          label="Google Chat"
+          description="Show Google Chat on this page and dashboard"
+          checked={preferences.showGoogleChat}
+          disabled={isPending}
+          onChange={(value) => update('showGoogleChat', value)}
+        />
       </CardContent>
     </Card>
   );

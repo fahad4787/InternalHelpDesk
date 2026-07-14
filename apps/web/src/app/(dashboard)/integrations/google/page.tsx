@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { GoogleCalendarConnectionCard } from '@/components/shared/google-calendar-connection-card';
+import { GoogleChatSpacesMessagesSection } from '@/components/shared/google-chat-spaces-messages-section';
 import { GooglePreferencesCard } from '@/components/shared/google-preferences-card';
 import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
 import { ToastContainer } from '@/components/shared/toast';
@@ -31,23 +32,14 @@ export default function GoogleIntegrationPage() {
       queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
       queryClient.invalidateQueries({ queryKey: ['google-drive-files'] });
       queryClient.invalidateQueries({ queryKey: ['google-gmail-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['google-chat-spaces'] });
+      queryClient.invalidateQueries({ queryKey: ['google-chat-messages'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     }
     if (error) {
       setAuthError(decodeURIComponent(error));
     }
   }, [searchParams, queryClient]);
-
-  const connectMockMutation = useMutation({
-    mutationFn: () => googleCalendarService.connectMock(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['google-calendar-status'] });
-      queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
-      queryClient.invalidateQueries({ queryKey: ['google-drive-files'] });
-      queryClient.invalidateQueries({ queryKey: ['google-gmail-messages'] });
-      queryClient.invalidateQueries({ queryKey: ['integrations'] });
-    },
-  });
 
   const connectGoogleMutation = useMutation({
     mutationFn: () => googleCalendarService.getAuthUrl(),
@@ -63,32 +55,23 @@ export default function GoogleIntegrationPage() {
       queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
       queryClient.invalidateQueries({ queryKey: ['google-drive-files'] });
       queryClient.invalidateQueries({ queryKey: ['google-gmail-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['google-chat-spaces'] });
+      queryClient.invalidateQueries({ queryKey: ['google-chat-messages'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },
   });
 
   const isPending =
-    connectMockMutation.isPending ||
-    connectGoogleMutation.isPending ||
-    disconnectMutation.isPending;
+    connectGoogleMutation.isPending || disconnectMutation.isPending;
 
-  const handleConnect = () => {
-    if (status?.mockMode) {
-      connectMockMutation.mutate();
-    } else {
-      connectGoogleMutation.mutate();
-    }
-  };
-
-  const connectError =
-    connectMockMutation.error || connectGoogleMutation.error
-      ? getErrorMessage(connectMockMutation.error || connectGoogleMutation.error)
-      : null;
+  const connectError = connectGoogleMutation.error
+    ? getErrorMessage(connectGoogleMutation.error)
+    : null;
 
   return (
     <PageContainer
       title="Google"
-      description="Calendar, Google Meet, Drive, and Gmail from your linked Google account"
+      description="Calendar, Google Meet, Drive, Gmail, and Chat from your linked Google account"
       actions={
         <Link href="/integrations">
           <Button variant="outline" size="sm">
@@ -107,12 +90,16 @@ export default function GoogleIntegrationPage() {
           isPending={isPending}
           authError={authError}
           connectError={connectError}
-          onConnect={handleConnect}
+          onConnect={() => connectGoogleMutation.mutate()}
           onReconnect={() => connectGoogleMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
 
         {isConnected && <GooglePreferencesCard preferences={preferences} />}
+
+        {isConnected && preferences.showGoogleChat && (
+          <GoogleChatSpacesMessagesSection />
+        )}
 
         {isConnected && <IntegrationWidgetsSection provider="GOOGLE_CALENDAR" />}
       </div>

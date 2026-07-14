@@ -10,6 +10,8 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
     'google-calendar-events',
     'google-drive-files',
     'google-gmail-messages',
+    'google-chat-spaces',
+    'google-chat-messages',
   ],
   ZOOM: ['zoom-status', 'zoom-meetings', 'zoom-profile'],
   OUTLOOK: ['outlook-status', 'outlook-messages', 'outlook-profile'],

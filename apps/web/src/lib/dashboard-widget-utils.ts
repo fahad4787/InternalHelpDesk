@@ -41,6 +41,7 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showCalendarEmbed && google.googleEmail) visible.push('google-calendar');
     if (preferences.showGoogleDrive) visible.push('google-drive');
     if (preferences.showGmail) visible.push('google-gmail');
+    if (preferences.showGoogleChat) visible.push('google-chat');
   }
 
   const jira = statuses.jira;

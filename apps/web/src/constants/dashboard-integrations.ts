@@ -80,7 +80,7 @@ export const REAL_INTEGRATION_META: Record<string, MarketplaceAppMeta> = {
   GOOGLE_CALENDAR: {
     provider: 'GOOGLE_CALENDAR',
     name: 'Google',
-    description: 'Calendar, Google Meet, and Drive from your linked Google account',
+    description: 'Calendar, Google Meet, Drive, Gmail, and Chat from your linked Google account',
     widgetId: 'google',
     category: 'calendar',
     categoryLabel: 'Calendar',
