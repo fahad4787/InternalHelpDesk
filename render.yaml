@@ -13,4 +13,4 @@ services:
       - key: PUBLIC_API_URL
         value: https://internal-helpdesk-api.onrender.com
       - key: FRONTEND_URL
-        value: https://internalhelpdesk.fixelcloud.co
+        value: https://internal-help-desk-web-q2fw.vercel.app
