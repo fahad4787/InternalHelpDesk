@@ -83,11 +83,6 @@ export function AsanaPreferencesCard({
       } else {
         queryClient.invalidateQueries({ queryKey: ['asana-projects'] });
       }
-      if (!next.showMyTasks) {
-        queryClient.removeQueries({ queryKey: ['asana-my-tasks'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['asana-my-tasks'] });
-      }
     },
     onError: () => {
       setPreferences(serverPreferences);
@@ -113,17 +108,10 @@ export function AsanaPreferencesCard({
       <CardContent className="space-y-3">
         <ToggleRow
           label="Projects"
-          description="Show Asana projects you can access"
+          description="Show Asana projects and open tasks when you select one"
           checked={preferences.showProjects}
           disabled={isPending}
           onChange={(value) => update('showProjects', value)}
-        />
-        <ToggleRow
-          label="My tasks"
-          description="Show tasks assigned to you in Asana"
-          checked={preferences.showMyTasks}
-          disabled={isPending}
-          onChange={(value) => update('showMyTasks', value)}
         />
       </CardContent>
     </Card>

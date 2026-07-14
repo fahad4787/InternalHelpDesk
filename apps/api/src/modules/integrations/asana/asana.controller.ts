@@ -15,7 +15,6 @@ import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../../../common/types/api-response.type';
-import { ConnectAsanaCodeDto } from './dto/connect-asana-code.dto';
 import { UpdateAsanaPreferencesDto } from './dto/update-asana-preferences.dto';
 import { AsanaService } from './asana.service';
 
@@ -94,15 +93,6 @@ export class AsanaController {
     return this.asanaService.connectMock(user);
   }
 
-  @Post('connect-code')
-  @UseGuards(JwtAuthGuard)
-  connectCode(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: ConnectAsanaCodeDto,
-  ) {
-    return this.asanaService.connectWithCode(user, dto.code, dto.state);
-  }
-
   @Post('disconnect')
   @UseGuards(JwtAuthGuard)
   disconnect(@CurrentUser() user: AuthenticatedUser) {
@@ -122,12 +112,6 @@ export class AsanaController {
     @Param('projectGid') projectGid: string,
   ) {
     return this.asanaService.getProjectDetail(user, projectGid);
-  }
-
-  @Get('my-tasks')
-  @UseGuards(JwtAuthGuard)
-  getMyTasks(@CurrentUser() user: AuthenticatedUser) {
-    return this.asanaService.getMyTasks(user);
   }
 
   @Patch('preferences')

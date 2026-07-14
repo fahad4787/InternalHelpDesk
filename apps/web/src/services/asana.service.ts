@@ -2,13 +2,11 @@ import { apiGet, apiPatch, apiPost } from '@/lib/api-client';
 
 export interface AsanaPreferences {
   showProjects: boolean;
-  showMyTasks: boolean;
 }
 
 export interface AsanaStatus {
   connected: boolean;
   mockMode: boolean;
-  oobMode?: boolean;
   needsReconnect?: boolean;
   status: string;
   asanaEmail: string | null;
@@ -48,21 +46,15 @@ export interface AsanaProjectDetail {
 
 export const DEFAULT_ASANA_PREFERENCES: AsanaPreferences = {
   showProjects: true,
-  showMyTasks: true,
 };
 
 export const asanaService = {
   getStatus: () => apiGet<AsanaStatus>('/integrations/asana/status'),
 
   getAuthUrl: () =>
-    apiGet<{ url: string; state: string; oobMode: boolean }>(
-      '/integrations/asana/auth-url',
-    ),
+    apiGet<{ url: string; state: string }>('/integrations/asana/auth-url'),
 
   connectMock: () => apiPost('/integrations/asana/connect-mock'),
-
-  connectCode: (code: string, state: string) =>
-    apiPost<AsanaStatus>('/integrations/asana/connect-code', { code, state }),
 
   disconnect: () => apiPost('/integrations/asana/disconnect'),
 
@@ -80,13 +72,6 @@ export const asanaService = {
       project: AsanaProject;
       tasks: AsanaTask[];
     }>(`/integrations/asana/projects/${projectGid}`),
-
-  getMyTasks: () =>
-    apiGet<{
-      connected: boolean;
-      mockMode: boolean;
-      tasks: AsanaTask[];
-    }>('/integrations/asana/my-tasks'),
 
   updatePreferences: (preferences: AsanaPreferences) =>
     apiPatch<AsanaPreferences>('/integrations/asana/preferences', preferences),

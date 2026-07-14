@@ -6,10 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import {
-  AsanaMyTasksSection,
-  AsanaProjectsSection,
-} from '@/components/shared/asana-projects-section';
+import { AsanaProjectsSection } from '@/components/shared/asana-projects-section';
 import { AsanaConnectionCard } from '@/components/shared/asana-connection-card';
 import { AsanaPreferencesCard } from '@/components/shared/asana-preferences-card';
 import { Button } from '@/components/ui/button';
@@ -19,16 +16,12 @@ import {
   asanaService,
 } from '@/services/asana.service';
 
-const ASANA_OAUTH_STATE_KEY = 'asana-oauth-state';
-
 export default function AsanaIntegrationPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedProjectGid, setSelectedProjectGid] = useState<string | null>(null);
-  const [awaitingCode, setAwaitingCode] = useState(false);
-  const [authCode, setAuthCode] = useState('');
 
   const { data: statusData, isLoading: statusLoading } = useQuery({
     queryKey: ['asana-status'],
@@ -52,7 +45,6 @@ export default function AsanaIntegrationPage() {
       setAuthError(null);
       queryClient.invalidateQueries({ queryKey: ['asana-status'] });
       queryClient.invalidateQueries({ queryKey: ['asana-projects'] });
-      queryClient.invalidateQueries({ queryKey: ['asana-my-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/asana', { scroll: false });
       return;
@@ -66,57 +58,24 @@ export default function AsanaIntegrationPage() {
 
   const displayAuthError = isConnected ? null : authError;
 
-  const invalidateAsana = () => {
-    queryClient.invalidateQueries({ queryKey: ['asana-status'] });
-    queryClient.invalidateQueries({ queryKey: ['asana-projects'] });
-    queryClient.invalidateQueries({ queryKey: ['asana-my-tasks'] });
-    queryClient.invalidateQueries({ queryKey: ['integrations'] });
-  };
-
   const connectMutation = useMutation({
     mutationFn: async () => {
       const latest = await asanaService.getStatus();
       if (latest.data.mockMode) {
-        return asanaService.connectMock();
+        await asanaService.connectMock();
+        return { type: 'mock' as const };
       }
       const auth = await asanaService.getAuthUrl();
-      return auth.data;
+      return { type: 'oauth' as const, url: auth.data.url };
     },
     onSuccess: (result) => {
-      if (result && 'url' in result && result.url) {
-        if (result.oobMode) {
-          sessionStorage.setItem(ASANA_OAUTH_STATE_KEY, result.state);
-          setAwaitingCode(true);
-          setAuthCode('');
-          window.open(result.url, '_blank', 'noopener,noreferrer');
-          return;
-        }
+      if (result.type === 'oauth') {
         window.location.href = result.url;
         return;
       }
-      setAwaitingCode(false);
-      invalidateAsana();
-    },
-  });
-
-  const submitCodeMutation = useMutation({
-    mutationFn: async () => {
-      const state = sessionStorage.getItem(ASANA_OAUTH_STATE_KEY);
-      if (!state) {
-        throw new Error('Authorization expired. Click Connect with Asana again.');
-      }
-      const code = authCode.trim();
-      if (!code) {
-        throw new Error('Paste the authorization code from Asana.');
-      }
-      return asanaService.connectCode(code, state);
-    },
-    onSuccess: () => {
-      sessionStorage.removeItem(ASANA_OAUTH_STATE_KEY);
-      setAwaitingCode(false);
-      setAuthCode('');
-      setAuthError(null);
-      invalidateAsana();
+      queryClient.invalidateQueries({ queryKey: ['asana-status'] });
+      queryClient.invalidateQueries({ queryKey: ['asana-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },
   });
 
@@ -124,24 +83,17 @@ export default function AsanaIntegrationPage() {
     mutationFn: () => asanaService.disconnect(),
     onSuccess: () => {
       setSelectedProjectGid(null);
-      setAwaitingCode(false);
-      setAuthCode('');
-      sessionStorage.removeItem(ASANA_OAUTH_STATE_KEY);
       queryClient.invalidateQueries({ queryKey: ['asana-status'] });
       queryClient.removeQueries({ queryKey: ['asana-projects'] });
       queryClient.removeQueries({ queryKey: ['asana-project'] });
-      queryClient.removeQueries({ queryKey: ['asana-my-tasks'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },
   });
 
-  const isPending =
-    connectMutation.isPending ||
-    submitCodeMutation.isPending ||
-    disconnectMutation.isPending;
+  const isPending = connectMutation.isPending || disconnectMutation.isPending;
   const connectError =
-    connectMutation.error || submitCodeMutation.error
-      ? getErrorMessage(connectMutation.error ?? submitCodeMutation.error)
+    connectMutation.error != null
+      ? getErrorMessage(connectMutation.error)
       : null;
 
   return (
@@ -165,10 +117,6 @@ export default function AsanaIntegrationPage() {
           isPending={isPending || statusLoading}
           authError={displayAuthError}
           connectError={connectError}
-          awaitingCode={awaitingCode && !isConnected}
-          authCode={authCode}
-          onAuthCodeChange={setAuthCode}
-          onSubmitCode={() => submitCodeMutation.mutate()}
           onConnect={() => connectMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
@@ -181,8 +129,6 @@ export default function AsanaIntegrationPage() {
             onSelectProject={setSelectedProjectGid}
           />
         )}
-
-        {isConnected && preferences.showMyTasks && <AsanaMyTasksSection />}
       </div>
     </PageContainer>
   );

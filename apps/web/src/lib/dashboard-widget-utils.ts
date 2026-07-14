@@ -70,7 +70,6 @@ export function resolveVisibleDashboardWidgets(
   if (asana?.connected) {
     const preferences = asana.preferences ?? DEFAULT_ASANA_PREFERENCES;
     if (preferences.showProjects) visible.push('asana-projects');
-    if (preferences.showMyTasks) visible.push('asana-my-tasks');
   }
 
   const calendly = statuses.calendly;

@@ -28,7 +28,6 @@ import {
   TrelloBoardsDashboardWidget,
 } from '@/components/dashboard/widgets/trello-dashboard-widgets';
 import {
-  AsanaMyTasksDashboardWidget,
   AsanaProjectsDashboardWidget,
 } from '@/components/dashboard/widgets/asana-dashboard-widgets';
 import {
@@ -51,7 +50,6 @@ export const DASHBOARD_WIDGET_IDS = [
   'jira-projects',
   'trello-boards',
   'asana-projects',
-  'asana-my-tasks',
   'calendly-event-types',
   'calendly-events',
   'slack-profile',
@@ -153,13 +151,6 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/asana',
     order: 26,
   },
-  'asana-my-tasks': {
-    id: 'asana-my-tasks',
-    label: 'My tasks',
-    provider: 'ASANA',
-    configureRoute: '/integrations/asana',
-    order: 27,
-  },
   'calendly-event-types': {
     id: 'calendly-event-types',
     label: 'Event types',
@@ -251,7 +242,6 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'jira-projects': JiraProjectsDashboardWidget,
   'trello-boards': TrelloBoardsDashboardWidget,
   'asana-projects': AsanaProjectsDashboardWidget,
-  'asana-my-tasks': AsanaMyTasksDashboardWidget,
   'calendly-event-types': CalendlyEventTypesDashboardWidget,
   'calendly-events': CalendlyUpcomingEventsDashboardWidget,
   'slack-profile': SlackProfileDashboardWidget,

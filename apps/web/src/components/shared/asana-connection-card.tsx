@@ -14,10 +14,6 @@ interface AsanaConnectionCardProps {
   isPending: boolean;
   authError: string | null;
   connectError: string | null;
-  awaitingCode?: boolean;
-  authCode?: string;
-  onAuthCodeChange?: (value: string) => void;
-  onSubmitCode?: () => void;
   onConnect: () => void;
   onDisconnect: () => void;
 }
@@ -29,10 +25,6 @@ export function AsanaConnectionCard({
   isPending,
   authError,
   connectError,
-  awaitingCode = false,
-  authCode = '',
-  onAuthCodeChange,
-  onSubmitCode,
   onConnect,
   onDisconnect,
 }: AsanaConnectionCardProps) {
@@ -122,31 +114,6 @@ export function AsanaConnectionCard({
             )}
           </div>
         </div>
-
-        {awaitingCode && (
-          <div className="space-y-3 border-t border-border-warm bg-canvas/50 px-5 py-4">
-            <p className="text-sm text-ink">
-              Asana opened in a new tab. Approve access, copy the authorization
-              code, paste it below, then submit.
-            </p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                value={authCode}
-                onChange={(event) => onAuthCodeChange?.(event.target.value)}
-                placeholder="Paste Asana authorization code"
-                className="w-full rounded-xl border border-border-warm bg-white px-3 py-2 text-sm text-ink outline-none focus:border-brand"
-                disabled={isPending}
-              />
-              <Button
-                onClick={onSubmitCode}
-                disabled={isPending || !authCode.trim()}
-                className="sm:w-auto"
-              >
-                Submit code
-              </Button>
-            </div>
-          </div>
-        )}
 
         {(authError || connectError) && (
           <div className="space-y-2 border-t border-border-warm bg-white/70 px-5 py-3">

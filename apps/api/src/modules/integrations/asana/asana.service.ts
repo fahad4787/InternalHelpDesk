@@ -84,14 +84,6 @@ export class AsanaService {
     return !this.configService.get<string>('ASANA_CLIENT_ID');
   }
 
-  isOobMode(): boolean {
-    const redirectUri = this.getRedirectUri();
-    return (
-      redirectUri === 'urn:ietf:wg:oauth:2.0:oob' ||
-      redirectUri.includes('oauth:2.0:oob')
-    );
-  }
-
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.asanaConnection.findUnique({
       where: { userId: user.id },
@@ -125,7 +117,6 @@ export class AsanaService {
     return successResponse({
       connected: effectivelyConnected,
       mockMode,
-      oobMode: this.isOobMode(),
       needsReconnect: Boolean(connected && !mockMode && !hasLiveToken),
       status: effectivelyConnected
         ? IntegrationStatus.CONNECTED
@@ -152,7 +143,6 @@ export class AsanaService {
 
     const preferences: AsanaPreferences = {
       showProjects: dto.showProjects,
-      showMyTasks: dto.showMyTasks,
     };
 
     await this.prisma.asanaConnection.update({
@@ -201,25 +191,7 @@ export class AsanaService {
 
     return successResponse({
       url: `${ASANA_AUTH_URL}?${params.toString()}`,
-      state,
-      oobMode: this.isOobMode(),
     });
-  }
-
-  async connectWithCode(user: AuthenticatedUser, code: string, state: string) {
-    if (this.isMockMode()) {
-      throw new BadRequestException(
-        'Asana OAuth is disabled in mock mode. Use the mock connect action instead.',
-      );
-    }
-
-    const userId = verifyOAuthState(state, this.jwtSecret);
-    if (!userId || userId !== user.id) {
-      throw new UnauthorizedException('Invalid or expired OAuth state');
-    }
-
-    await this.handleCallback(code, state);
-    return this.getStatus(user);
   }
 
   async handleCallback(code: string, state: string) {
@@ -483,10 +455,6 @@ export class AsanaService {
         typeof prefs.showProjects === 'boolean'
           ? prefs.showProjects
           : DEFAULT_ASANA_PREFERENCES.showProjects,
-      showMyTasks:
-        typeof prefs.showMyTasks === 'boolean'
-          ? prefs.showMyTasks
-          : DEFAULT_ASANA_PREFERENCES.showMyTasks,
     };
   }
 

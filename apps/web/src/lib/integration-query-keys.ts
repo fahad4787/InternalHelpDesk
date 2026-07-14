@@ -3,7 +3,7 @@ import type { QueryClient } from '@tanstack/react-query';
 const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   JIRA: ['jira-status', 'jira-issues', 'jira-profile', 'jira-projects'],
   TRELLO: ['trello-status', 'trello-boards', 'trello-board'],
-  ASANA: ['asana-status', 'asana-projects', 'asana-project', 'asana-my-tasks'],
+  ASANA: ['asana-status', 'asana-projects', 'asana-project'],
   CALENDLY: ['calendly-status', 'calendly-event-types', 'calendly-events'],
   SLACK: ['slack-status', 'slack-channels', 'slack-messages', 'slack-profile'],
   GOOGLE_CALENDAR: [
