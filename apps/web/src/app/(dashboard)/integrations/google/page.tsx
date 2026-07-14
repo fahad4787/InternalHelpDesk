@@ -97,11 +97,16 @@ export default function GoogleIntegrationPage() {
 
         {isConnected && <GooglePreferencesCard preferences={preferences} />}
 
+        {isConnected && (
+          <IntegrationWidgetsSection
+            provider="GOOGLE_CALENDAR"
+            excludeWidgetIds={['google-chat']}
+          />
+        )}
+
         {isConnected && preferences.showGoogleChat && (
           <GoogleChatSpacesMessagesSection />
         )}
-
-        {isConnected && <IntegrationWidgetsSection provider="GOOGLE_CALENDAR" />}
       </div>
     </PageContainer>
   );

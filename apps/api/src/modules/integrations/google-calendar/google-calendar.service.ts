@@ -30,6 +30,7 @@ import { extractMeetLink, extractMeetCode, isLikelyGoogleMeetEvent } from './uti
 const GOOGLE_SCOPES = [
   'openid',
   'email',
+  'profile',
   'https://www.googleapis.com/auth/calendar.events',
   'https://www.googleapis.com/auth/drive.readonly',
   'https://www.googleapis.com/auth/gmail.readonly',
@@ -37,6 +38,8 @@ const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/chat.messages.readonly',
   'https://www.googleapis.com/auth/chat.messages',
   'https://www.googleapis.com/auth/chat.memberships.readonly',
+  'https://www.googleapis.com/auth/contacts.readonly',
+  'https://www.googleapis.com/auth/directory.readonly',
 ].join(' ');
 
 const CALENDAR_WRITE_SCOPES = [
@@ -49,6 +52,7 @@ const CHAT_REQUIRED_SCOPES = [
   'https://www.googleapis.com/auth/chat.messages.readonly',
   'https://www.googleapis.com/auth/chat.messages',
   'https://www.googleapis.com/auth/chat.memberships.readonly',
+  'https://www.googleapis.com/auth/contacts.readonly',
 ];
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -59,6 +63,7 @@ const GOOGLE_CALENDAR_LIST_URL =
 const GOOGLE_DRIVE_FILES_URL = 'https://www.googleapis.com/drive/v3/files';
 const GMAIL_API_URL = 'https://gmail.googleapis.com/gmail/v1';
 const GOOGLE_CHAT_API_URL = 'https://chat.googleapis.com/v1';
+const GOOGLE_PEOPLE_API_URL = 'https://people.googleapis.com/v1';
 
 export interface CalendarEvent {
   id: string;
@@ -113,6 +118,7 @@ interface GoogleEventsResponse {
 export class GoogleCalendarService {
   private encryptionKey: string;
   private jwtSecret: string;
+  private peopleNameCache = new Map<string, string>();
 
   constructor(
     private prisma: PrismaService,
@@ -246,15 +252,21 @@ export class GoogleCalendarService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
+        currentUserId: null as string | null,
         spaces: [] as GoogleChatSpace[],
       });
     }
 
     const accessToken = await this.getValidAccessToken(connection);
-    const spaces = await this.fetchChatSpaces(accessToken);
+    const profile = await this.fetchGoogleUserProfile(accessToken);
+    const spaces = await this.fetchChatSpaces(
+      accessToken,
+      profile.userId ? `users/${profile.userId}` : null,
+    );
 
     return successResponse({
       connected: true,
+      currentUserId: profile.userId ? `users/${profile.userId}` : null,
       spaces,
     });
   }
@@ -267,16 +279,25 @@ export class GoogleCalendarService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
+        currentUserId: null as string | null,
         spaceId,
         messages: [] as GoogleChatMessage[],
       });
     }
 
     const accessToken = await this.getValidAccessToken(connection);
-    const messages = await this.fetchChatMessages(accessToken, spaceId);
+    const profile = await this.fetchGoogleUserProfile(accessToken);
+    const currentUserId = profile.userId ? `users/${profile.userId}` : null;
+    const messages = await this.fetchChatMessages(
+      accessToken,
+      spaceId,
+      currentUserId,
+      profile.name,
+    );
 
     return successResponse({
       connected: true,
+      currentUserId,
       spaceId,
       messages,
     });
@@ -1131,7 +1152,10 @@ export class GoogleCalendarService {
     );
   }
 
-  private async fetchChatSpaces(accessToken: string): Promise<GoogleChatSpace[]> {
+  private async fetchChatSpaces(
+    accessToken: string,
+    currentUserId: string | null,
+  ): Promise<GoogleChatSpace[]> {
     const spaces: GoogleChatSpace[] = [];
     let pageToken: string | undefined;
 
@@ -1184,13 +1208,18 @@ export class GoogleCalendarService {
       pageToken = data.nextPageToken;
     } while (pageToken);
 
-    await this.resolveChatSpaceDisplayNames(accessToken, spaces);
+    await this.resolveChatSpaceDisplayNames(
+      accessToken,
+      spaces,
+      currentUserId,
+    );
     return this.sortChatSpaces(spaces);
   }
 
   private async resolveChatSpaceDisplayNames(
     accessToken: string,
     spaces: GoogleChatSpace[],
+    currentUserId: string | null,
   ) {
     const unresolved = spaces.filter(
       (space) =>
@@ -1200,7 +1229,11 @@ export class GoogleCalendarService {
 
     await Promise.all(
       unresolved.slice(0, 40).map(async (space) => {
-        const name = await this.fetchChatSpaceMemberLabel(accessToken, space.id);
+        const name = await this.fetchChatSpaceMemberLabel(
+          accessToken,
+          space.id,
+          currentUserId,
+        );
         if (name) space.name = name;
       }),
     );
@@ -1209,10 +1242,11 @@ export class GoogleCalendarService {
   private async fetchChatSpaceMemberLabel(
     accessToken: string,
     spaceId: string,
+    currentUserId: string | null,
   ): Promise<string | null> {
     const parent = this.toSpaceResourceName(spaceId);
     const response = await fetch(
-      `${GOOGLE_CHAT_API_URL}/${parent}/members?pageSize=10`,
+      `${GOOGLE_CHAT_API_URL}/${parent}/members?pageSize=20`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
@@ -1232,12 +1266,21 @@ export class GoogleCalendarService {
       .map((entry) => entry.member)
       .filter(
         (member): member is { name?: string; displayName?: string; type?: string } =>
-          !!member && member.type !== 'BOT',
+          !!member && member.type !== 'BOT' && !!member.name,
       );
 
-    const labels = humans
-      .map((member) => member.displayName?.trim())
-      .filter((label): label is string => !!label);
+    const otherMembers = humans.filter(
+      (member) => !currentUserId || member.name !== currentUserId,
+    );
+    const targets = otherMembers.length > 0 ? otherMembers : humans;
+
+    const labels: string[] = [];
+    for (const member of targets.slice(0, 4)) {
+      const label =
+        member.displayName?.trim() ||
+        (await this.resolvePeopleDisplayName(accessToken, member.name!));
+      if (label) labels.push(label);
+    }
 
     if (labels.length === 0) return null;
     if (labels.length === 1) return labels[0];
@@ -1259,6 +1302,8 @@ export class GoogleCalendarService {
   private async fetchChatMessages(
     accessToken: string,
     spaceId: string,
+    currentUserId: string | null,
+    currentUserName: string | null,
   ): Promise<GoogleChatMessage[]> {
     const parent = this.toSpaceResourceName(spaceId);
     const params = new URLSearchParams({
@@ -1288,18 +1333,157 @@ export class GoogleCalendarService {
       }>;
     };
 
+    const memberNames = await this.fetchChatSpaceMemberNames(
+      accessToken,
+      spaceId,
+    );
+    if (currentUserId && currentUserName) {
+      memberNames.set(currentUserId, currentUserName);
+    }
+
+    const senderIds = [
+      ...new Set(
+        (data.messages ?? [])
+          .map((message) => message.sender?.name)
+          .filter((name): name is string => !!name),
+      ),
+    ];
+
+    await Promise.all(
+      senderIds.map(async (senderId) => {
+        if (memberNames.has(senderId)) return;
+        const resolved = await this.resolvePeopleDisplayName(
+          accessToken,
+          senderId,
+        );
+        if (resolved) memberNames.set(senderId, resolved);
+      }),
+    );
+
     const messages = (data.messages ?? [])
-      .map((message) => ({
-        id: message.name,
-        text: message.text ?? '',
-        userId: message.sender?.name ?? null,
-        userName: message.sender?.displayName ?? null,
-        timestamp: message.createTime ?? new Date().toISOString(),
-      }))
+      .map((message) => {
+        const senderId = message.sender?.name ?? null;
+        const userName =
+          message.sender?.displayName?.trim() ||
+          (senderId ? memberNames.get(senderId) : null) ||
+          null;
+
+        return {
+          id: message.name,
+          text: message.text ?? '',
+          userId: senderId,
+          userName,
+          timestamp: message.createTime ?? new Date().toISOString(),
+        };
+      })
       .filter((message) => message.text.trim().length > 0)
       .reverse();
 
     return messages;
+  }
+
+  private async fetchChatSpaceMemberNames(
+    accessToken: string,
+    spaceId: string,
+  ): Promise<Map<string, string>> {
+    const names = new Map<string, string>();
+    const parent = this.toSpaceResourceName(spaceId);
+    const response = await fetch(
+      `${GOOGLE_CHAT_API_URL}/${parent}/members?pageSize=50`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!response.ok) return names;
+
+    const data = (await response.json()) as {
+      memberships?: Array<{
+        member?: {
+          name?: string;
+          displayName?: string;
+          type?: string;
+        };
+      }>;
+    };
+
+    const members = (data.memberships ?? [])
+      .map((entry) => entry.member)
+      .filter(
+        (member): member is { name?: string; displayName?: string; type?: string } =>
+          !!member?.name && member.type !== 'BOT',
+      );
+
+    await Promise.all(
+      members.map(async (member) => {
+        const label =
+          member.displayName?.trim() ||
+          (await this.resolvePeopleDisplayName(accessToken, member.name!));
+        if (label) names.set(member.name!, label);
+      }),
+    );
+
+    return names;
+  }
+
+  private async resolvePeopleDisplayName(
+    accessToken: string,
+    userResourceName: string,
+  ): Promise<string | null> {
+    const cached = this.peopleNameCache.get(userResourceName);
+    if (cached) return cached;
+
+    const peopleResource = userResourceName.replace(/^users\//, 'people/');
+    if (!peopleResource.startsWith('people/')) return null;
+
+    const params = new URLSearchParams({
+      personFields: 'names,emailAddresses',
+    });
+
+    const response = await fetch(
+      `${GOOGLE_PEOPLE_API_URL}/${peopleResource}?${params}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+
+    if (!response.ok) return null;
+
+    const person = (await response.json()) as {
+      names?: Array<{ displayName?: string; givenName?: string }>;
+      emailAddresses?: Array<{ value?: string }>;
+    };
+
+    const label =
+      person.names?.[0]?.displayName?.trim() ||
+      person.names?.[0]?.givenName?.trim() ||
+      person.emailAddresses?.[0]?.value?.trim() ||
+      null;
+
+    if (label) this.peopleNameCache.set(userResourceName, label);
+    return label;
+  }
+
+  private async fetchGoogleUserProfile(accessToken: string): Promise<{
+    userId: string | null;
+    email: string | null;
+    name: string | null;
+  }> {
+    const response = await fetch(GOOGLE_USERINFO_URL, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+      return { userId: null, email: null, name: null };
+    }
+
+    const profile = (await response.json()) as {
+      id?: string;
+      email?: string;
+      name?: string;
+    };
+
+    return {
+      userId: profile.id ?? null,
+      email: profile.email ?? null,
+      name: profile.name?.trim() || profile.email?.split('@')[0] || null,
+    };
   }
 
   private async postChatMessage(

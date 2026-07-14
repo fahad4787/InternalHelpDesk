@@ -45,9 +45,6 @@ export function useGoogleChatMessenger() {
   const showGoogleChat = preferences.showGoogleChat === true;
   const showSpaces = showGoogleChat;
   const showDirectMessages = showGoogleChat;
-  const currentUserId = statusData?.data?.googleEmail
-    ? `users/${statusData.data.googleEmail}`
-    : null;
 
   const {
     data: spacesData,
@@ -60,6 +57,7 @@ export function useGoogleChatMessenger() {
   });
 
   const allSpaces = spacesData?.data?.spaces ?? [];
+  const currentUserId = spacesData?.data?.currentUserId ?? null;
   const visibleSpaces = useMemo(
     () =>
       allSpaces.filter((space) => {
@@ -112,7 +110,8 @@ export function useGoogleChatMessenger() {
     messages: messagesData?.data?.messages ?? [],
     messagesLoading,
     messagesError: messagesError ? getErrorMessage(messagesError) : null,
-    currentUserId,
+    currentUserId:
+      messagesData?.data?.currentUserId ?? currentUserId,
     input: messageInput,
     onInputChange: setMessageInput,
     onSend: () => {

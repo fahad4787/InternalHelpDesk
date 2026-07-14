@@ -104,12 +104,14 @@ export const googleCalendarService = {
   getChatSpaces: () =>
     apiGet<{
       connected: boolean;
+      currentUserId: string | null;
       spaces: GoogleChatSpace[];
     }>('/integrations/google-calendar/chat/spaces'),
 
   getChatMessages: (spaceId: string) =>
     apiGet<{
       connected: boolean;
+      currentUserId: string | null;
       spaceId: string;
       messages: GoogleChatMessage[];
     }>(

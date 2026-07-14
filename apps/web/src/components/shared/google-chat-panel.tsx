@@ -108,8 +108,7 @@ export function GoogleChatPanel({
             const isOwn =
               currentUserId != null &&
               message.userId != null &&
-              (message.userId === currentUserId ||
-                message.userId.endsWith(`/${currentUserId.replace('users/', '')}`));
+              message.userId === currentUserId;
 
             return (
               <div
