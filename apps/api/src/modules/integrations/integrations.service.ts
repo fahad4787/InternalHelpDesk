@@ -16,6 +16,7 @@ export class IntegrationsService {
       zoomConnection,
       jiraConnection,
       trelloConnection,
+      asanaConnection,
       calendlyConnection,
       slackConnection,
       outlookConnection,
@@ -33,6 +34,9 @@ export class IntegrationsService {
         where: { userId: user.id },
       }),
       this.prisma.trelloConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.asanaConnection.findUnique({
         where: { userId: user.id },
       }),
       this.prisma.calendlyConnection.findUnique({
@@ -98,6 +102,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: trelloConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.ASANA) {
+        const userConnected =
+          asanaConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: asanaConnection?.updatedAt ?? null,
         };
       }
 

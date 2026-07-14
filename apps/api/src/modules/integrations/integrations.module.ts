@@ -15,6 +15,8 @@ import { OutlookModule } from './outlook/outlook.module';
 import { OutlookController } from './outlook/outlook.controller';
 import { TrelloModule } from './trello/trello.module';
 import { TrelloController } from './trello/trello.controller';
+import { AsanaModule } from './asana/asana.module';
+import { AsanaController } from './asana/asana.controller';
 import { CalendlyModule } from './calendly/calendly.module';
 import { CalendlyController } from './calendly/calendly.controller';
 
@@ -25,6 +27,7 @@ import { CalendlyController } from './calendly/calendly.controller';
     ZoomModule,
     JiraModule,
     TrelloModule,
+    AsanaModule,
     CalendlyModule,
     SlackModule,
     OutlookModule,
@@ -35,6 +38,7 @@ import { CalendlyController } from './calendly/calendly.controller';
     ZoomController,
     JiraController,
     TrelloController,
+    AsanaController,
     CalendlyController,
     SlackController,
     OutlookController,
@@ -48,6 +52,7 @@ import { CalendlyController } from './calendly/calendly.controller';
     ZoomModule,
     JiraModule,
     TrelloModule,
+    AsanaModule,
     CalendlyModule,
     SlackModule,
     OutlookModule,

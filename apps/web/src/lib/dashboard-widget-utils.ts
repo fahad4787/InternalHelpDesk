@@ -7,6 +7,7 @@ import {
   type CalendlyStatus,
 } from '@/services/calendly.service';
 import { DEFAULT_JIRA_PREFERENCES, type JiraStatus } from '@/services/jira.service';
+import { DEFAULT_ASANA_PREFERENCES, type AsanaStatus } from '@/services/asana.service';
 import { DEFAULT_OUTLOOK_PREFERENCES, type OutlookStatus } from '@/services/outlook.service';
 import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
 import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
@@ -22,6 +23,7 @@ export interface DashboardIntegrationStatuses {
   google?: GoogleCalendarStatus | null;
   jira?: JiraStatus | null;
   trello?: TrelloStatus | null;
+  asana?: AsanaStatus | null;
   calendly?: CalendlyStatus | null;
   slack?: SlackStatus | null;
   zoom?: ZoomStatus | null;
@@ -56,6 +58,13 @@ export function resolveVisibleDashboardWidgets(
   if (trello?.connected) {
     const preferences = trello.preferences ?? DEFAULT_TRELLO_PREFERENCES;
     if (preferences.showBoards) visible.push('trello-boards');
+  }
+
+  const asana = statuses.asana;
+  if (asana?.connected) {
+    const preferences = asana.preferences ?? DEFAULT_ASANA_PREFERENCES;
+    if (preferences.showProjects) visible.push('asana-projects');
+    if (preferences.showMyTasks) visible.push('asana-my-tasks');
   }
 
   const calendly = statuses.calendly;
@@ -111,6 +120,9 @@ export function getConnectedIntegrationRoutes(
   if (statuses.trello?.connected) {
     routes.push({ provider: 'TRELLO', route: '/integrations/trello', label: 'Trello' });
   }
+  if (statuses.asana?.connected) {
+    routes.push({ provider: 'ASANA', route: '/integrations/asana', label: 'Asana' });
+  }
   if (statuses.calendly?.connected) {
     routes.push({ provider: 'CALENDLY', route: '/integrations/calendly', label: 'Calendly' });
   }
@@ -142,4 +154,5 @@ export function filterWidgetsByProvider(
 export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'slack-messenger',
   'trello-boards',
+  'asana-projects',
 ]);

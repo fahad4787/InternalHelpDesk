@@ -9,9 +9,7 @@ import { PrismaService } from './database/prisma.service';
 
 try {
   tls.setDefaultCACertificates(tls.getCACertificates('system'));
-} catch {
-  // Ignore on Node versions without system CA certificate support.
-}
+} catch {}
 
 async function connectDatabase(prisma: PrismaService) {
   const maxAttempts = 5;
@@ -48,7 +46,8 @@ async function bootstrap() {
       frontendUrl,
       'http://localhost:3000',
       'http://127.0.0.1:3000',
-      'https://internalhelpdesk.fixelcloud.co',
+      'https://internalhelpdesk.freelcloud.co',
+      'https://internal-help-desk-web-q2fw.vercel.app',
     ],
     credentials: true,
   });

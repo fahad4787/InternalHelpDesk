@@ -47,6 +47,16 @@ export const REAL_INTEGRATION_META: Record<string, MarketplaceAppMeta> = {
     configureRoute: '/integrations/trello',
     isReal: true,
   },
+  ASANA: {
+    provider: 'ASANA',
+    name: 'Asana',
+    description: 'Projects and tasks from your linked Asana account',
+    widgetId: 'asana',
+    category: 'developer',
+    categoryLabel: 'Developer',
+    configureRoute: '/integrations/asana',
+    isReal: true,
+  },
   CALENDLY: {
     provider: 'CALENDLY',
     name: 'Calendly',

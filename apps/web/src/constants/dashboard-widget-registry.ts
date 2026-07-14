@@ -27,6 +27,10 @@ import {
   TrelloBoardsDashboardWidget,
 } from '@/components/dashboard/widgets/trello-dashboard-widgets';
 import {
+  AsanaMyTasksDashboardWidget,
+  AsanaProjectsDashboardWidget,
+} from '@/components/dashboard/widgets/asana-dashboard-widgets';
+import {
   ZoomCalendarDashboardWidget,
   ZoomMeetingsDashboardWidget,
   ZoomProfileDashboardWidget,
@@ -43,6 +47,8 @@ export const DASHBOARD_WIDGET_IDS = [
   'jira-reported',
   'jira-projects',
   'trello-boards',
+  'asana-projects',
+  'asana-my-tasks',
   'calendly-event-types',
   'calendly-events',
   'slack-profile',
@@ -129,19 +135,33 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/trello',
     order: 25,
   },
+  'asana-projects': {
+    id: 'asana-projects',
+    label: 'Projects',
+    provider: 'ASANA',
+    configureRoute: '/integrations/asana',
+    order: 26,
+  },
+  'asana-my-tasks': {
+    id: 'asana-my-tasks',
+    label: 'My tasks',
+    provider: 'ASANA',
+    configureRoute: '/integrations/asana',
+    order: 27,
+  },
   'calendly-event-types': {
     id: 'calendly-event-types',
     label: 'Event types',
     provider: 'CALENDLY',
     configureRoute: '/integrations/calendly',
-    order: 27,
+    order: 28,
   },
   'calendly-events': {
     id: 'calendly-events',
     label: 'Upcoming events',
     provider: 'CALENDLY',
     configureRoute: '/integrations/calendly',
-    order: 28,
+    order: 29,
   },
   'slack-profile': {
     id: 'slack-profile',
@@ -211,6 +231,8 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'jira-reported': JiraReportedDashboardWidget,
   'jira-projects': JiraProjectsDashboardWidget,
   'trello-boards': TrelloBoardsDashboardWidget,
+  'asana-projects': AsanaProjectsDashboardWidget,
+  'asana-my-tasks': AsanaMyTasksDashboardWidget,
   'calendly-event-types': CalendlyEventTypesDashboardWidget,
   'calendly-events': CalendlyUpcomingEventsDashboardWidget,
   'slack-profile': SlackProfileDashboardWidget,
@@ -227,6 +249,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   GOOGLE_CALENDAR: '/integrations/google',
   JIRA: '/integrations/jira',
   TRELLO: '/integrations/trello',
+  ASANA: '/integrations/asana',
   CALENDLY: '/integrations/calendly',
   SLACK: '/integrations/slack',
   ZOOM: '/integrations/zoom',
