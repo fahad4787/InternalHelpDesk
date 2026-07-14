@@ -9,9 +9,7 @@ import { PrismaService } from './database/prisma.service';
 
 try {
   tls.setDefaultCACertificates(tls.getCACertificates('system'));
-} catch {
-  // Ignore on Node versions without system CA certificate support.
-}
+} catch {}
 
 async function connectDatabase(prisma: PrismaService) {
   const maxAttempts = 5;

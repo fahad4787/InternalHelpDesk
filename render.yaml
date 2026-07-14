@@ -14,3 +14,13 @@ services:
         value: https://internal-helpdesk-api.onrender.com
       - key: FRONTEND_URL
         value: https://internal-help-desk-web-q2fw.vercel.app
+      - key: ASANA_MODE
+        value: live
+      - key: ASANA_REDIRECT_URI
+        value: https://internal-helpdesk-api.onrender.com/api/integrations/asana/callback
+      - key: ASANA_SCOPES
+        value: projects:read tasks:read users:read
+      - key: ASANA_CLIENT_ID
+        sync: false
+      - key: ASANA_CLIENT_SECRET
+        sync: false

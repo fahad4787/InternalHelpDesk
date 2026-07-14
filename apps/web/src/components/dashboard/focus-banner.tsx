@@ -15,6 +15,7 @@ const SOURCE_BADGE: Record<string, string> = {
   GOOGLE_CALENDAR: 'bg-sky-500/90 text-white',
   JIRA: 'bg-blue-500/90 text-white',
   TRELLO: 'bg-sky-700/90 text-white',
+  ASANA: 'bg-rose-500/90 text-white',
   CALENDLY: 'bg-blue-600/90 text-white',
   SLACK: 'bg-purple-500/90 text-white',
   ZOOM: 'bg-blue-500/90 text-white',
@@ -27,6 +28,7 @@ function providerBadge(provider: string) {
   if (provider === 'GOOGLE_CALENDAR') return 'GOOGLE';
   if (provider === 'JIRA') return 'JIRA';
   if (provider === 'TRELLO') return 'TRELLO';
+  if (provider === 'ASANA') return 'ASANA';
   if (provider === 'CALENDLY') return 'CAL';
   if (provider === 'SLACK') return 'SLACK';
   if (provider === 'ZOOM') return 'ZOOM';

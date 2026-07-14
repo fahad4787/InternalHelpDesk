@@ -7,6 +7,7 @@ export type IntegrationIconProvider =
   | 'GMAIL'
   | 'JIRA'
   | 'TRELLO'
+  | 'ASANA'
   | 'CALENDLY'
   | 'SLACK'
   | 'ZOOM'
@@ -25,9 +26,7 @@ const SIZE_CLASSES = {
 interface IntegrationIconProps {
   provider: IntegrationIconProvider;
   size?: keyof typeof SIZE_CLASSES;
-  /** Renders a bordered tile behind the icon (connection cards, marketplace). */
   tile?: boolean;
-  /** Softens the icon when an integration is not connected. */
   dimmed?: boolean;
   className?: string;
 }
@@ -108,6 +107,17 @@ function TrelloIcon({ className }: { className?: string }) {
       <rect fill="#0079BF" width="24" height="24" rx="4" />
       <rect fill="#fff" x="4.5" y="4.5" width="6" height="12" rx="1.2" />
       <rect fill="#fff" x="13.5" y="4.5" width="6" height="8" rx="1.2" />
+    </svg>
+  );
+}
+
+function AsanaIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <rect fill="#F06A6A" width="24" height="24" rx="5" />
+      <circle fill="#fff" cx="12" cy="7.2" r="2.4" />
+      <circle fill="#fff" cx="7.2" cy="15.6" r="2.4" />
+      <circle fill="#fff" cx="16.8" cy="15.6" r="2.4" />
     </svg>
   );
 }
@@ -236,6 +246,8 @@ function BrandGlyph({
       return <JiraIcon className={className} />;
     case 'TRELLO':
       return <TrelloIcon className={className} />;
+    case 'ASANA':
+      return <AsanaIcon className={className} />;
     case 'CALENDLY':
       return <CalendlyIcon className={className} />;
     case 'SLACK':
@@ -267,6 +279,7 @@ export function isIntegrationIconProvider(
     'GMAIL',
     'JIRA',
     'TRELLO',
+    'ASANA',
     'CALENDLY',
     'SLACK',
     'ZOOM',

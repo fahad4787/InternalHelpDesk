@@ -53,6 +53,7 @@ enum IntegrationProvider {
   OUTLOOK
   JIRA
   TRELLO
+  ASANA
   CALENDLY
   SERVICENOW
   WORKDAY
@@ -136,6 +137,7 @@ model User {
   zoomConnection            ZoomConnection?
   jiraConnection            JiraConnection?
   trelloConnection          TrelloConnection?
+  asanaConnection           AsanaConnection?
   calendlyConnection        CalendlyConnection?
   slackConnection           SlackConnection?
   outlookConnection         OutlookConnection?
@@ -470,6 +472,24 @@ model TrelloConnection {
   lastSyncedAt         DateTime?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AsanaConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  asanaUserGid          String?
+  asanaEmail            String?
+  asanaName             String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

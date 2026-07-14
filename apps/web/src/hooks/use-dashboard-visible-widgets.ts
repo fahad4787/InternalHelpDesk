@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { asanaService } from '@/services/asana.service';
 import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
@@ -31,6 +32,12 @@ export function useDashboardVisibleWidgets() {
   const trelloQuery = useQuery({
     queryKey: ['trello-status'],
     queryFn: () => trelloService.getStatus(),
+    staleTime: STATUS_STALE_MS,
+  });
+
+  const asanaQuery = useQuery({
+    queryKey: ['asana-status'],
+    queryFn: () => asanaService.getStatus(),
     staleTime: STATUS_STALE_MS,
   });
 
@@ -76,6 +83,7 @@ export function useDashboardVisibleWidgets() {
         google: googleQuery.data?.data,
         jira: jiraQuery.data?.data,
         trello: trelloQuery.data?.data,
+        asana: asanaQuery.data?.data,
         calendly: calendlyQuery.data?.data,
         slack: slackQuery.data?.data,
         zoom: zoomQuery.data?.data,
@@ -87,6 +95,7 @@ export function useDashboardVisibleWidgets() {
       googleQuery.data?.data,
       jiraQuery.data?.data,
       trelloQuery.data?.data,
+      asanaQuery.data?.data,
       calendlyQuery.data?.data,
       slackQuery.data?.data,
       zoomQuery.data?.data,
@@ -100,6 +109,7 @@ export function useDashboardVisibleWidgets() {
     googleQuery.isLoading ||
     jiraQuery.isLoading ||
     trelloQuery.isLoading ||
+    asanaQuery.isLoading ||
     calendlyQuery.isLoading ||
     slackQuery.isLoading ||
     zoomQuery.isLoading ||
@@ -114,6 +124,7 @@ export function useDashboardVisibleWidgets() {
       google: googleQuery.data?.data,
       jira: jiraQuery.data?.data,
       trello: trelloQuery.data?.data,
+      asana: asanaQuery.data?.data,
       calendly: calendlyQuery.data?.data,
       slack: slackQuery.data?.data,
       zoom: zoomQuery.data?.data,
