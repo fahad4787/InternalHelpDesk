@@ -48,29 +48,17 @@ update_env_var() {
   fi
 }
 
-declare -a redirect_paths=(
-  "ZOOM_REDIRECT_URI=/api/integrations/zoom/callback"
-  "JIRA_REDIRECT_URI=/api/integrations/jira/callback"
-  "OUTLOOK_REDIRECT_URI=/api/integrations/outlook/callback"
-  "GOOGLE_REDIRECT_URI=/api/integrations/google-calendar/callback"
-)
-
-for entry in "${redirect_paths[@]}"; do
-  key="${entry%%=*}"
-  path="${entry#*=}"
-  update_env_var "$key" "${tunnel_url}${path}"
-done
+update_env_var "PUBLIC_API_URL" "$tunnel_url"
 
 echo ""
 echo "OAuth HTTPS tunnel is ready (API port $PORT)."
 echo "Tunnel URL: $tunnel_url"
+echo "PUBLIC_API_URL updated in apps/api/.env"
 echo ""
-echo "Redirect URIs updated in apps/api/.env:"
-for entry in "${redirect_paths[@]}"; do
-  key="${entry%%=*}"
-  path="${entry#*=}"
-  echo "  $key=${tunnel_url}${path}"
-done
+echo "OAuth redirect URIs (register each in the provider app):"
+echo "  Zoom:    ${tunnel_url}/api/integrations/zoom/callback"
+echo "  Jira:    ${tunnel_url}/api/integrations/jira/callback"
+echo "  Outlook: ${tunnel_url}/api/integrations/outlook/callback"
+echo "  Google:  ${tunnel_url}/api/integrations/google-calendar/callback"
 echo ""
-echo "Add each Redirect URI to the provider OAuth app settings."
 echo "Restart the API after this script updates apps/api/.env."

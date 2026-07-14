@@ -58,10 +58,10 @@ Set-Content -Path $UrlFile -Value $tunnelUrl
 
 if (Test-Path $EnvFile) {
   $envContent = Get-Content $EnvFile -Raw
-  if ($envContent -match "ZOOM_REDIRECT_URI=") {
-    $envContent = $envContent -replace "ZOOM_REDIRECT_URI=.*", "ZOOM_REDIRECT_URI=$redirectUri"
+  if ($envContent -match "PUBLIC_API_URL=") {
+    $envContent = $envContent -replace "PUBLIC_API_URL=.*", "PUBLIC_API_URL=$tunnelUrl"
   } else {
-    $envContent += "`nZOOM_REDIRECT_URI=$redirectUri"
+    $envContent += "`nPUBLIC_API_URL=$tunnelUrl"
   }
   Set-Content -Path $EnvFile -Value $envContent.TrimEnd() -NoNewline
 }

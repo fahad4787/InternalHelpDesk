@@ -13,6 +13,7 @@ import {
   createOAuthState,
   verifyOAuthState,
 } from '../google-calendar/utils/oauth-state.util';
+import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
 import { MOCK_SLACK_CHANNELS } from './constants/mock-channels.constant';
 import { getMockMessagesForChannel } from './constants/mock-messages.constant';
 import { UpdateSlackPreferencesDto } from './dto/update-slack-preferences.dto';
@@ -510,11 +511,11 @@ export class SlackService {
     };
   }
 
-  private getRedirectUri(): string | undefined {
-    return (
-      this.configService.get<string>('SLACK_REDIRECT_URI') ??
-      `http://127.0.0.1:${this.configService.get<number>('PORT', 3001)}/api/integrations/slack/callback`
-    );
+  private getRedirectUri(): string {
+    return resolveOAuthRedirectUri(this.configService, {
+      envKey: 'SLACK_REDIRECT_URI',
+      callbackPath: '/api/integrations/slack/callback',
+    });
   }
 
   private async exchangeCodeForTokens(code: string): Promise<SlackOAuthResponse> {

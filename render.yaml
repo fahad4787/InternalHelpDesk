@@ -10,3 +10,7 @@ services:
         value: "20"
       - key: HOST
         value: 0.0.0.0
+      - key: PUBLIC_API_URL
+        value: https://internal-helpdesk-api.onrender.com
+      - key: FRONTEND_URL
+        value: https://internalhelpdesk.fixelcloud.co
