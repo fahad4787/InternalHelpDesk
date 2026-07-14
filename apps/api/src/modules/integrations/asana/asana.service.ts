@@ -84,6 +84,14 @@ export class AsanaService {
     return !this.configService.get<string>('ASANA_CLIENT_ID');
   }
 
+  isOobMode(): boolean {
+    const redirectUri = this.getRedirectUri();
+    return (
+      redirectUri === 'urn:ietf:wg:oauth:2.0:oob' ||
+      redirectUri.includes('oauth:2.0:oob')
+    );
+  }
+
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.asanaConnection.findUnique({
       where: { userId: user.id },
@@ -94,15 +102,37 @@ export class AsanaService {
     const hasLiveToken = Boolean(connection?.encryptedAccessToken);
     const effectivelyConnected = connected && (mockMode || hasLiveToken);
 
+    let workspaceNames: string[] = [];
+    if (effectivelyConnected) {
+      if (mockMode) {
+        workspaceNames = [
+          ...new Set(
+            MOCK_ASANA_PROJECTS.map((p) => p.workspaceName).filter(
+              (name): name is string => Boolean(name),
+            ),
+          ),
+        ];
+      } else if (connection) {
+        try {
+          const accessToken = await this.getValidAccessToken(connection);
+          workspaceNames = await this.fetchWorkspaceNames(accessToken);
+        } catch {
+          workspaceNames = [];
+        }
+      }
+    }
+
     return successResponse({
       connected: effectivelyConnected,
       mockMode,
+      oobMode: this.isOobMode(),
       needsReconnect: Boolean(connected && !mockMode && !hasLiveToken),
       status: effectivelyConnected
         ? IntegrationStatus.CONNECTED
         : (connection?.status ?? IntegrationStatus.NOT_CONNECTED),
       asanaEmail: connection?.asanaEmail ?? null,
       asanaName: connection?.asanaName ?? null,
+      workspaceNames,
       lastSyncedAt: connection?.lastSyncedAt?.toISOString() ?? null,
       preferences: this.resolvePreferences(connection?.preferences),
     });
@@ -171,7 +201,25 @@ export class AsanaService {
 
     return successResponse({
       url: `${ASANA_AUTH_URL}?${params.toString()}`,
+      state,
+      oobMode: this.isOobMode(),
     });
+  }
+
+  async connectWithCode(user: AuthenticatedUser, code: string, state: string) {
+    if (this.isMockMode()) {
+      throw new BadRequestException(
+        'Asana OAuth is disabled in mock mode. Use the mock connect action instead.',
+      );
+    }
+
+    const userId = verifyOAuthState(state, this.jwtSecret);
+    if (!userId || userId !== user.id) {
+      throw new UnauthorizedException('Invalid or expired OAuth state');
+    }
+
+    await this.handleCallback(code, state);
+    return this.getStatus(user);
   }
 
   async handleCallback(code: string, state: string) {
@@ -591,10 +639,37 @@ export class AsanaService {
 
     if (!response.ok) {
       const error = await response.text();
+      if (error.includes('workspaces:read')) {
+        throw new BadRequestException(
+          'Asana token is missing workspace access. Disconnect, turn on Full permissions in the Asana app OAuth settings, Save, then Connect again and paste a new code.',
+        );
+      }
       throw new BadRequestException(`Asana API error: ${error}`);
     }
 
     return response.json() as Promise<T>;
+  }
+
+  private async fetchWorkspaces(
+    accessToken: string,
+  ): Promise<Array<{ gid: string; name: string }>> {
+    const mePayload = await this.apiGet<
+      AsanaApiSingleResponse<{
+        workspaces?: Array<{ gid: string; name?: string | null }>;
+      }>
+    >(accessToken, '/users/me?opt_fields=workspaces.gid,workspaces.name');
+
+    return (mePayload.data?.workspaces ?? [])
+      .map((workspace) => ({
+        gid: workspace.gid,
+        name: workspace.name?.trim() ?? '',
+      }))
+      .filter((workspace) => Boolean(workspace.gid && workspace.name));
+  }
+
+  private async fetchWorkspaceNames(accessToken: string): Promise<string[]> {
+    const workspaces = await this.fetchWorkspaces(accessToken);
+    return workspaces.map((workspace) => workspace.name);
   }
 
   private async fetchProfile(accessToken: string): Promise<AsanaProfile> {
@@ -614,33 +689,41 @@ export class AsanaService {
   }
 
   private async fetchProjects(accessToken: string): Promise<AsanaProject[]> {
-    const payload = await this.apiGet<
-      AsanaApiListResponse<{
-        gid: string;
-        name: string;
-        notes?: string | null;
-        color?: string | null;
-        archived?: boolean;
-        permalink_url?: string | null;
-        modified_at?: string | null;
-        workspace?: { name?: string | null } | null;
-      }>
-    >(
-      accessToken,
-      '/projects?limit=50&archived=false&opt_fields=name,notes,color,archived,permalink_url,modified_at,workspace.name',
+    const workspaces = await this.fetchWorkspaces(accessToken);
+    if (workspaces.length === 0) return [];
+
+    const projectsByWorkspace = await Promise.all(
+      workspaces.map(async (workspace) => {
+        const payload = await this.apiGet<
+          AsanaApiListResponse<{
+            gid: string;
+            name: string;
+            notes?: string | null;
+            color?: string | null;
+            archived?: boolean;
+            permalink_url?: string | null;
+            modified_at?: string | null;
+          }>
+        >(
+          accessToken,
+          `/workspaces/${encodeURIComponent(workspace.gid)}/projects?limit=100&archived=false&opt_fields=name,notes,color,archived,permalink_url,modified_at`,
+        );
+
+        return (payload.data ?? []).map((project) => ({
+          gid: project.gid,
+          name: project.name,
+          notes: project.notes?.trim() ? project.notes : null,
+          color: project.color ?? null,
+          archived: project.archived === true,
+          permalinkUrl: project.permalink_url ?? null,
+          workspaceName: workspace.name,
+          modifiedAt: project.modified_at ?? null,
+          taskCount: 0,
+        }));
+      }),
     );
 
-    return (payload.data ?? []).map((project) => ({
-      gid: project.gid,
-      name: project.name,
-      notes: project.notes?.trim() ? project.notes : null,
-      color: project.color ?? null,
-      archived: project.archived === true,
-      permalinkUrl: project.permalink_url ?? null,
-      workspaceName: project.workspace?.name ?? null,
-      modifiedAt: project.modified_at ?? null,
-      taskCount: 0,
-    }));
+    return projectsByWorkspace.flat();
   }
 
   private async fetchProjectDetail(
@@ -705,70 +788,84 @@ export class AsanaService {
   }
 
   private async fetchMyTasks(accessToken: string): Promise<AsanaTask[]> {
-    try {
-      const listPayload = await this.apiGet<
-        AsanaApiSingleResponse<{ gid: string }>
-      >(accessToken, '/users/me/user_task_list?opt_fields=gid');
+    const workspaces = await this.fetchWorkspaces(accessToken);
+    if (workspaces.length === 0) return [];
 
-      const listGid = listPayload.data?.gid;
-      if (!listGid) {
-        return this.fetchMyTasksViaSearch(accessToken);
-      }
-
-      const tasksPayload = await this.apiGet<
-        AsanaApiListResponse<{
-          gid: string;
-          name: string;
-          completed?: boolean;
-          due_on?: string | null;
-          modified_at?: string | null;
-          permalink_url?: string | null;
-          assignee?: { name?: string | null } | null;
-          projects?: Array<{ name?: string | null }>;
-        }>
-      >(
-        accessToken,
-        `/user_task_lists/${encodeURIComponent(listGid)}/tasks?limit=50&completed_since=now&opt_fields=name,completed,due_on,modified_at,permalink_url,assignee.name,projects.name`,
-      );
-
-      return (tasksPayload.data ?? [])
-        .map((task) =>
-          this.mapTask(task, task.projects?.[0]?.name ?? null),
-        )
-        .sort((a, b) => {
-          if (a.completed !== b.completed) return a.completed ? 1 : -1;
-          const aDue = a.dueOn ?? '9999-99-99';
-          const bDue = b.dueOn ?? '9999-99-99';
-          return aDue.localeCompare(bDue);
-        });
-    } catch {
-      return this.fetchMyTasksViaSearch(accessToken);
-    }
-  }
-
-  private async fetchMyTasksViaSearch(accessToken: string): Promise<AsanaTask[]> {
     const me = await this.fetchProfile(accessToken);
-    if (!me.gid) return [];
+    const taskChunks = await Promise.all(
+      workspaces.map(async (workspace) => {
+        try {
+          const listPayload = await this.apiGet<
+            AsanaApiSingleResponse<{ gid: string }>
+          >(
+            accessToken,
+            `/users/me/user_task_list?workspace=${encodeURIComponent(workspace.gid)}&opt_fields=gid`,
+          );
 
-    const payload = await this.apiGet<
-      AsanaApiListResponse<{
-        gid: string;
-        name: string;
-        completed?: boolean;
-        due_on?: string | null;
-        modified_at?: string | null;
-        permalink_url?: string | null;
-        assignee?: { name?: string | null } | null;
-        projects?: Array<{ name?: string | null }>;
-      }>
-    >(
-      accessToken,
-      `/tasks?assignee=${encodeURIComponent(me.gid)}&completed_since=now&limit=50&opt_fields=name,completed,due_on,modified_at,permalink_url,assignee.name,projects.name`,
+          const listGid = listPayload.data?.gid;
+          if (listGid) {
+            const tasksPayload = await this.apiGet<
+              AsanaApiListResponse<{
+                gid: string;
+                name: string;
+                completed?: boolean;
+                due_on?: string | null;
+                modified_at?: string | null;
+                permalink_url?: string | null;
+                assignee?: { name?: string | null } | null;
+                projects?: Array<{ name?: string | null }>;
+              }>
+            >(
+              accessToken,
+              `/user_task_lists/${encodeURIComponent(listGid)}/tasks?limit=50&completed_since=now&opt_fields=name,completed,due_on,modified_at,permalink_url,assignee.name,projects.name`,
+            );
+
+            return (tasksPayload.data ?? []).map((task) =>
+              this.mapTask(task, task.projects?.[0]?.name ?? null),
+            );
+          }
+        } catch {
+          // Fall through to workspace-scoped assignee query.
+        }
+
+        if (!me.gid) return [] as AsanaTask[];
+
+        const payload = await this.apiGet<
+          AsanaApiListResponse<{
+            gid: string;
+            name: string;
+            completed?: boolean;
+            due_on?: string | null;
+            modified_at?: string | null;
+            permalink_url?: string | null;
+            assignee?: { name?: string | null } | null;
+            projects?: Array<{ name?: string | null }>;
+          }>
+        >(
+          accessToken,
+          `/tasks?assignee=${encodeURIComponent(me.gid)}&workspace=${encodeURIComponent(workspace.gid)}&completed_since=now&limit=50&opt_fields=name,completed,due_on,modified_at,permalink_url,assignee.name,projects.name`,
+        );
+
+        return (payload.data ?? []).map((task) =>
+          this.mapTask(task, task.projects?.[0]?.name ?? null),
+        );
+      }),
     );
 
-    return (payload.data ?? []).map((task) =>
-      this.mapTask(task, task.projects?.[0]?.name ?? null),
-    );
+    const seen = new Set<string>();
+    return taskChunks
+      .flat()
+      .filter((task) => {
+        if (seen.has(task.gid)) return false;
+        seen.add(task.gid);
+        return true;
+      })
+      .sort((a, b) => {
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+        const aDue = a.dueOn ?? '9999-99-99';
+        const bDue = b.dueOn ?? '9999-99-99';
+        return aDue.localeCompare(bDue);
+      });
   }
 
   private mapTask(

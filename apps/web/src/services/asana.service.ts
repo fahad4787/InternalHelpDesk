@@ -8,10 +8,12 @@ export interface AsanaPreferences {
 export interface AsanaStatus {
   connected: boolean;
   mockMode: boolean;
+  oobMode?: boolean;
   needsReconnect?: boolean;
   status: string;
   asanaEmail: string | null;
   asanaName: string | null;
+  workspaceNames?: string[];
   lastSyncedAt: string | null;
   preferences: AsanaPreferences;
 }
@@ -52,9 +54,15 @@ export const DEFAULT_ASANA_PREFERENCES: AsanaPreferences = {
 export const asanaService = {
   getStatus: () => apiGet<AsanaStatus>('/integrations/asana/status'),
 
-  getAuthUrl: () => apiGet<{ url: string }>('/integrations/asana/auth-url'),
+  getAuthUrl: () =>
+    apiGet<{ url: string; state: string; oobMode: boolean }>(
+      '/integrations/asana/auth-url',
+    ),
 
   connectMock: () => apiPost('/integrations/asana/connect-mock'),
+
+  connectCode: (code: string, state: string) =>
+    apiPost<AsanaStatus>('/integrations/asana/connect-code', { code, state }),
 
   disconnect: () => apiPost('/integrations/asana/disconnect'),
 
