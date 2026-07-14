@@ -15,6 +15,7 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   ],
   ZOOM: ['zoom-status', 'zoom-meetings', 'zoom-profile'],
   OUTLOOK: ['outlook-status', 'outlook-messages', 'outlook-profile'],
+  DROPBOX: ['dropbox-status', 'dropbox-files'],
   WORKDAY: ['workday-status', 'workday-sync-logs', 'workday-articles'],
 };
 

@@ -17,6 +17,8 @@ import { TrelloModule } from './trello/trello.module';
 import { TrelloController } from './trello/trello.controller';
 import { CalendlyModule } from './calendly/calendly.module';
 import { CalendlyController } from './calendly/calendly.controller';
+import { DropboxModule } from './dropbox/dropbox.module';
+import { DropboxController } from './dropbox/dropbox.controller';
 
 @Module({
   imports: [
@@ -28,6 +30,7 @@ import { CalendlyController } from './calendly/calendly.controller';
     CalendlyModule,
     SlackModule,
     OutlookModule,
+    DropboxModule,
   ],
   controllers: [
     WorkdayController,
@@ -38,6 +41,7 @@ import { CalendlyController } from './calendly/calendly.controller';
     CalendlyController,
     SlackController,
     OutlookController,
+    DropboxController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -51,6 +55,7 @@ import { CalendlyController } from './calendly/calendly.controller';
     CalendlyModule,
     SlackModule,
     OutlookModule,
+    DropboxModule,
   ],
 })
 export class IntegrationsModule {}

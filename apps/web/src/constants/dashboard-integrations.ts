@@ -107,6 +107,16 @@ export const REAL_INTEGRATION_META: Record<string, MarketplaceAppMeta> = {
     configureRoute: '/integrations/outlook',
     isReal: true,
   },
+  DROPBOX: {
+    provider: 'DROPBOX',
+    name: 'Dropbox',
+    description: 'Files and folders from your linked Dropbox account',
+    widgetId: 'dropbox',
+    category: 'productivity',
+    categoryLabel: 'Productivity',
+    configureRoute: '/integrations/dropbox',
+    isReal: true,
+  },
   MICROSOFT_TEAMS: {
     provider: 'MICROSOFT_TEAMS',
     name: 'Microsoft Teams',
@@ -135,6 +145,7 @@ export const PROVIDER_CATEGORY_MAP: Record<string, MarketplaceCategory> = {
   'project-management': 'developer',
   communication: 'communication',
   itsm: 'developer',
+  productivity: 'productivity',
 };
 
 export function mapApiCategory(category: string): MarketplaceCategory {

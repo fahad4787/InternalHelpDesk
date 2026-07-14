@@ -11,6 +11,10 @@ import { DEFAULT_OUTLOOK_PREFERENCES, type OutlookStatus } from '@/services/outl
 import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
 import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
 import { DEFAULT_ZOOM_PREFERENCES, type ZoomStatus } from '@/services/zoom.service';
+import {
+  DEFAULT_DROPBOX_PREFERENCES,
+  type DropboxStatus,
+} from '@/services/dropbox.service';
 import type { WorkdayStatus } from '@/services/workday.service';
 import {
   DASHBOARD_WIDGET_DEFINITIONS,
@@ -26,6 +30,7 @@ export interface DashboardIntegrationStatuses {
   slack?: SlackStatus | null;
   zoom?: ZoomStatus | null;
   outlook?: OutlookStatus | null;
+  dropbox?: DropboxStatus | null;
   workday?: WorkdayStatus | null;
 }
 
@@ -89,6 +94,12 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showInbox) visible.push('outlook-inbox');
   }
 
+  const dropbox = statuses.dropbox;
+  if (dropbox?.connected) {
+    const preferences = dropbox.preferences ?? DEFAULT_DROPBOX_PREFERENCES;
+    if (preferences.showFiles) visible.push('dropbox-files');
+  }
+
   if (statuses.workday?.connected) {
     visible.push('workday-articles');
   }
@@ -123,6 +134,9 @@ export function getConnectedIntegrationRoutes(
   }
   if (statuses.outlook?.connected) {
     routes.push({ provider: 'OUTLOOK', route: '/integrations/outlook', label: 'Outlook' });
+  }
+  if (statuses.dropbox?.connected) {
+    routes.push({ provider: 'DROPBOX', route: '/integrations/dropbox', label: 'Dropbox' });
   }
   if (statuses.workday?.connected) {
     routes.push({ provider: 'WORKDAY', route: '/integrations/workday', label: 'Workday' });

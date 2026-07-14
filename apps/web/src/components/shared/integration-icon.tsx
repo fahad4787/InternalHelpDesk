@@ -11,6 +11,7 @@ export type IntegrationIconProvider =
   | 'SLACK'
   | 'ZOOM'
   | 'OUTLOOK'
+  | 'DROPBOX'
   | 'WORKDAY'
   | 'MICROSOFT_TEAMS'
   | 'SERVICENOW';
@@ -204,6 +205,17 @@ function ServiceNowIcon({ className }: { className?: string }) {
   );
 }
 
+function DropboxIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="#0061FF"
+        d="M6 2.5 1.5 5.4 6 8.3l4.5-2.9L6 2.5zm12 0-4.5 2.9L18 8.3l4.5-2.9L18 2.5zM1.5 11.2 6 14.1l4.5-2.9L6 8.3l-4.5 2.9zm16.5 0 4.5-2.9L18 8.3l-4.5 2.9 4.5 2.9zM6 15.7l4.5 2.9L12 17.2l1.5 1.4 4.5-2.9-4.5-2.9L12 14.3l-1.5-1.5L6 15.7zm4.5 4.1L12 21.2l1.5-1.4L12 18.4l-1.5 1.4z"
+      />
+    </svg>
+  );
+}
+
 function BrandGlyph({
   provider,
   className,
@@ -232,6 +244,8 @@ function BrandGlyph({
       return <ZoomIcon className={className} />;
     case 'OUTLOOK':
       return <OutlookIcon className={className} />;
+    case 'DROPBOX':
+      return <DropboxIcon className={className} />;
     case 'WORKDAY':
       return <WorkdayIcon className={className} />;
     case 'MICROSOFT_TEAMS':
@@ -257,6 +271,7 @@ export function isIntegrationIconProvider(
     'SLACK',
     'ZOOM',
     'OUTLOOK',
+    'DROPBOX',
     'WORKDAY',
     'MICROSOFT_TEAMS',
     'SERVICENOW',

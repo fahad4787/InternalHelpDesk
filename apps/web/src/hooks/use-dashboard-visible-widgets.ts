@@ -10,6 +10,7 @@ import { slackService } from '@/services/slack.service';
 import { trelloService } from '@/services/trello.service';
 import { workdayService } from '@/services/workday.service';
 import { zoomService } from '@/services/zoom.service';
+import { dropboxService } from '@/services/dropbox.service';
 import { resolveVisibleDashboardWidgets } from '@/lib/dashboard-widget-utils';
 
 const STATUS_STALE_MS = 60_000;
@@ -57,6 +58,12 @@ export function useDashboardVisibleWidgets() {
     staleTime: STATUS_STALE_MS,
   });
 
+  const dropboxQuery = useQuery({
+    queryKey: ['dropbox-status'],
+    queryFn: () => dropboxService.getStatus(),
+    staleTime: STATUS_STALE_MS,
+  });
+
   const workdayQuery = useQuery({
     queryKey: ['workday-status'],
     queryFn: () => workdayService.getStatus(),
@@ -73,6 +80,7 @@ export function useDashboardVisibleWidgets() {
         slack: slackQuery.data?.data,
         zoom: zoomQuery.data?.data,
         outlook: outlookQuery.data?.data,
+        dropbox: dropboxQuery.data?.data,
         workday: workdayQuery.data?.data,
       }),
     [
@@ -83,6 +91,7 @@ export function useDashboardVisibleWidgets() {
       slackQuery.data?.data,
       zoomQuery.data?.data,
       outlookQuery.data?.data,
+      dropboxQuery.data?.data,
       workdayQuery.data?.data,
     ],
   );
@@ -95,6 +104,7 @@ export function useDashboardVisibleWidgets() {
     slackQuery.isLoading ||
     zoomQuery.isLoading ||
     outlookQuery.isLoading ||
+    dropboxQuery.isLoading ||
     workdayQuery.isLoading;
 
   return {
@@ -108,6 +118,7 @@ export function useDashboardVisibleWidgets() {
       slack: slackQuery.data?.data,
       zoom: zoomQuery.data?.data,
       outlook: outlookQuery.data?.data,
+      dropbox: dropboxQuery.data?.data,
       workday: workdayQuery.data?.data,
     },
   };

@@ -19,6 +19,7 @@ export class IntegrationsService {
       calendlyConnection,
       slackConnection,
       outlookConnection,
+      dropboxConnection,
     ] = await Promise.all([
       this.prisma.integration.findMany({
         where: { companyId: user.companyId },
@@ -42,6 +43,9 @@ export class IntegrationsService {
         where: { userId: user.id },
       }),
       this.prisma.outlookConnection.findUnique({
+        where: { userId: user.id },
+      }),
+      this.prisma.dropboxConnection.findUnique({
         where: { userId: user.id },
       }),
     ]);
@@ -134,6 +138,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: outlookConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.DROPBOX) {
+        const userConnected =
+          dropboxConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: dropboxConnection?.updatedAt ?? null,
         };
       }
 

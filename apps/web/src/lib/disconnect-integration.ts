@@ -6,6 +6,7 @@ import { slackService } from '@/services/slack.service';
 import { trelloService } from '@/services/trello.service';
 import { workdayService } from '@/services/workday.service';
 import { zoomService } from '@/services/zoom.service';
+import { dropboxService } from '@/services/dropbox.service';
 
 export async function disconnectIntegrationProvider(provider: string) {
   switch (provider) {
@@ -23,6 +24,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return zoomService.disconnect();
     case 'OUTLOOK':
       return outlookService.disconnect();
+    case 'DROPBOX':
+      return dropboxService.disconnect();
     case 'WORKDAY':
       return workdayService.reset();
     default:

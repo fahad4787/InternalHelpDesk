@@ -56,6 +56,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'communication',
   },
   {
+    provider: IntegrationProvider.DROPBOX,
+    name: 'Dropbox',
+    description: 'Files and folders from your linked Dropbox account',
+    category: 'productivity',
+  },
+  {
     provider: IntegrationProvider.SERVICENOW,
     name: 'ServiceNow',
     description: 'Connect with ServiceNow incidents',

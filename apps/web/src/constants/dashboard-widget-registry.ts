@@ -33,6 +33,7 @@ import {
   ZoomProfileDashboardWidget,
 } from '@/components/dashboard/widgets/zoom-dashboard-widgets';
 import { WorkdayDashboardWidget } from '@/components/dashboard/widgets/workday-dashboard-widget';
+import { DropboxFilesDashboardWidget } from '@/components/dashboard/widgets/dropbox-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -54,6 +55,7 @@ export const DASHBOARD_WIDGET_IDS = [
   'zoom-meetings',
   'outlook-profile',
   'outlook-inbox',
+  'dropbox-files',
   'workday-articles',
 ] as const;
 
@@ -201,6 +203,13 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/outlook',
     order: 51,
   },
+  'dropbox-files': {
+    id: 'dropbox-files',
+    label: 'Dropbox files',
+    provider: 'DROPBOX',
+    configureRoute: '/integrations/dropbox',
+    order: 55,
+  },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
@@ -230,6 +239,7 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'zoom-meetings': ZoomMeetingsDashboardWidget,
   'outlook-profile': OutlookProfileDashboardWidget,
   'outlook-inbox': OutlookInboxDashboardWidget,
+  'dropbox-files': DropboxFilesDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -241,6 +251,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   SLACK: '/integrations/slack',
   ZOOM: '/integrations/zoom',
   OUTLOOK: '/integrations/outlook',
+  DROPBOX: '/integrations/dropbox',
   WORKDAY: '/integrations/workday',
 };
 
