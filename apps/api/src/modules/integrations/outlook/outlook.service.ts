@@ -13,6 +13,7 @@ import {
   createOAuthState,
   verifyOAuthState,
 } from '../google-calendar/utils/oauth-state.util';
+import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
 import { MOCK_OUTLOOK_MESSAGES } from './constants/mock-messages.constant';
 import { UpdateOutlookPreferencesDto } from './dto/update-outlook-preferences.dto';
 import {
@@ -385,11 +386,11 @@ export class OutlookService {
     };
   }
 
-  private getRedirectUri(): string | undefined {
-    return (
-      this.configService.get<string>('OUTLOOK_REDIRECT_URI') ||
-      'http://127.0.0.1:3001/api/integrations/outlook/callback'
-    );
+  private getRedirectUri(): string {
+    return resolveOAuthRedirectUri(this.configService, {
+      envKey: 'OUTLOOK_REDIRECT_URI',
+      callbackPath: '/api/integrations/outlook/callback',
+    });
   }
 
   private async exchangeCodeForTokens(

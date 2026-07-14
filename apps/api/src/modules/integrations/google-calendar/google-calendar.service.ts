@@ -24,6 +24,7 @@ import {
   GoogleChatSpace,
 } from './types/google-chat.type';
 import { createOAuthState, verifyOAuthState } from './utils/oauth-state.util';
+import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
 import { extractMeetLink, extractMeetCode, isLikelyGoogleMeetEvent } from './utils/meet-link.util';
 
 const GOOGLE_SCOPES = [
@@ -756,10 +757,10 @@ export class GoogleCalendarService {
   }
 
   private getRedirectUri(): string {
-    return (
-      this.configService.get<string>('GOOGLE_REDIRECT_URI') ??
-      `http://localhost:${this.configService.get<number>('PORT', 3001)}/api/integrations/google-calendar/callback`
-    );
+    return resolveOAuthRedirectUri(this.configService, {
+      envKey: 'GOOGLE_REDIRECT_URI',
+      callbackPath: '/api/integrations/google-calendar/callback',
+    });
   }
 
   private async exchangeCodeForTokens(code: string): Promise<GoogleTokenResponse> {

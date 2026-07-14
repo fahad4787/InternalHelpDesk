@@ -10,6 +10,7 @@ import { AuthenticatedUser } from '../../../common/types/api-response.type';
 import { decrypt, encrypt } from '../../../common/utils/encryption.util';
 import { successResponse } from '../../../common/utils/api-response.util';
 import { createOAuthState, verifyOAuthState } from '../google-calendar/utils/oauth-state.util';
+import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
 import {
   getMockAssignedIssues,
   getMockReportedIssues,
@@ -496,10 +497,10 @@ export class JiraService {
   }
 
   private getRedirectUri(): string {
-    return (
-      this.configService.get<string>('JIRA_REDIRECT_URI') ??
-      `http://127.0.0.1:${this.configService.get<number>('PORT', 3001)}/api/integrations/jira/callback`
-    );
+    return resolveOAuthRedirectUri(this.configService, {
+      envKey: 'JIRA_REDIRECT_URI',
+      callbackPath: '/api/integrations/jira/callback',
+    });
   }
 
   private async jiraFetch(

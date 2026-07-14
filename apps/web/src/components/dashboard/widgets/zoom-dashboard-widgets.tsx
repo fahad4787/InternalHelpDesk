@@ -11,6 +11,8 @@ import { zoomService } from '@/services/zoom.service';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 
+const ZOOM_MEETINGS_URL = 'https://zoom.us/meeting';
+
 export function ZoomProfileDashboardWidget() {
   const { data, isLoading } = useQuery({
     queryKey: ['zoom-profile'],
@@ -24,7 +26,7 @@ export function ZoomProfileDashboardWidget() {
       source="Zoom"
       sourceLogo={<IntegrationIcon provider="ZOOM" />}
       title="Zoom Profile"
-      deepLinkHref="/integrations/zoom"
+      deepLinkHref={ZOOM_MEETINGS_URL}
       deepLinkLabel="Open Zoom"
     >
       {isLoading ? (
@@ -51,7 +53,7 @@ export function ZoomCalendarDashboardWidget() {
       source="Zoom"
       sourceLogo={<IntegrationIcon provider="ZOOM" />}
       title="Zoom Calendar"
-      deepLinkHref="/integrations/zoom"
+      deepLinkHref={ZOOM_MEETINGS_URL}
       deepLinkLabel="Open Zoom"
     >
       {isLoading ? (
@@ -79,7 +81,7 @@ export function ZoomMeetingsDashboardWidget() {
       source="Zoom"
       sourceLogo={<IntegrationIcon provider="ZOOM" />}
       title="Upcoming Zoom meetings"
-      deepLinkHref="/integrations/zoom"
+      deepLinkHref={ZOOM_MEETINGS_URL}
       deepLinkLabel="Open Zoom"
     >
       {isLoading ? (

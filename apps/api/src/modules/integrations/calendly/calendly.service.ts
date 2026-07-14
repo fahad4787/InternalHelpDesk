@@ -13,6 +13,7 @@ import {
   createOAuthState,
   verifyOAuthState,
 } from '../google-calendar/utils/oauth-state.util';
+import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
 import { UpdateCalendlyPreferencesDto } from './dto/update-calendly-preferences.dto';
 import {
   CalendlyEventType,
@@ -368,10 +369,10 @@ export class CalendlyService {
   }
 
   private getRedirectUri(): string {
-    return (
-      this.configService.get<string>('CALENDLY_REDIRECT_URI')?.trim() ??
-      `http://127.0.0.1:${this.configService.get<number>('PORT', 3001)}/api/integrations/calendly/callback`
-    );
+    return resolveOAuthRedirectUri(this.configService, {
+      envKey: 'CALENDLY_REDIRECT_URI',
+      callbackPath: '/api/integrations/calendly/callback',
+    });
   }
 
   private getBasicAuthHeader(): string {
