@@ -5,6 +5,7 @@ import {
   type DashboardWidgetId,
 } from '@/constants/dashboard-widget-registry';
 import { useDashboardWidgetOrder } from '@/hooks/use-dashboard-widget-order';
+import { INTEGRATION_FULL_WIDTH_WIDGETS } from '@/lib/dashboard-widget-utils';
 import { cn } from '@/lib/utils';
 import { AddWidgetCard } from './add-widget-card';
 import { DashboardWidgetShellProvider } from './dashboard-widget-shell-context';
@@ -37,12 +38,14 @@ export function DashboardWidgetGrid({ visibleWidgetIds }: DashboardWidgetGridPro
           const Widget = DASHBOARD_WIDGET_COMPONENTS[widgetId];
           const isDragging = draggedId === widgetId;
           const isDropTarget = dropTargetId === widgetId;
+          const fullWidth = INTEGRATION_FULL_WIDTH_WIDGETS.has(widgetId);
 
           return (
             <div
               key={widgetId}
               className={cn(
-                'flex h-full min-w-0 flex-col md:col-span-3',
+                'flex h-full min-w-0 flex-col',
+                fullWidth ? 'md:col-span-6' : 'md:col-span-3',
                 isDragging && 'opacity-50',
                 isDropTarget && 'rounded-2xl ring-2 ring-brand ring-offset-2',
               )}

@@ -158,4 +158,5 @@ export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'slack-messenger',
   'google-chat',
   'trello-boards',
+  'dropbox-files',
 ]);
