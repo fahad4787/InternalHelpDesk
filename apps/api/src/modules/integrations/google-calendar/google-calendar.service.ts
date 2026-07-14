@@ -39,6 +39,7 @@ const GOOGLE_SCOPES = [
   'https://www.googleapis.com/auth/chat.messages',
   'https://www.googleapis.com/auth/chat.memberships.readonly',
   'https://www.googleapis.com/auth/contacts.readonly',
+  'https://www.googleapis.com/auth/contacts.other.readonly',
   'https://www.googleapis.com/auth/directory.readonly',
 ].join(' ');
 
@@ -53,6 +54,8 @@ const CHAT_REQUIRED_SCOPES = [
   'https://www.googleapis.com/auth/chat.messages',
   'https://www.googleapis.com/auth/chat.memberships.readonly',
   'https://www.googleapis.com/auth/contacts.readonly',
+  'https://www.googleapis.com/auth/contacts.other.readonly',
+  'https://www.googleapis.com/auth/directory.readonly',
 ];
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
@@ -1437,6 +1440,11 @@ export class GoogleCalendarService {
     const params = new URLSearchParams({
       personFields: 'names,emailAddresses',
     });
+    // Profile + contacts + Workspace directory (when available).
+    params.append('sources', 'READ_SOURCE_TYPE_PROFILE');
+    params.append('sources', 'READ_SOURCE_TYPE_CONTACT');
+    params.append('sources', 'READ_SOURCE_TYPE_DOMAIN_CONTACT');
+    params.append('sources', 'READ_SOURCE_TYPE_DIRECTORY');
 
     const response = await fetch(
       `${GOOGLE_PEOPLE_API_URL}/${peopleResource}?${params}`,

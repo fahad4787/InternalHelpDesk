@@ -48,7 +48,7 @@ async function bootstrap() {
       frontendUrl,
       'http://localhost:3000',
       'http://127.0.0.1:3000',
-      'https://internalhelpdesk.fixelcloud.co',
+      'https://internal-help-desk-web-q2fw.vercel.app',
     ],
     credentials: true,
   });
