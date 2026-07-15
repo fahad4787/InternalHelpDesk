@@ -38,7 +38,6 @@ export default function JiraIntegrationPage() {
     if (connected === 'true') {
       setAuthError(null);
       queryClient.invalidateQueries({ queryKey: ['jira-status'] });
-      queryClient.invalidateQueries({ queryKey: ['jira-profile'] });
       queryClient.invalidateQueries({ queryKey: ['jira-issues'] });
       queryClient.invalidateQueries({ queryKey: ['jira-projects'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -53,16 +52,6 @@ export default function JiraIntegrationPage() {
   }, [searchParams, queryClient, router]);
 
   const displayAuthError = isConnected ? null : authError;
-
-  const connectMockMutation = useMutation({
-    mutationFn: () => jiraService.connectMock(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jira-status'] });
-      queryClient.invalidateQueries({ queryKey: ['jira-issues'] });
-      queryClient.invalidateQueries({ queryKey: ['jira-projects'] });
-      queryClient.invalidateQueries({ queryKey: ['integrations'] });
-    },
-  });
 
   const connectJiraMutation = useMutation({
     mutationFn: () => jiraService.getAuthUrl(),
@@ -82,27 +71,16 @@ export default function JiraIntegrationPage() {
   });
 
   const isPending =
-    connectMockMutation.isPending ||
-    connectJiraMutation.isPending ||
-    disconnectMutation.isPending;
+    connectJiraMutation.isPending || disconnectMutation.isPending;
 
-  const handleConnect = () => {
-    if (status?.mockMode) {
-      connectMockMutation.mutate();
-    } else {
-      connectJiraMutation.mutate();
-    }
-  };
-
-  const connectError =
-    connectMockMutation.error || connectJiraMutation.error
-      ? getErrorMessage(connectMockMutation.error || connectJiraMutation.error)
-      : null;
+  const connectError = connectJiraMutation.error
+    ? getErrorMessage(connectJiraMutation.error)
+    : null;
 
   return (
     <PageContainer
       title="Jira"
-      description="Issues, projects, and profile from your linked Jira account"
+      description="Issues and projects from your linked Jira account"
       actions={
         <Link href="/integrations">
           <Button variant="outline" size="sm">
@@ -120,7 +98,7 @@ export default function JiraIntegrationPage() {
           isPending={isPending}
           authError={displayAuthError}
           connectError={connectError}
-          onConnect={handleConnect}
+          onConnect={() => connectJiraMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
 

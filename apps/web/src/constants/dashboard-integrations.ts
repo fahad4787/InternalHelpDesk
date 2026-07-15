@@ -76,8 +76,9 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     description: 'Boards, items, and status from Monday.com',
     category: 'task',
     categoryLabel: 'Task Management',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/monday',
+    available: true,
+    showWidgets: true,
   },
   {
     id: 'asana',

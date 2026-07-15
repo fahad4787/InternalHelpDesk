@@ -14,8 +14,6 @@ import {
   verifyOAuthState,
 } from '../google-calendar/utils/oauth-state.util';
 import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
-import { MOCK_SLACK_CHANNELS } from './constants/mock-channels.constant';
-import { getMockMessagesForChannel } from './constants/mock-messages.constant';
 import { UpdateSlackPreferencesDto } from './dto/update-slack-preferences.dto';
 import { SlackChannel, SlackMessage, SlackProfile } from './types/slack-channel.type';
 import {
@@ -107,13 +105,6 @@ export class SlackService {
     );
   }
 
-  isMockMode(): boolean {
-    const mode = this.configService.get<string>('SLACK_MODE', 'mock');
-    if (mode === 'mock') return true;
-    if (mode !== 'live') return true;
-    return !this.configService.get<string>('SLACK_CLIENT_ID');
-  }
-
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.slackConnection.findUnique({
       where: { userId: user.id },
@@ -121,7 +112,6 @@ export class SlackService {
 
     return successResponse({
       connected: connection?.status === IntegrationStatus.CONNECTED,
-      mockMode: this.isMockMode(),
       status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
       slackEmail: connection?.slackEmail ?? null,
       teamName: connection?.teamName ?? null,
@@ -156,12 +146,6 @@ export class SlackService {
   }
 
   getAuthUrl(user: AuthenticatedUser) {
-    if (this.isMockMode()) {
-      throw new BadRequestException(
-        'Slack OAuth is disabled in mock mode. Use the mock connect action instead.',
-      );
-    }
-
     const clientId = this.configService.get<string>('SLACK_CLIENT_ID');
     const redirectUri = this.getRedirectUri();
     if (!clientId || !redirectUri) {
@@ -273,58 +257,6 @@ export class SlackService {
     return userId;
   }
 
-  async connectMock(user: AuthenticatedUser) {
-    if (!this.isMockMode()) {
-      throw new BadRequestException('Mock connect is only available in mock mode');
-    }
-
-    await this.prisma.slackConnection.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        slackEmail: user.email,
-        teamId: 'T-MOCK',
-        teamName: 'Acme Workspace',
-        status: IntegrationStatus.CONNECTED,
-        preferences:
-          DEFAULT_SLACK_PREFERENCES as unknown as Prisma.InputJsonValue,
-        lastSyncedAt: new Date(),
-      },
-      update: {
-        slackEmail: user.email,
-        teamId: 'T-MOCK',
-        teamName: 'Acme Workspace',
-        status: IntegrationStatus.CONNECTED,
-        lastSyncedAt: new Date(),
-      },
-    });
-
-    await this.prisma.integration.upsert({
-      where: {
-        companyId_provider: {
-          companyId: user.companyId,
-          provider: IntegrationProvider.SLACK,
-        },
-      },
-      create: {
-        companyId: user.companyId,
-        provider: IntegrationProvider.SLACK,
-        status: IntegrationStatus.CONNECTED,
-      },
-      update: { status: IntegrationStatus.CONNECTED },
-    });
-
-    return successResponse(
-      {
-        connected: true,
-        mockMode: true,
-        slackEmail: user.email,
-        teamName: 'Acme Workspace',
-      },
-      'Slack connected (mock mode)',
-    );
-  }
-
   async disconnect(user: AuthenticatedUser) {
     await this.prisma.slackConnection.deleteMany({
       where: { userId: user.id },
@@ -355,22 +287,7 @@ export class SlackService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         profile: null as SlackProfile | null,
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        profile: {
-          userId: 'U-MOCK',
-          email: connection.slackEmail,
-          displayName: 'Mock Slack User',
-          teamId: connection.teamId,
-          teamName: connection.teamName,
-        } satisfies SlackProfile,
       });
     }
 
@@ -386,7 +303,6 @@ export class SlackService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       profile,
     });
   }
@@ -399,16 +315,7 @@ export class SlackService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         channels: [] as SlackChannel[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        channels: MOCK_SLACK_CHANNELS,
       });
     }
 
@@ -422,7 +329,6 @@ export class SlackService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       channels,
     });
   }
@@ -435,18 +341,8 @@ export class SlackService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         channelId,
         messages: [] as SlackMessage[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        channelId,
-        messages: getMockMessagesForChannel(channelId),
       });
     }
 
@@ -455,7 +351,6 @@ export class SlackService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       channelId,
       messages,
     });
@@ -477,17 +372,6 @@ export class SlackService {
     const trimmed = text.trim();
     if (!trimmed) {
       throw new BadRequestException('Message cannot be empty');
-    }
-
-    if (this.isMockMode()) {
-      const message: SlackMessage = {
-        id: `mock-${Date.now()}`,
-        text: trimmed,
-        userId: connection.slackUserId,
-        userName: connection.slackEmail?.split('@')[0] ?? 'You',
-        timestamp: new Date().toISOString(),
-      };
-      return successResponse({ channelId, message }, 'Message sent');
     }
 
     const accessToken = await this.getPostingAccessToken(connection);

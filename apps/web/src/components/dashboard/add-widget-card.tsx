@@ -25,8 +25,8 @@ export function AddWidgetCard() {
         <div>
           <p className="font-semibold text-ink">Connect an app</p>
           <p className="mt-1 max-w-[260px] text-sm text-muted">
-            Connect Google, Jira, Slack, Zoom, Outlook, or Workday, then toggle widgets on each
-            integration page.
+            Browse Integrations, connect an app, then turn on the widgets you want on your
+            dashboard.
           </p>
         </div>
       </Link>

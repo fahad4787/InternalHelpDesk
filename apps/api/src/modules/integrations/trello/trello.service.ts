@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
@@ -186,7 +185,7 @@ export class TrelloService {
   async connectWithToken(user: AuthenticatedUser, dto: ConnectTrelloDto) {
     const stateUserId = verifyOAuthState(dto.state, this.jwtSecret);
     if (!stateUserId || stateUserId !== user.id) {
-      throw new UnauthorizedException('Invalid or expired Trello auth state');
+      throw new BadRequestException('Invalid or expired Trello auth state');
     }
 
     const apiKey = this.getApiKey();
@@ -549,7 +548,7 @@ export class TrelloService {
     if (!response.ok) {
       const body = await response.text();
       if (response.status === 401 || response.status === 403) {
-        throw new UnauthorizedException(
+        throw new BadRequestException(
           'Trello access was denied. Reconnect your Trello account.',
         );
       }

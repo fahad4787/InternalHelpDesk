@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { asanaService } from '@/services/asana.service';
+import { mondayService } from '@/services/monday.service';
 import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
@@ -14,67 +15,96 @@ import { zoomService } from '@/services/zoom.service';
 import { dropboxService } from '@/services/dropbox.service';
 import { resolveVisibleDashboardWidgets } from '@/lib/dashboard-widget-utils';
 
-const STATUS_STALE_MS = 60_000;
+const STATUS_STALE_MS = 120_000;
 
-export function useDashboardVisibleWidgets() {
+const statusQueryOptions = {
+  staleTime: STATUS_STALE_MS,
+  refetchOnWindowFocus: false,
+  retry: 1,
+} as const;
+
+function isStatusPending(query: { isPending: boolean; isError: boolean }) {
+  return query.isPending && !query.isError;
+}
+
+export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
+
   const googleQuery = useQuery({
     queryKey: ['google-calendar-status'],
     queryFn: () => googleCalendarService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const jiraQuery = useQuery({
     queryKey: ['jira-status'],
     queryFn: () => jiraService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const trelloQuery = useQuery({
     queryKey: ['trello-status'],
     queryFn: () => trelloService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const asanaQuery = useQuery({
     queryKey: ['asana-status'],
     queryFn: () => asanaService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
+  });
+
+  const mondayQuery = useQuery({
+    queryKey: ['monday-status'],
+    queryFn: () => mondayService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
   });
 
   const calendlyQuery = useQuery({
     queryKey: ['calendly-status'],
     queryFn: () => calendlyService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const slackQuery = useQuery({
     queryKey: ['slack-status'],
     queryFn: () => slackService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const zoomQuery = useQuery({
     queryKey: ['zoom-status'],
     queryFn: () => zoomService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const outlookQuery = useQuery({
     queryKey: ['outlook-status'],
     queryFn: () => outlookService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const dropboxQuery = useQuery({
     queryKey: ['dropbox-status'],
     queryFn: () => dropboxService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const workdayQuery = useQuery({
     queryKey: ['workday-status'],
     queryFn: () => workdayService.getStatus(),
-    staleTime: STATUS_STALE_MS,
+    ...statusQueryOptions,
+    enabled,
   });
 
   const visibleWidgetIds = useMemo(
@@ -84,6 +114,7 @@ export function useDashboardVisibleWidgets() {
         jira: jiraQuery.data?.data,
         trello: trelloQuery.data?.data,
         asana: asanaQuery.data?.data,
+        monday: mondayQuery.data?.data,
         calendly: calendlyQuery.data?.data,
         slack: slackQuery.data?.data,
         zoom: zoomQuery.data?.data,
@@ -96,6 +127,7 @@ export function useDashboardVisibleWidgets() {
       jiraQuery.data?.data,
       trelloQuery.data?.data,
       asanaQuery.data?.data,
+      mondayQuery.data?.data,
       calendlyQuery.data?.data,
       slackQuery.data?.data,
       zoomQuery.data?.data,
@@ -106,16 +138,18 @@ export function useDashboardVisibleWidgets() {
   );
 
   const isLoading =
-    googleQuery.isLoading ||
-    jiraQuery.isLoading ||
-    trelloQuery.isLoading ||
-    asanaQuery.isLoading ||
-    calendlyQuery.isLoading ||
-    slackQuery.isLoading ||
-    zoomQuery.isLoading ||
-    outlookQuery.isLoading ||
-    dropboxQuery.isLoading ||
-    workdayQuery.isLoading;
+    enabled &&
+    (isStatusPending(googleQuery) ||
+      isStatusPending(jiraQuery) ||
+      isStatusPending(trelloQuery) ||
+      isStatusPending(asanaQuery) ||
+      isStatusPending(mondayQuery) ||
+      isStatusPending(calendlyQuery) ||
+      isStatusPending(slackQuery) ||
+      isStatusPending(zoomQuery) ||
+      isStatusPending(outlookQuery) ||
+      isStatusPending(dropboxQuery) ||
+      isStatusPending(workdayQuery));
 
   return {
     visibleWidgetIds,
@@ -125,6 +159,7 @@ export function useDashboardVisibleWidgets() {
       jira: jiraQuery.data?.data,
       trello: trelloQuery.data?.data,
       asana: asanaQuery.data?.data,
+      monday: mondayQuery.data?.data,
       calendly: calendlyQuery.data?.data,
       slack: slackQuery.data?.data,
       zoom: zoomQuery.data?.data,

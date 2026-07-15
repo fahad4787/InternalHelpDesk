@@ -12,7 +12,6 @@ import {
 } from '@/components/dashboard/widgets/google-dashboard-widgets';
 import {
   JiraAssignedDashboardWidget,
-  JiraProfileDashboardWidget,
   JiraProjectsDashboardWidget,
   JiraReportedDashboardWidget,
 } from '@/components/dashboard/widgets/jira-dashboard-widgets';
@@ -31,6 +30,9 @@ import {
   AsanaProjectsDashboardWidget,
 } from '@/components/dashboard/widgets/asana-dashboard-widgets';
 import {
+  MondayBoardsDashboardWidget,
+} from '@/components/dashboard/widgets/monday-dashboard-widgets';
+import {
   ZoomCalendarDashboardWidget,
   ZoomMeetingsDashboardWidget,
   ZoomProfileDashboardWidget,
@@ -44,12 +46,12 @@ export const DASHBOARD_WIDGET_IDS = [
   'google-drive',
   'google-gmail',
   'google-chat',
-  'jira-profile',
   'jira-assigned',
   'jira-reported',
   'jira-projects',
   'trello-boards',
   'asana-projects',
+  'monday-boards',
   'calendly-event-types',
   'calendly-events',
   'slack-profile',
@@ -109,33 +111,26 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/google',
     order: 14,
   },
-  'jira-profile': {
-    id: 'jira-profile',
-    label: 'Jira Profile',
-    provider: 'JIRA',
-    configureRoute: '/integrations/jira',
-    order: 20,
-  },
   'jira-assigned': {
     id: 'jira-assigned',
     label: 'Assigned issues',
     provider: 'JIRA',
     configureRoute: '/integrations/jira',
-    order: 21,
+    order: 20,
   },
   'jira-reported': {
     id: 'jira-reported',
     label: 'Reported issues',
     provider: 'JIRA',
     configureRoute: '/integrations/jira',
-    order: 22,
+    order: 21,
   },
   'jira-projects': {
     id: 'jira-projects',
     label: 'Projects',
     provider: 'JIRA',
     configureRoute: '/integrations/jira',
-    order: 23,
+    order: 22,
   },
   'trello-boards': {
     id: 'trello-boards',
@@ -150,6 +145,13 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     provider: 'ASANA',
     configureRoute: '/integrations/asana',
     order: 26,
+  },
+  'monday-boards': {
+    id: 'monday-boards',
+    label: 'Boards',
+    provider: 'MONDAY',
+    configureRoute: '/integrations/monday',
+    order: 27,
   },
   'calendly-event-types': {
     id: 'calendly-event-types',
@@ -236,12 +238,12 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'google-drive': GoogleDriveDashboardWidget,
   'google-gmail': GoogleGmailDashboardWidget,
   'google-chat': GoogleChatDashboardWidget,
-  'jira-profile': JiraProfileDashboardWidget,
   'jira-assigned': JiraAssignedDashboardWidget,
   'jira-reported': JiraReportedDashboardWidget,
   'jira-projects': JiraProjectsDashboardWidget,
   'trello-boards': TrelloBoardsDashboardWidget,
   'asana-projects': AsanaProjectsDashboardWidget,
+  'monday-boards': MondayBoardsDashboardWidget,
   'calendly-event-types': CalendlyEventTypesDashboardWidget,
   'calendly-events': CalendlyUpcomingEventsDashboardWidget,
   'slack-profile': SlackProfileDashboardWidget,
@@ -260,6 +262,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   JIRA: '/integrations/jira',
   TRELLO: '/integrations/trello',
   ASANA: '/integrations/asana',
+  MONDAY: '/integrations/monday',
   CALENDLY: '/integrations/calendly',
   SLACK: '/integrations/slack',
   ZOOM: '/integrations/zoom',

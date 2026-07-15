@@ -9,7 +9,6 @@ export interface ZoomPreferences {
 
 export interface ZoomStatus {
   connected: boolean;
-  mockMode: boolean;
   status: string;
   zoomEmail: string | null;
   lastSyncedAt: string | null;
@@ -18,7 +17,6 @@ export interface ZoomStatus {
 
 export interface ZoomMeetingsResponse {
   connected: boolean;
-  mockMode: boolean;
   zoomEmail?: string | null;
   meetings: ZoomMeeting[];
 }
@@ -41,7 +39,6 @@ export interface ZoomProfile {
 
 export interface ZoomProfileResponse {
   connected: boolean;
-  mockMode: boolean;
   profile: ZoomProfile | null;
 }
 
@@ -60,11 +57,6 @@ export const zoomService = {
   getStatus: () => apiGet<ZoomStatus>('/integrations/zoom/status'),
 
   getAuthUrl: () => apiGet<{ url: string }>('/integrations/zoom/auth-url'),
-
-  connectMock: () =>
-    apiPost<{ connected: boolean; mockMode: boolean; zoomEmail: string }>(
-      '/integrations/zoom/connect-mock',
-    ),
 
   disconnect: () => apiPost('/integrations/zoom/disconnect'),
 

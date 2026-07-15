@@ -1,7 +1,6 @@
 import { apiGet, apiPatch, apiPost } from '@/lib/api-client';
 
 export interface JiraPreferences {
-  showProfile: boolean;
   showAssignedIssues: boolean;
   showReportedIssues: boolean;
   showProjects: boolean;
@@ -9,7 +8,6 @@ export interface JiraPreferences {
 
 export interface JiraStatus {
   connected: boolean;
-  mockMode: boolean;
   status: string;
   jiraEmail: string | null;
   jiraSiteUrl: string | null;
@@ -47,7 +45,6 @@ export interface JiraProfile {
 }
 
 export const DEFAULT_JIRA_PREFERENCES: JiraPreferences = {
-  showProfile: true,
   showAssignedIssues: true,
   showReportedIssues: true,
   showProjects: true,
@@ -58,19 +55,16 @@ export const jiraService = {
 
   getAuthUrl: () => apiGet<{ url: string }>('/integrations/jira/auth-url'),
 
-  connectMock: () => apiPost('/integrations/jira/connect-mock'),
-
   disconnect: () => apiPost('/integrations/jira/disconnect'),
 
   getProfile: () =>
-    apiGet<{ connected: boolean; mockMode: boolean; profile: JiraProfile | null }>(
+    apiGet<{ connected: boolean; profile: JiraProfile | null }>(
       '/integrations/jira/profile',
     ),
 
   getIssues: (type: 'assigned' | 'reported' = 'assigned') =>
     apiGet<{
       connected: boolean;
-      mockMode: boolean;
       jiraSiteUrl?: string | null;
       issues: JiraIssue[];
     }>(`/integrations/jira/issues?type=${type}`),
@@ -78,7 +72,6 @@ export const jiraService = {
   getProjects: () =>
     apiGet<{
       connected: boolean;
-      mockMode: boolean;
       jiraSiteUrl?: string | null;
       projects: JiraProject[];
     }>('/integrations/jira/projects'),

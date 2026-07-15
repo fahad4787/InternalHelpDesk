@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
@@ -152,7 +151,7 @@ export class DropboxService {
   async handleCallback(code: string, state: string) {
     const userId = verifyOAuthState(state, this.jwtSecret);
     if (!userId) {
-      throw new UnauthorizedException('Invalid or expired OAuth state');
+      throw new BadRequestException('Invalid or expired OAuth state');
     }
 
     const tokens = await this.exchangeCodeForTokens(code);
@@ -346,7 +345,7 @@ export class DropboxService {
 
     if (!response.ok) {
       const body = await response.text();
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         body || 'Failed to refresh Dropbox access token. Please reconnect.',
       );
     }
@@ -373,7 +372,7 @@ export class DropboxService {
     }
 
     if (!connection.encryptedRefreshToken) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         'Dropbox session expired. Please reconnect your account.',
       );
     }
@@ -484,7 +483,7 @@ export class DropboxService {
     if (!response.ok) {
       const body = await response.text();
       if (response.status === 401 || response.status === 403) {
-        throw new UnauthorizedException(
+        throw new BadRequestException(
           'Dropbox access was denied. Reconnect your Dropbox account.',
         );
       }

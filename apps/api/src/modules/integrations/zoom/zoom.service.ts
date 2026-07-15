@@ -11,10 +11,6 @@ import { decrypt, encrypt } from '../../../common/utils/encryption.util';
 import { successResponse } from '../../../common/utils/api-response.util';
 import { createOAuthState, verifyOAuthState } from '../google-calendar/utils/oauth-state.util';
 import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
-import {
-  addMockZoomMeeting,
-  getMockZoomMeetings,
-} from './constants/mock-meetings.constant';
 import { CreateZoomMeetingDto } from './dto/create-zoom-meeting.dto';
 import { UpdateZoomPreferencesDto } from './dto/update-zoom-preferences.dto';
 import { ZoomMeeting } from './types/zoom-meeting.type';
@@ -91,13 +87,6 @@ export class ZoomService {
     );
   }
 
-  isMockMode(): boolean {
-    const mode = this.configService.get<string>('ZOOM_MODE', 'live');
-    if (mode === 'mock') return true;
-    if (mode !== 'live') return true;
-    return !this.configService.get<string>('ZOOM_CLIENT_ID');
-  }
-
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.zoomConnection.findUnique({
       where: { userId: user.id },
@@ -105,7 +94,6 @@ export class ZoomService {
 
     return successResponse({
       connected: connection?.status === IntegrationStatus.CONNECTED,
-      mockMode: this.isMockMode(),
       status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
       zoomEmail: connection?.zoomEmail ?? null,
       lastSyncedAt: connection?.lastSyncedAt?.toISOString() ?? null,
@@ -140,12 +128,6 @@ export class ZoomService {
   }
 
   getAuthUrl(user: AuthenticatedUser) {
-    if (this.isMockMode()) {
-      throw new BadRequestException(
-        'Zoom OAuth is disabled in mock mode. Use the mock connect action instead.',
-      );
-    }
-
     const clientId = this.configService.get<string>('ZOOM_CLIENT_ID');
     const redirectUri = this.getRedirectUri();
     if (!clientId || !redirectUri) {
@@ -237,48 +219,6 @@ export class ZoomService {
     return userId;
   }
 
-  async connectMock(user: AuthenticatedUser) {
-    if (!this.isMockMode()) {
-      throw new BadRequestException('Mock connect is only available in mock mode');
-    }
-
-    await this.prisma.zoomConnection.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        zoomEmail: user.email,
-        status: IntegrationStatus.CONNECTED,
-        preferences: DEFAULT_ZOOM_PREFERENCES as unknown as Prisma.InputJsonValue,
-        lastSyncedAt: new Date(),
-      },
-      update: {
-        zoomEmail: user.email,
-        status: IntegrationStatus.CONNECTED,
-        lastSyncedAt: new Date(),
-      },
-    });
-
-    await this.prisma.integration.upsert({
-      where: {
-        companyId_provider: {
-          companyId: user.companyId,
-          provider: IntegrationProvider.ZOOM,
-        },
-      },
-      create: {
-        companyId: user.companyId,
-        provider: IntegrationProvider.ZOOM,
-        status: IntegrationStatus.CONNECTED,
-      },
-      update: { status: IntegrationStatus.CONNECTED },
-    });
-
-    return successResponse(
-      { connected: true, mockMode: true, zoomEmail: user.email },
-      'Zoom connected (mock mode)',
-    );
-  }
-
   async disconnect(user: AuthenticatedUser) {
     await this.prisma.zoomConnection.deleteMany({
       where: { userId: user.id },
@@ -309,24 +249,7 @@ export class ZoomService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         profile: null as ZoomProfile | null,
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        profile: {
-          email: connection.zoomEmail,
-          firstName: 'Mock',
-          lastName: 'User',
-          displayName: 'Mock User',
-          pmi: '1234567890',
-          timezone: 'UTC',
-          accountType: 'Basic',
-        } satisfies ZoomProfile,
       });
     }
 
@@ -335,7 +258,6 @@ export class ZoomService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       profile: {
         ...profile,
         email: profile.email ?? connection.zoomEmail,
@@ -351,17 +273,7 @@ export class ZoomService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         meetings: [] as ZoomMeeting[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        zoomEmail: connection.zoomEmail,
-        meetings: getMockZoomMeetings().slice(0, limit),
       });
     }
 
@@ -380,7 +292,6 @@ export class ZoomService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       zoomEmail: connection.zoomEmail,
       meetings,
     });
@@ -402,28 +313,6 @@ export class ZoomService {
 
     if (startDate.getTime() < Date.now() - 60_000) {
       throw new BadRequestException('Start time must be in the future');
-    }
-
-    if (this.isMockMode()) {
-      const meetingId = String(Math.floor(Math.random() * 1_000_000_000));
-      const meeting = addMockZoomMeeting({
-        id: `mock-zoom-${Date.now()}`,
-        topic: dto.topic,
-        start: startDate.toISOString(),
-        duration: dto.duration,
-        timezone: 'UTC',
-        joinUrl: `https://zoom.us/j/${meetingId}`,
-        password: dto.password ?? null,
-        hostEmail: connection.zoomEmail,
-        meetingNumber: meetingId,
-      });
-
-      await this.prisma.zoomConnection.update({
-        where: { userId: user.id },
-        data: { lastSyncedAt: new Date() },
-      });
-
-      return successResponse({ meeting }, 'Meeting scheduled successfully');
     }
 
     const accessToken = await this.getValidAccessToken(connection);

@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
@@ -162,7 +161,7 @@ export class CalendlyService {
   async handleCallback(code: string, state: string) {
     const userId = verifyOAuthState(state, this.jwtSecret);
     if (!userId) {
-      throw new UnauthorizedException('Invalid or expired OAuth state');
+      throw new BadRequestException('Invalid or expired OAuth state');
     }
 
     const tokens = await this.exchangeCodeForTokens(code);
@@ -425,7 +424,7 @@ export class CalendlyService {
 
     if (!response.ok) {
       const body = await response.text();
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         body || 'Failed to refresh Calendly access token. Please reconnect.',
       );
     }
@@ -452,7 +451,7 @@ export class CalendlyService {
     }
 
     if (!connection.encryptedRefreshToken) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         'Calendly session expired. Please reconnect your account.',
       );
     }
@@ -505,7 +504,7 @@ export class CalendlyService {
     if (!response.ok) {
       const body = await response.text();
       if (response.status === 401 || response.status === 403) {
-        throw new UnauthorizedException(
+        throw new BadRequestException(
           'Calendly access was denied. Reconnect your Calendly account.',
         );
       }

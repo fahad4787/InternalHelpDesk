@@ -7,7 +7,6 @@ export interface SlackPreferences {
 
 export interface SlackStatus {
   connected: boolean;
-  mockMode: boolean;
   status: string;
   slackEmail: string | null;
   teamName: string | null;
@@ -49,34 +48,23 @@ export const slackService = {
 
   getAuthUrl: () => apiGet<{ url: string }>('/integrations/slack/auth-url'),
 
-  connectMock: () =>
-    apiPost<{
-      connected: boolean;
-      mockMode: boolean;
-      slackEmail: string;
-      teamName: string;
-    }>('/integrations/slack/connect-mock'),
-
   disconnect: () => apiPost('/integrations/slack/disconnect'),
 
   getProfile: () =>
     apiGet<{
       connected: boolean;
-      mockMode: boolean;
       profile: SlackProfile | null;
     }>('/integrations/slack/profile'),
 
   getChannels: () =>
     apiGet<{
       connected: boolean;
-      mockMode: boolean;
       channels: SlackChannel[];
     }>('/integrations/slack/channels'),
 
   getChannelMessages: (channelId: string) =>
     apiGet<{
       connected: boolean;
-      mockMode: boolean;
       channelId: string;
       messages: SlackMessage[];
     }>(`/integrations/slack/channels/${channelId}/messages`),

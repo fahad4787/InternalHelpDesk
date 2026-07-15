@@ -3,19 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { JiraPreferences, jiraService } from '@/services/jira.service';
+import { MondayPreferences, mondayService } from '@/services/monday.service';
 
-interface JiraPreferencesCardProps {
-  preferences: JiraPreferences;
+interface MondayPreferencesCardProps {
+  preferences: MondayPreferences;
   disabled?: boolean;
-}
-
-interface ToggleRowProps {
-  label: string;
-  description: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (checked: boolean) => void;
 }
 
 function ToggleRow({
@@ -24,7 +16,13 @@ function ToggleRow({
   checked,
   disabled,
   onChange,
-}: ToggleRowProps) {
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
+}) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border border-border-warm bg-white p-4">
       <div>
@@ -51,10 +49,10 @@ function ToggleRow({
   );
 }
 
-export function JiraPreferencesCard({
+export function MondayPreferencesCard({
   preferences: serverPreferences,
   disabled,
-}: JiraPreferencesCardProps) {
+}: MondayPreferencesCardProps) {
   const queryClient = useQueryClient();
   const [preferences, setPreferences] = useState(serverPreferences);
 
@@ -63,11 +61,11 @@ export function JiraPreferencesCard({
   }, [serverPreferences]);
 
   const mutation = useMutation({
-    mutationFn: (next: JiraPreferences) => jiraService.updatePreferences(next),
+    mutationFn: (next: MondayPreferences) => mondayService.updatePreferences(next),
     onSuccess: (res) => {
       const next = res.data;
       setPreferences(next);
-      queryClient.setQueryData(['jira-status'], (current: unknown) => {
+      queryClient.setQueryData(['monday-status'], (current: unknown) => {
         if (!current || typeof current !== 'object' || !('data' in current)) {
           return current;
         }
@@ -79,20 +77,11 @@ export function JiraPreferencesCard({
           },
         };
       });
-      if (!next.showAssignedIssues) {
-        queryClient.removeQueries({ queryKey: ['jira-issues', 'assigned'] });
+      if (!next.showBoards) {
+        queryClient.removeQueries({ queryKey: ['monday-boards'] });
+        queryClient.removeQueries({ queryKey: ['monday-board'] });
       } else {
-        queryClient.invalidateQueries({ queryKey: ['jira-issues', 'assigned'] });
-      }
-      if (!next.showReportedIssues) {
-        queryClient.removeQueries({ queryKey: ['jira-issues', 'reported'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['jira-issues', 'reported'] });
-      }
-      if (!next.showProjects) {
-        queryClient.removeQueries({ queryKey: ['jira-projects'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['jira-projects'] });
+        queryClient.invalidateQueries({ queryKey: ['monday-boards'] });
       }
     },
     onError: () => {
@@ -100,7 +89,7 @@ export function JiraPreferencesCard({
     },
   });
 
-  const update = (key: keyof JiraPreferences, value: boolean) => {
+  const update = (key: keyof MondayPreferences, value: boolean) => {
     const next = { ...preferences, [key]: value };
     setPreferences(next);
     mutation.mutate(next);
@@ -118,25 +107,11 @@ export function JiraPreferencesCard({
       </CardHeader>
       <CardContent className="space-y-3">
         <ToggleRow
-          label="Assigned issues"
-          description="Show issues assigned to you"
-          checked={preferences.showAssignedIssues}
+          label="Boards"
+          description="Show Monday.com boards and items when you select one"
+          checked={preferences.showBoards}
           disabled={isPending}
-          onChange={(value) => update('showAssignedIssues', value)}
-        />
-        <ToggleRow
-          label="Reported issues"
-          description="Show issues you created"
-          checked={preferences.showReportedIssues}
-          disabled={isPending}
-          onChange={(value) => update('showReportedIssues', value)}
-        />
-        <ToggleRow
-          label="Projects"
-          description="Show Jira projects you can access"
-          checked={preferences.showProjects}
-          disabled={isPending}
-          onChange={(value) => update('showProjects', value)}
+          onChange={(value) => update('showBoards', value)}
         />
       </CardContent>
     </Card>

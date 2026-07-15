@@ -9,6 +9,15 @@ import { INTEGRATION_PROVIDERS } from './constants/integration-providers.constan
 export class IntegrationsService {
   constructor(private prisma: PrismaService) {}
 
+  /** One missing/failed connection table must not 500 the whole integrations list. */
+  private async softQuery<T>(query: Promise<T>, fallback: T): Promise<T> {
+    try {
+      return await query;
+    } catch {
+      return fallback;
+    }
+  }
+
   async findAll(user: AuthenticatedUser) {
     const [
       connected,
@@ -17,41 +26,85 @@ export class IntegrationsService {
       jiraConnection,
       trelloConnection,
       asanaConnection,
+      mondayConnection,
       calendlyConnection,
       slackConnection,
       outlookConnection,
       dropboxConnection,
+      workdayConnection,
     ] = await Promise.all([
-      this.prisma.integration.findMany({
-        where: { companyId: user.companyId },
-      }),
-      this.prisma.googleCalendarConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.zoomConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.jiraConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.trelloConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.asanaConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.calendlyConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.slackConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.outlookConnection.findUnique({
-        where: { userId: user.id },
-      }),
-      this.prisma.dropboxConnection.findUnique({
-        where: { userId: user.id },
-      }),
+      this.softQuery(
+        this.prisma.integration.findMany({
+          where: { companyId: user.companyId },
+        }),
+        [],
+      ),
+      this.softQuery(
+        this.prisma.googleCalendarConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.zoomConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.jiraConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.trelloConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.asanaConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.mondayConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.calendlyConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.slackConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.outlookConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.dropboxConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.workdayConnection.findUnique({
+          where: { companyId: user.companyId },
+        }),
+        null,
+      ),
     ]);
 
     const connectedMap = new Map(
@@ -121,6 +174,18 @@ export class IntegrationsService {
         };
       }
 
+      if (provider.provider === IntegrationProvider.MONDAY) {
+        const userConnected =
+          mondayConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: mondayConnection?.updatedAt ?? null,
+        };
+      }
+
       if (provider.provider === IntegrationProvider.CALENDLY) {
         const userConnected =
           calendlyConnection?.status === IntegrationStatus.CONNECTED;
@@ -166,6 +231,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: dropboxConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.WORKDAY) {
+        const userConnected =
+          workdayConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: workdayConnection?.updatedAt ?? null,
         };
       }
 

@@ -8,6 +8,10 @@ import {
 } from '@/services/calendly.service';
 import { DEFAULT_JIRA_PREFERENCES, type JiraStatus } from '@/services/jira.service';
 import { DEFAULT_ASANA_PREFERENCES, type AsanaStatus } from '@/services/asana.service';
+import {
+  DEFAULT_MONDAY_PREFERENCES,
+  type MondayStatus,
+} from '@/services/monday.service';
 import { DEFAULT_OUTLOOK_PREFERENCES, type OutlookStatus } from '@/services/outlook.service';
 import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
 import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
@@ -28,6 +32,7 @@ export interface DashboardIntegrationStatuses {
   jira?: JiraStatus | null;
   trello?: TrelloStatus | null;
   asana?: AsanaStatus | null;
+  monday?: MondayStatus | null;
   calendly?: CalendlyStatus | null;
   slack?: SlackStatus | null;
   zoom?: ZoomStatus | null;
@@ -54,7 +59,6 @@ export function resolveVisibleDashboardWidgets(
   const jira = statuses.jira;
   if (jira?.connected) {
     const preferences = jira.preferences ?? DEFAULT_JIRA_PREFERENCES;
-    if (preferences.showProfile) visible.push('jira-profile');
     if (preferences.showAssignedIssues) visible.push('jira-assigned');
     if (preferences.showReportedIssues) visible.push('jira-reported');
     if (preferences.showProjects) visible.push('jira-projects');
@@ -70,6 +74,12 @@ export function resolveVisibleDashboardWidgets(
   if (asana?.connected) {
     const preferences = asana.preferences ?? DEFAULT_ASANA_PREFERENCES;
     if (preferences.showProjects) visible.push('asana-projects');
+  }
+
+  const monday = statuses.monday;
+  if (monday?.connected) {
+    const preferences = monday.preferences ?? DEFAULT_MONDAY_PREFERENCES;
+    if (preferences.showBoards) visible.push('monday-boards');
   }
 
   const calendly = statuses.calendly;
@@ -134,6 +144,9 @@ export function getConnectedIntegrationRoutes(
   if (statuses.asana?.connected) {
     routes.push({ provider: 'ASANA', route: '/integrations/asana', label: 'Asana' });
   }
+  if (statuses.monday?.connected) {
+    routes.push({ provider: 'MONDAY', route: '/integrations/monday', label: 'Monday.com' });
+  }
   if (statuses.calendly?.connected) {
     routes.push({ provider: 'CALENDLY', route: '/integrations/calendly', label: 'Calendly' });
   }
@@ -171,4 +184,5 @@ export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'trello-boards',
   'dropbox-files',
   'asana-projects',
+  'monday-boards',
 ]);

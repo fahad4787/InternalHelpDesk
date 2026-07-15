@@ -1,12 +1,12 @@
-import { Mail, User } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import {
   ConnectionSyncedAt,
   IntegrationConnectionCard,
 } from '@/components/shared/integration-connection-card';
-import { TrelloStatus } from '@/services/trello.service';
+import { MondayStatus } from '@/services/monday.service';
 
-interface TrelloConnectionCardProps {
-  status?: TrelloStatus;
+interface MondayConnectionCardProps {
+  status?: MondayStatus;
   isLoading: boolean;
   isConnected: boolean;
   isPending: boolean;
@@ -18,7 +18,7 @@ interface TrelloConnectionCardProps {
   onDisconnect: () => void;
 }
 
-export function TrelloConnectionCard({
+export function MondayConnectionCard({
   status,
   isLoading,
   isConnected,
@@ -29,46 +29,47 @@ export function TrelloConnectionCard({
   connectError,
   onConnect,
   onDisconnect,
-}: TrelloConnectionCardProps) {
+}: MondayConnectionCardProps) {
   return (
     <IntegrationConnectionCard
-      provider="TRELLO"
-      title="Trello Account"
-      disconnectedHint="Link your Trello account to view boards and cards"
+      provider="MONDAY"
+      title="Monday.com Account"
+      disconnectedHint="Link your Monday.com account to view boards and items"
       isLoading={isLoading}
       isConnected={isConnected}
       isPending={isPending}
       isConnecting={isConnecting}
       isDisconnecting={isDisconnecting}
-      connectLabel="Connect with Trello"
+      connectLabel="Connect with Monday.com"
       authError={authError}
       connectError={connectError}
       onConnect={onConnect}
       onDisconnect={onDisconnect}
       mapAuthError={(error) => {
         if (error === 'access_denied') {
-          return 'Trello access was denied. Approve the app when prompted.';
+          return 'Monday.com access was denied. Approve the app when prompted.';
         }
-        if (error === 'missing_token' || error === 'missing_state') {
-          return 'Trello sign-in was interrupted. Refresh the page and connect again if needed.';
+        if (error === 'missing_code' || error === 'missing_state') {
+          return 'Monday.com sign-in was interrupted. Refresh the page and connect again if needed.';
         }
         return error;
       }}
       connectedMeta={
         <>
-          {status?.trelloEmail ? (
+          {status?.mondayEmail && (
             <p className="flex items-center gap-1.5 truncate text-sm text-muted">
               <Mail className="h-3.5 w-3.5 shrink-0 text-brand" />
-              {status.trelloEmail}
+              {status.mondayEmail}
             </p>
-          ) : status?.trelloFullName || status?.trelloUsername ? (
-            <p className="flex items-center gap-1.5 truncate text-sm text-muted">
-              <User className="h-3.5 w-3.5 shrink-0 text-brand" />
-              {status.trelloFullName ?? `@${status.trelloUsername}`}
+          )}
+          {status?.mondayName && (
+            <p className="truncate text-xs text-muted">{status.mondayName}</p>
+          )}
+          {(status?.mondayAccountName || status?.mondayAccountSlug) && (
+            <p className="text-xs text-muted">
+              Account:{' '}
+              {status.mondayAccountName ?? status.mondayAccountSlug}
             </p>
-          ) : null}
-          {status?.trelloUsername && (
-            <p className="truncate text-xs text-muted">@{status.trelloUsername}</p>
           )}
           <ConnectionSyncedAt value={status?.lastSyncedAt} />
         </>

@@ -6,72 +6,72 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { AsanaProjectsSection } from '@/components/shared/asana-projects-section';
-import { AsanaConnectionCard } from '@/components/shared/asana-connection-card';
-import { AsanaPreferencesCard } from '@/components/shared/asana-preferences-card';
+import { MondayBoardsSection } from '@/components/shared/monday-boards-section';
+import { MondayConnectionCard } from '@/components/shared/monday-connection-card';
+import { MondayPreferencesCard } from '@/components/shared/monday-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {
-  DEFAULT_ASANA_PREFERENCES,
-  asanaService,
-} from '@/services/asana.service';
+  DEFAULT_MONDAY_PREFERENCES,
+  mondayService,
+} from '@/services/monday.service';
 
-export default function AsanaIntegrationPage() {
+export default function MondayIntegrationPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [authError, setAuthError] = useState<string | null>(null);
-  const [selectedProjectGid, setSelectedProjectGid] = useState<string | null>(null);
+  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
 
   const { data: statusData, isLoading: statusLoading } = useQuery({
-    queryKey: ['asana-status'],
-    queryFn: () => asanaService.getStatus(),
+    queryKey: ['monday-status'],
+    queryFn: () => mondayService.getStatus(),
   });
 
   const status = statusData?.data;
   const isConnected = status?.connected === true;
-  const preferences = status?.preferences ?? DEFAULT_ASANA_PREFERENCES;
+  const preferences = status?.preferences ?? DEFAULT_MONDAY_PREFERENCES;
 
   useEffect(() => {
     const connected = searchParams.get('connected');
     const error = searchParams.get('error');
-    const project = searchParams.get('project');
+    const board = searchParams.get('board');
 
-    if (project) {
-      setSelectedProjectGid(project);
+    if (board) {
+      setSelectedBoardId(board);
     }
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['asana-status'] });
-      queryClient.invalidateQueries({ queryKey: ['asana-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['monday-status'] });
+      queryClient.invalidateQueries({ queryKey: ['monday-boards'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
-      router.replace('/integrations/asana', { scroll: false });
+      router.replace('/integrations/monday', { scroll: false });
       return;
     }
 
     if (error) {
       setAuthError(decodeURIComponent(error));
-      router.replace('/integrations/asana', { scroll: false });
+      router.replace('/integrations/monday', { scroll: false });
     }
   }, [searchParams, queryClient, router]);
 
   const displayAuthError = isConnected ? null : authError;
 
   const connectMutation = useMutation({
-    mutationFn: () => asanaService.getAuthUrl(),
+    mutationFn: () => mondayService.getAuthUrl(),
     onSuccess: (res) => {
       window.location.href = res.data.url;
     },
   });
 
   const disconnectMutation = useMutation({
-    mutationFn: () => asanaService.disconnect(),
+    mutationFn: () => mondayService.disconnect(),
     onSuccess: () => {
-      setSelectedProjectGid(null);
-      queryClient.invalidateQueries({ queryKey: ['asana-status'] });
-      queryClient.removeQueries({ queryKey: ['asana-projects'] });
-      queryClient.removeQueries({ queryKey: ['asana-project'] });
+      setSelectedBoardId(null);
+      queryClient.invalidateQueries({ queryKey: ['monday-status'] });
+      queryClient.removeQueries({ queryKey: ['monday-boards'] });
+      queryClient.removeQueries({ queryKey: ['monday-board'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },
   });
@@ -81,19 +81,19 @@ export default function AsanaIntegrationPage() {
     ? getErrorMessage(connectMutation.error)
     : null;
 
-  const handleSelectProject = (projectGid: string | null) => {
-    setSelectedProjectGid(projectGid);
-    if (projectGid) {
-      router.replace(`/integrations/asana?project=${projectGid}`, { scroll: false });
+  const handleSelectBoard = (boardId: string | null) => {
+    setSelectedBoardId(boardId);
+    if (boardId) {
+      router.replace(`/integrations/monday?board=${boardId}`, { scroll: false });
     } else {
-      router.replace('/integrations/asana', { scroll: false });
+      router.replace('/integrations/monday', { scroll: false });
     }
   };
 
   return (
     <PageContainer
-      title="Asana"
-      description="Projects and tasks from your linked Asana account"
+      title="Monday.com"
+      description="Boards and items from your linked Monday.com account"
       actions={
         <Link href="/integrations">
           <Button variant="outline" size="sm">
@@ -104,23 +104,25 @@ export default function AsanaIntegrationPage() {
       }
     >
       <div className="space-y-6">
-        <AsanaConnectionCard
+        <MondayConnectionCard
           status={status}
           isLoading={statusLoading}
           isConnected={isConnected}
           isPending={isPending || statusLoading}
+          isConnecting={connectMutation.isPending}
+          isDisconnecting={disconnectMutation.isPending}
           authError={displayAuthError}
           connectError={connectError}
           onConnect={() => connectMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
 
-        {isConnected && <AsanaPreferencesCard preferences={preferences} />}
+        {isConnected && <MondayPreferencesCard preferences={preferences} />}
 
-        {isConnected && preferences.showProjects && (
-          <AsanaProjectsSection
-            selectedProjectGid={selectedProjectGid}
-            onSelectProject={handleSelectProject}
+        {isConnected && preferences.showBoards && (
+          <MondayBoardsSection
+            selectedBoardId={selectedBoardId}
+            onSelectBoard={handleSelectBoard}
           />
         )}
       </div>

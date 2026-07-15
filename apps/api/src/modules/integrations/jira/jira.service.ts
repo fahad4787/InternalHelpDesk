@@ -11,11 +11,6 @@ import { decrypt, encrypt } from '../../../common/utils/encryption.util';
 import { successResponse } from '../../../common/utils/api-response.util';
 import { createOAuthState, verifyOAuthState } from '../google-calendar/utils/oauth-state.util';
 import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
-import {
-  getMockAssignedIssues,
-  getMockReportedIssues,
-  MOCK_JIRA_PROJECTS,
-} from './constants/mock-issues.constant';
 import { UpdateJiraPreferencesDto } from './dto/update-jira-preferences.dto';
 import {
   DEFAULT_JIRA_PREFERENCES,
@@ -95,13 +90,6 @@ export class JiraService {
     );
   }
 
-  isMockMode(): boolean {
-    const mode = this.configService.get<string>('JIRA_MODE', 'live');
-    if (mode === 'mock') return true;
-    if (mode !== 'live') return true;
-    return !this.configService.get<string>('JIRA_CLIENT_ID');
-  }
-
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.jiraConnection.findUnique({
       where: { userId: user.id },
@@ -109,7 +97,6 @@ export class JiraService {
 
     return successResponse({
       connected: connection?.status === IntegrationStatus.CONNECTED,
-      mockMode: this.isMockMode(),
       status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
       jiraEmail: connection?.jiraEmail ?? null,
       jiraSiteUrl: connection?.jiraSiteUrl ?? null,
@@ -131,7 +118,6 @@ export class JiraService {
     }
 
     const preferences: JiraPreferences = {
-      showProfile: dto.showProfile,
       showAssignedIssues: dto.showAssignedIssues,
       showReportedIssues: dto.showReportedIssues,
       showProjects: dto.showProjects,
@@ -146,12 +132,6 @@ export class JiraService {
   }
 
   getAuthUrl(user: AuthenticatedUser) {
-    if (this.isMockMode()) {
-      throw new BadRequestException(
-        'Jira OAuth is disabled in mock mode. Use the mock connect action instead.',
-      );
-    }
-
     const clientId = this.configService.get<string>('JIRA_CLIENT_ID');
     const redirectUri = this.getRedirectUri();
     if (!clientId || !redirectUri) {
@@ -256,55 +236,6 @@ export class JiraService {
     return userId;
   }
 
-  async connectMock(user: AuthenticatedUser) {
-    if (!this.isMockMode()) {
-      throw new BadRequestException('Mock connect is only available in mock mode');
-    }
-
-    await this.prisma.jiraConnection.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        jiraEmail: user.email,
-        jiraSiteUrl: 'https://example.atlassian.net',
-        status: IntegrationStatus.CONNECTED,
-        preferences: DEFAULT_JIRA_PREFERENCES as unknown as Prisma.InputJsonValue,
-        lastSyncedAt: new Date(),
-      },
-      update: {
-        jiraEmail: user.email,
-        jiraSiteUrl: 'https://example.atlassian.net',
-        status: IntegrationStatus.CONNECTED,
-        lastSyncedAt: new Date(),
-      },
-    });
-
-    await this.prisma.integration.upsert({
-      where: {
-        companyId_provider: {
-          companyId: user.companyId,
-          provider: IntegrationProvider.JIRA,
-        },
-      },
-      create: {
-        companyId: user.companyId,
-        provider: IntegrationProvider.JIRA,
-        status: IntegrationStatus.CONNECTED,
-      },
-      update: { status: IntegrationStatus.CONNECTED },
-    });
-
-    return successResponse(
-      {
-        connected: true,
-        mockMode: true,
-        jiraEmail: user.email,
-        jiraSiteUrl: 'https://example.atlassian.net',
-      },
-      'Jira connected (mock mode)',
-    );
-  }
-
   async disconnect(user: AuthenticatedUser) {
     await this.prisma.jiraConnection.deleteMany({
       where: { userId: user.id },
@@ -335,22 +266,7 @@ export class JiraService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         profile: null as JiraProfile | null,
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        profile: {
-          accountId: 'mock-account',
-          email: connection.jiraEmail,
-          displayName: 'Mock Jira User',
-          siteUrl: connection.jiraSiteUrl,
-          siteName: 'Example Jira Site',
-        } satisfies JiraProfile,
       });
     }
 
@@ -362,7 +278,6 @@ export class JiraService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       profile: {
         accountId: me.accountId,
         email: me.email ?? connection.jiraEmail,
@@ -384,22 +299,7 @@ export class JiraService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         issues: [] as JiraIssue[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      const issues =
-        type === 'reported'
-          ? getMockReportedIssues()
-          : getMockAssignedIssues();
-
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        jiraSiteUrl: connection.jiraSiteUrl,
-        issues,
       });
     }
 
@@ -422,7 +322,6 @@ export class JiraService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       jiraSiteUrl: connection.jiraSiteUrl,
       issues,
     });
@@ -436,17 +335,7 @@ export class JiraService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         projects: [] as JiraProject[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        jiraSiteUrl: connection.jiraSiteUrl,
-        projects: MOCK_JIRA_PROJECTS,
       });
     }
 
@@ -464,7 +353,6 @@ export class JiraService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       jiraSiteUrl: connection.jiraSiteUrl,
       projects,
     });
@@ -477,10 +365,6 @@ export class JiraService {
 
     const prefs = value as Record<string, unknown>;
     return {
-      showProfile:
-        typeof prefs.showProfile === 'boolean'
-          ? prefs.showProfile
-          : DEFAULT_JIRA_PREFERENCES.showProfile,
       showAssignedIssues:
         typeof prefs.showAssignedIssues === 'boolean'
           ? prefs.showAssignedIssues

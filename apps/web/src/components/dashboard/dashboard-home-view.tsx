@@ -28,15 +28,11 @@ export function DashboardHomeView() {
 
       {visibleWidgetIds.length === 0 && (
         <p className="text-center text-sm text-muted">
-          Connect an app and turn on widgets from its integration page. Open{' '}
-          <a href="/integrations/google" className="font-medium text-brand hover:underline">
-            Google
+          Connect an app from{' '}
+          <a href="/integrations" className="font-medium text-brand hover:underline">
+            Integrations
           </a>
-          ,{' '}
-          <a href="/integrations/jira" className="font-medium text-brand hover:underline">
-            Jira
-          </a>
-          , or other integrations to get started.
+          , then turn on widgets from that app&apos;s page to see them here.
         </p>
       )}
     </div>

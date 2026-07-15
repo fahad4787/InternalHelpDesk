@@ -88,6 +88,8 @@ export default function GoogleIntegrationPage() {
           isLoading={statusLoading}
           isConnected={isConnected}
           isPending={isPending}
+          isConnecting={connectGoogleMutation.isPending}
+          isDisconnecting={disconnectMutation.isPending}
           authError={authError}
           connectError={connectError}
           onConnect={() => connectGoogleMutation.mutate()}

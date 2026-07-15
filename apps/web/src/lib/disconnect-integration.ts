@@ -1,4 +1,5 @@
 import { asanaService } from '@/services/asana.service';
+import { mondayService } from '@/services/monday.service';
 import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
@@ -17,6 +18,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return trelloService.disconnect();
     case 'ASANA':
       return asanaService.disconnect();
+    case 'MONDAY':
+      return mondayService.disconnect();
     case 'CALENDLY':
       return calendlyService.disconnect();
     case 'SLACK':

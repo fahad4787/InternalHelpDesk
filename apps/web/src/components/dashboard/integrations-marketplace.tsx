@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -30,6 +31,9 @@ import {
   type DashboardWidgetId,
 } from '@/constants/dashboard-widget-registry';
 import { MARKETPLACE_APP_COUNT } from '@/constants/navigation';
+import {
+  type DashboardIntegrationStatuses,
+} from '@/lib/dashboard-widget-utils';
 import { useDashboardVisibleWidgets } from '@/hooks/use-dashboard-visible-widgets';
 import { useDashboardUi, type IntegrationsTab } from './dashboard-ui-context';
 
@@ -52,9 +56,80 @@ interface MarketplaceEntry {
   widgetLabels: string[];
 }
 
+function isProviderConnected(
+  provider: string,
+  item: Integration | undefined,
+  statuses: DashboardIntegrationStatuses,
+): boolean {
+  if (item?.status === 'CONNECTED') return true;
+
+  switch (provider) {
+    case 'GOOGLE_CALENDAR':
+      return statuses.google?.connected === true;
+    case 'JIRA':
+      return statuses.jira?.connected === true;
+    case 'TRELLO':
+      return statuses.trello?.connected === true;
+    case 'ASANA':
+      return statuses.asana?.connected === true;
+    case 'MONDAY':
+      return statuses.monday?.connected === true;
+    case 'CALENDLY':
+      return statuses.calendly?.connected === true;
+    case 'SLACK':
+      return statuses.slack?.connected === true;
+    case 'ZOOM':
+      return statuses.zoom?.connected === true;
+    case 'OUTLOOK':
+      return statuses.outlook?.connected === true;
+    case 'DROPBOX':
+      return statuses.dropbox?.connected === true;
+    case 'WORKDAY':
+      return statuses.workday?.connected === true;
+    default:
+      return false;
+  }
+}
+
+function connectedAtForProvider(
+  provider: string,
+  item: Integration | undefined,
+  statuses: DashboardIntegrationStatuses,
+): string | null {
+  if (item?.connectedAt) return item.connectedAt;
+
+  switch (provider) {
+    case 'GOOGLE_CALENDAR':
+      return statuses.google?.lastSyncedAt ?? null;
+    case 'JIRA':
+      return statuses.jira?.lastSyncedAt ?? null;
+    case 'TRELLO':
+      return statuses.trello?.lastSyncedAt ?? null;
+    case 'ASANA':
+      return statuses.asana?.lastSyncedAt ?? null;
+    case 'MONDAY':
+      return statuses.monday?.lastSyncedAt ?? null;
+    case 'CALENDLY':
+      return statuses.calendly?.lastSyncedAt ?? null;
+    case 'SLACK':
+      return statuses.slack?.lastSyncedAt ?? null;
+    case 'ZOOM':
+      return statuses.zoom?.lastSyncedAt ?? null;
+    case 'OUTLOOK':
+      return statuses.outlook?.lastSyncedAt ?? null;
+    case 'DROPBOX':
+      return statuses.dropbox?.lastSyncedAt ?? null;
+    case 'WORKDAY':
+      return statuses.workday?.lastSyncedAt ?? null;
+    default:
+      return null;
+  }
+}
+
 function buildEntries(
   integrations: Integration[],
   visibleWidgetIds: DashboardWidgetId[],
+  statuses: DashboardIntegrationStatuses,
 ): MarketplaceEntry[] {
   const byProvider = new Map(
     integrations.map((item) => [item.provider, item] as const),
@@ -62,6 +137,7 @@ function buildEntries(
 
   return MARKETPLACE_APPS.map((meta) => {
     const item = byProvider.get(meta.provider);
+    const isConnected = isProviderConnected(meta.provider, item, statuses);
     const showWidgets = Boolean(meta.showWidgets);
     const widgetLabels = showWidgets ? getWidgetLabelsForProvider(meta.provider) : [];
     const dashboardWidgetCount = showWidgets
@@ -75,9 +151,9 @@ function buildEntries(
       category: meta.category,
       categoryLabel: meta.categoryLabel,
       meta,
-      status: item?.status ?? 'NOT_CONNECTED',
-      connectedAt: item?.connectedAt ?? null,
-      isConnected: item?.status === 'CONNECTED',
+      status: isConnected ? 'CONNECTED' : (item?.status ?? 'NOT_CONNECTED'),
+      connectedAt: connectedAtForProvider(meta.provider, item, statuses),
+      isConnected,
       dashboardWidgetCount,
       widgetLabels,
     };
@@ -87,28 +163,39 @@ function buildEntries(
 function buildConnectedEntries(
   integrations: Integration[],
   visibleWidgetIds: DashboardWidgetId[],
+  statuses: DashboardIntegrationStatuses,
 ): MarketplaceEntry[] {
   const byProvider = new Map(
     integrations.map((item) => [item.provider, item] as const),
   );
+  const seen = new Set<string>();
   const entries: MarketplaceEntry[] = [];
 
-  for (const [provider, item] of byProvider) {
-    if (item.status !== 'CONNECTED') continue;
+  const providers = new Set<string>([
+    ...byProvider.keys(),
+    ...Object.keys(PRIMARY_MARKETPLACE_BY_PROVIDER),
+  ]);
+
+  for (const provider of providers) {
+    if (seen.has(provider)) continue;
+    const item = byProvider.get(provider);
+    if (!isProviderConnected(provider, item, statuses)) continue;
+
     const meta =
       PRIMARY_MARKETPLACE_BY_PROVIDER[provider] ??
       MARKETPLACE_APPS.find((app) => app.provider === provider);
     if (!meta) continue;
 
+    seen.add(provider);
     entries.push({
       id: meta.id,
-      name: item.name ?? meta.name,
-      description: item.description ?? meta.description,
+      name: item?.name ?? meta.name,
+      description: item?.description ?? meta.description,
       category: meta.category,
       categoryLabel: meta.categoryLabel,
       meta,
-      status: item.status,
-      connectedAt: item.connectedAt ?? null,
+      status: 'CONNECTED',
+      connectedAt: connectedAtForProvider(provider, item, statuses),
       isConnected: true,
       dashboardWidgetCount: countDashboardWidgetsForProvider(
         meta.provider,
@@ -135,8 +222,8 @@ function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
           dimmed={!meta.available}
         />
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-semibold text-ink">{entry.name}</h3>
+          <h3 className="font-semibold text-ink">{entry.name}</h3>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{entry.categoryLabel}</Badge>
             {isConnected && meta.available && <Badge variant="success">Connected</Badge>}
             {!meta.available && <Badge variant="secondary">Coming soon</Badge>}
@@ -146,7 +233,7 @@ function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
               </Badge>
             )}
           </div>
-          <p className="mt-1 text-sm text-muted">{entry.description}</p>
+          <p className="mt-2 text-sm text-muted">{entry.description}</p>
         </div>
       </div>
 
@@ -175,7 +262,7 @@ function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
           </Button>
         ) : isConnected ? (
           <Link href={meta.configureRoute} className={buttonVariants({ size: 'sm' })}>
-            Manage widgets
+            Manage
           </Link>
         ) : (
           <Link href={meta.configureRoute} className={buttonVariants({ size: 'sm' })}>
@@ -227,8 +314,20 @@ function ConnectedAppDetailCard({
               Manage widgets
             </Link>
           )}
-          <Button variant="destructive" size="sm" onClick={onRevoke} disabled={isRevoking}>
-            {isRevoking ? 'Removing…' : 'Revoke & remove'}
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onRevoke}
+            disabled={isRevoking}
+          >
+            {isRevoking ? (
+              <span className="inline-flex items-center gap-1.5">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Removing…
+              </span>
+            ) : (
+              'Revoke & remove'
+            )}
           </Button>
         </div>
       </div>
@@ -269,7 +368,11 @@ export function IntegrationsMarketplace() {
   const queryClient = useQueryClient();
   const { category, setCategory, searchQuery, setSearchQuery, integrationsTab, setIntegrationsTab } =
     useDashboardUi();
-  const { visibleWidgetIds } = useDashboardVisibleWidgets();
+  const { visibleWidgetIds, statuses } = useDashboardVisibleWidgets({
+    // Marketplace only needs these for widget counts; integrations list drives Connect state.
+    // Defer heavy status fan-out until My connected apps (or when list already loaded).
+    enabled: integrationsTab === 'connected',
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['integrations'],
@@ -279,26 +382,36 @@ export function IntegrationsMarketplace() {
   const integrations = data?.data ?? [];
 
   const entries = useMemo(
-    () => buildEntries(integrations, visibleWidgetIds),
-    [integrations, visibleWidgetIds],
+    () => buildEntries(integrations, visibleWidgetIds, statuses),
+    [integrations, visibleWidgetIds, statuses],
   );
 
   const connectedEntries = useMemo(
-    () => buildConnectedEntries(integrations, visibleWidgetIds),
-    [integrations, visibleWidgetIds],
+    () => buildConnectedEntries(integrations, visibleWidgetIds, statuses),
+    [integrations, visibleWidgetIds, statuses],
   );
 
   const filteredBrowse = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    return entries.filter((entry) => {
-      const matchesCategory = category === 'all' || entry.category === category;
-      const matchesSearch =
-        !query ||
-        entry.name.toLowerCase().includes(query) ||
-        entry.description.toLowerCase().includes(query) ||
-        entry.categoryLabel.toLowerCase().includes(query);
-      return matchesCategory && matchesSearch;
-    });
+    return entries
+      .filter((entry) => {
+        const matchesCategory = category === 'all' || entry.category === category;
+        const matchesSearch =
+          !query ||
+          entry.name.toLowerCase().includes(query) ||
+          entry.description.toLowerCase().includes(query) ||
+          entry.categoryLabel.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+      })
+      .sort((a, b) => {
+        // Connected first, then available, then coming soon (preserve catalog order within each group)
+        const rank = (entry: MarketplaceEntry) => {
+          if (entry.isConnected) return 0;
+          if (entry.meta.available) return 1;
+          return 2;
+        };
+        return rank(a) - rank(b);
+      });
   }, [entries, category, searchQuery]);
 
   const revokeMutation = useMutation({
@@ -391,7 +504,10 @@ export function IntegrationsMarketplace() {
               <ConnectedAppDetailCard
                 key={entry.id}
                 entry={entry}
-                isRevoking={revokeMutation.isPending}
+                isRevoking={
+                  revokeMutation.isPending &&
+                  revokeMutation.variables === entry.meta.provider
+                }
                 error={
                   revokeMutation.isError && revokeMutation.variables === entry.meta.provider
                     ? getErrorMessage(revokeMutation.error)
@@ -404,10 +520,12 @@ export function IntegrationsMarketplace() {
         </div>
       )}
 
-      <p className="border-t border-border-warm pt-4 text-center text-sm text-muted">
-        {MARKETPLACE_APP_COUNT} apps listed · {connectedCount} connected · Coming soon apps
-        unlock as we ship them
-      </p>
+      {integrationsTab === 'browse' && (
+        <p className="border-t border-border-warm pt-4 text-center text-sm text-muted">
+          {MARKETPLACE_APP_COUNT} apps listed · {connectedCount} connected · Coming soon apps
+          unlock as we ship them
+        </p>
+      )}
     </div>
   );
 }

@@ -3,9 +3,9 @@ import {
   Controller,
   Get,
   Logger,
+  Param,
   Patch,
   Post,
-  Query,
   Req,
   Res,
   UseGuards,
@@ -15,28 +15,28 @@ import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../../../common/types/api-response.type';
-import { UpdateJiraPreferencesDto } from './dto/update-jira-preferences.dto';
-import { JiraService } from './jira.service';
+import { UpdateMondayPreferencesDto } from './dto/update-monday-preferences.dto';
+import { MondayService } from './monday.service';
 
-@Controller('integrations/jira')
-export class JiraController {
-  private readonly logger = new Logger(JiraController.name);
+@Controller('integrations/monday')
+export class MondayController {
+  private readonly logger = new Logger(MondayController.name);
 
   constructor(
-    private jiraService: JiraService,
+    private mondayService: MondayService,
     private configService: ConfigService,
   ) {}
 
   @Get('status')
   @UseGuards(JwtAuthGuard)
   getStatus(@CurrentUser() user: AuthenticatedUser) {
-    return this.jiraService.getStatus(user);
+    return this.mondayService.getStatus(user);
   }
 
   @Get('auth-url')
   @UseGuards(JwtAuthGuard)
   getAuthUrl(@CurrentUser() user: AuthenticatedUser) {
-    return this.jiraService.getAuthUrl(user);
+    return this.mondayService.getAuthUrl(user);
   }
 
   @Get('callback')
@@ -54,35 +54,35 @@ export class JiraController {
       typeof req.query.state === 'string' ? req.query.state : undefined;
 
     this.logger.log(
-      `Jira OAuth callback received (error=${error ?? 'none'}, hasCode=${!!code}, hasState=${!!state})`,
+      `Monday OAuth callback received (error=${error ?? 'none'}, hasCode=${!!code}, hasState=${!!state})`,
     );
 
     if (error) {
       return res.redirect(
-        `${frontendUrl}/integrations/jira?error=${encodeURIComponent(error)}`,
+        `${frontendUrl}/integrations/monday?error=${encodeURIComponent(error)}`,
       );
     }
 
     if (!code && !state) {
-      return res.redirect(`${frontendUrl}/integrations/jira`);
+      return res.redirect(`${frontendUrl}/integrations/monday`);
     }
 
     if (!code || !state) {
       const reason = !code ? 'missing_code' : 'missing_state';
       return res.redirect(
-        `${frontendUrl}/integrations/jira?error=${encodeURIComponent(reason)}`,
+        `${frontendUrl}/integrations/monday?error=${encodeURIComponent(reason)}`,
       );
     }
 
     try {
-      await this.jiraService.handleCallback(code, state);
-      return res.redirect(`${frontendUrl}/integrations/jira?connected=true`);
+      await this.mondayService.handleCallback(code, state);
+      return res.redirect(`${frontendUrl}/integrations/monday?connected=true`);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Jira connection failed';
-      this.logger.error(`Jira OAuth callback failed: ${message}`);
+        err instanceof Error ? err.message : 'Monday.com connection failed';
+      this.logger.error(`Monday OAuth callback failed: ${message}`);
       return res.redirect(
-        `${frontendUrl}/integrations/jira?error=${encodeURIComponent(message)}`,
+        `${frontendUrl}/integrations/monday?error=${encodeURIComponent(message)}`,
       );
     }
   }
@@ -90,36 +90,30 @@ export class JiraController {
   @Post('disconnect')
   @UseGuards(JwtAuthGuard)
   disconnect(@CurrentUser() user: AuthenticatedUser) {
-    return this.jiraService.disconnect(user);
+    return this.mondayService.disconnect(user);
   }
 
-  @Get('profile')
+  @Get('boards')
   @UseGuards(JwtAuthGuard)
-  getProfile(@CurrentUser() user: AuthenticatedUser) {
-    return this.jiraService.getProfile(user);
+  getBoards(@CurrentUser() user: AuthenticatedUser) {
+    return this.mondayService.getBoards(user);
   }
 
-  @Get('issues')
+  @Get('boards/:boardId')
   @UseGuards(JwtAuthGuard)
-  getIssues(
+  getBoardDetail(
     @CurrentUser() user: AuthenticatedUser,
-    @Query('type') type?: string,
+    @Param('boardId') boardId: string,
   ) {
-    return this.jiraService.getIssues(user, type === 'reported' ? 'reported' : 'assigned');
-  }
-
-  @Get('projects')
-  @UseGuards(JwtAuthGuard)
-  getProjects(@CurrentUser() user: AuthenticatedUser) {
-    return this.jiraService.getProjects(user);
+    return this.mondayService.getBoardDetail(user, boardId);
   }
 
   @Patch('preferences')
   @UseGuards(JwtAuthGuard)
   updatePreferences(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: UpdateJiraPreferencesDto,
+    @Body() dto: UpdateMondayPreferencesDto,
   ) {
-    return this.jiraService.updatePreferences(user, dto);
+    return this.mondayService.updatePreferences(user, dto);
   }
 }

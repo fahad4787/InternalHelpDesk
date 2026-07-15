@@ -90,12 +90,6 @@ export class ZoomController {
     }
   }
 
-  @Post('connect-mock')
-  @UseGuards(JwtAuthGuard)
-  connectMock(@CurrentUser() user: AuthenticatedUser) {
-    return this.zoomService.connectMock(user);
-  }
-
   @Post('disconnect')
   @UseGuards(JwtAuthGuard)
   disconnect(@CurrentUser() user: AuthenticatedUser) {

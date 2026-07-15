@@ -88,12 +88,6 @@ export class SlackController {
     }
   }
 
-  @Post('connect-mock')
-  @UseGuards(JwtAuthGuard)
-  connectMock(@CurrentUser() user: AuthenticatedUser) {
-    return this.slackService.connectMock(user);
-  }
-
   @Post('disconnect')
   @UseGuards(JwtAuthGuard)
   disconnect(@CurrentUser() user: AuthenticatedUser) {

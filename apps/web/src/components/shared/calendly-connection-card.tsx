@@ -1,10 +1,8 @@
-import { format } from 'date-fns';
-import { CheckCircle2, Link2, Mail, Unplug } from 'lucide-react';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { ConnectionCardSkeleton } from '@/components/shared/loading-state';
+import { Link2, Mail } from 'lucide-react';
+import {
+  ConnectionSyncedAt,
+  IntegrationConnectionCard,
+} from '@/components/shared/integration-connection-card';
 import { CalendlyStatus } from '@/services/calendly.service';
 
 interface CalendlyConnectionCardProps {
@@ -12,6 +10,8 @@ interface CalendlyConnectionCardProps {
   isLoading: boolean;
   isConnected: boolean;
   isPending: boolean;
+  isConnecting?: boolean;
+  isDisconnecting?: boolean;
   authError: string | null;
   connectError: string | null;
   onConnect: () => void;
@@ -23,124 +23,62 @@ export function CalendlyConnectionCard({
   isLoading,
   isConnected,
   isPending,
+  isConnecting,
+  isDisconnecting,
   authError,
   connectError,
   onConnect,
   onDisconnect,
 }: CalendlyConnectionCardProps) {
-  if (isLoading) {
-    return <ConnectionCardSkeleton />;
-  }
-
   return (
-    <Card
-      className={
-        isConnected
-          ? 'connected-card overflow-hidden'
-          : 'overflow-hidden'
+    <IntegrationConnectionCard
+      provider="CALENDLY"
+      title="Calendly Account"
+      disconnectedHint="Link your Calendly account to view event types and meetings"
+      isLoading={isLoading}
+      isConnected={isConnected}
+      isPending={isPending}
+      isConnecting={isConnecting}
+      isDisconnecting={isDisconnecting}
+      connectLabel="Connect with Calendly"
+      authError={authError}
+      connectError={connectError}
+      onConnect={onConnect}
+      onDisconnect={onDisconnect}
+      mapAuthError={(error) => {
+        if (error === 'access_denied') {
+          return 'Calendly access was denied. Approve the app when prompted.';
+        }
+        if (error === 'missing_code' || error === 'missing_state') {
+          return 'Calendly sign-in was interrupted. Refresh and connect again if needed.';
+        }
+        return error;
+      }}
+      connectedMeta={
+        <>
+          {status?.calendlyEmail && (
+            <p className="flex items-center gap-1.5 truncate text-sm text-muted">
+              <Mail className="h-3.5 w-3.5 shrink-0 text-brand" />
+              {status.calendlyEmail}
+            </p>
+          )}
+          {status?.calendlyName && (
+            <p className="truncate text-xs text-muted">{status.calendlyName}</p>
+          )}
+          {status?.schedulingUrl && (
+            <a
+              href={status.schedulingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 truncate text-xs text-brand hover:underline"
+            >
+              <Link2 className="h-3.5 w-3.5 shrink-0" />
+              {status.schedulingUrl}
+            </a>
+          )}
+          <ConnectionSyncedAt value={status?.lastSyncedAt} />
+        </>
       }
-    >
-      <CardContent className="p-0">
-        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-start gap-4">
-            <IntegrationIcon
-              provider="CALENDLY"
-              size="lg"
-              tile
-              dimmed={!isConnected}
-            />
-
-            <div className="min-w-0 space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-base font-semibold text-ink">
-                  Calendly Account
-                </h2>
-                <Badge variant={isConnected ? 'success' : 'secondary'}>
-                  {isConnected ? (
-                    <span className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Connected
-                    </span>
-                  ) : (
-                    'Not Connected'
-                  )}
-                </Badge>
-              </div>
-
-              {status?.calendlyEmail ? (
-                <p className="flex items-center gap-1.5 truncate text-sm text-muted">
-                  <Mail className="h-3.5 w-3.5 shrink-0 text-brand" />
-                  {status.calendlyEmail}
-                </p>
-              ) : (
-                <p className="text-sm text-muted">
-                  Link your Calendly account to view event types and meetings
-                </p>
-              )}
-
-              {status?.calendlyName && (
-                <p className="truncate text-xs text-muted">{status.calendlyName}</p>
-              )}
-
-              {status?.schedulingUrl && (
-                <a
-                  href={status.schedulingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 truncate text-xs text-brand hover:underline"
-                >
-                  <Link2 className="h-3.5 w-3.5 shrink-0" />
-                  {status.schedulingUrl}
-                </a>
-              )}
-
-              {isConnected && status?.lastSyncedAt && (
-                <p className="text-xs text-muted">
-                  Last synced{' '}
-                  {format(new Date(status.lastSyncedAt), 'MMM d, yyyy · h:mm a')}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2 sm:pl-4">
-            {!isConnected ? (
-              <Button onClick={onConnect} disabled={isPending} className="w-full sm:w-auto">
-                Connect with Calendly
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={onDisconnect}
-                disabled={isPending}
-                className="w-full bg-white sm:w-auto"
-              >
-                <Unplug className="mr-2 h-4 w-4" />
-                Disconnect
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {(authError || connectError) && (
-          <div className="space-y-2 border-t border-border-warm bg-white/70 px-5 py-3">
-            {authError && (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {authError === 'access_denied'
-                  ? 'Calendly access was denied. Approve the app when prompted.'
-                  : authError === 'missing_code' || authError === 'missing_state'
-                    ? 'Calendly sign-in was interrupted. Refresh and connect again if needed.'
-                    : authError}
-              </p>
-            )}
-            {connectError && (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {connectError}
-              </p>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    />
   );
 }

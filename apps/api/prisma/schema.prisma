@@ -54,6 +54,7 @@ enum IntegrationProvider {
   JIRA
   TRELLO
   ASANA
+  MONDAY
   CALENDLY
   SERVICENOW
   WORKDAY
@@ -138,6 +139,7 @@ model User {
   jiraConnection            JiraConnection?
   trelloConnection          TrelloConnection?
   asanaConnection           AsanaConnection?
+  mondayConnection          MondayConnection?
   calendlyConnection        CalendlyConnection?
   slackConnection           SlackConnection?
   outlookConnection         OutlookConnection?
@@ -482,6 +484,26 @@ model AsanaConnection {
   asanaUserGid          String?
   asanaEmail            String?
   asanaName             String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MondayConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  mondayUserId          String?
+  mondayEmail           String?
+  mondayName            String?
+  mondayAccountSlug     String?
+  mondayAccountName     String?
   encryptedAccessToken  String?
   encryptedRefreshToken String?
   tokenExpiresAt        DateTime?

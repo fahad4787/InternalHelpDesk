@@ -146,9 +146,13 @@ export default function TrelloIntegrationPage() {
       <div className="space-y-6">
         <TrelloConnectionCard
           status={status}
-          isLoading={statusLoading || connectMutation.isPending}
+          isLoading={statusLoading}
           isConnected={isConnected}
           isPending={isPending}
+          isConnecting={
+            connectMutation.isPending || connectTrelloMutation.isPending
+          }
+          isDisconnecting={disconnectMutation.isPending}
           authError={displayAuthError}
           connectError={connectError}
           onConnect={() => connectTrelloMutation.mutate()}

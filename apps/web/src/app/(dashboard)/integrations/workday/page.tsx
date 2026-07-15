@@ -4,12 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { ArrowLeft, RefreshCw, RotateCcw, ScrollText } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ScrollText } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { PageSpinner, WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { ToastContainer, showToast } from '@/components/shared/toast';
 import { EmptyState } from '@/components/shared/empty-state';
 import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { WorkdayConnectionCard } from '@/components/shared/workday-connection-card';
 import { Modal } from '@/components/shared/modal';
 import { DataTable, Column } from '@/components/tables/data-table';
 import { FormField } from '@/components/forms/form-field';
@@ -19,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import {
-  CONNECTION_STATUS_VARIANTS,
   SYNC_STATUS_VARIANTS,
   WORKDAY_ENVIRONMENTS,
 } from '@/constants/workday';
@@ -182,53 +182,40 @@ export default function WorkdayIntegrationPage() {
     );
   }
 
+  const isConnected = status?.connected === true;
+  const connectError = connectMutation.error
+    ? getErrorMessage(connectMutation.error)
+    : null;
+
   return (
     <>
       <PageContainer
         title="Workday Integration"
         description="Sync help articles and internal SOPs from Workday into your knowledge base"
         actions={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setResetOpen(true)}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reset
+          <Link href="/integrations">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Integrations
             </Button>
-            <Link href="/integrations">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Integrations
-              </Button>
-            </Link>
-          </div>
+          </Link>
         }
       >
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          <Badge variant={status?.connected ? 'success' : 'secondary'}>
-            {status?.connected ? 'Connected' : 'Not Connected'}
-          </Badge>
-          {status?.mockMode && (
-            <Badge variant="info">Mock Mode Active</Badge>
-          )}
-          <Badge variant={CONNECTION_STATUS_VARIANTS[status?.status ?? 'NOT_CONNECTED'] ?? 'secondary'}>
-            {status?.status?.replace(/_/g, ' ') ?? 'NOT CONNECTED'}
-          </Badge>
+        <div className="mb-6 space-y-6">
+          <WorkdayConnectionCard
+            status={status}
+            isLoading={false}
+            isConnected={isConnected}
+            isPending={connectMutation.isPending || resetMutation.isPending}
+            isConnecting={connectMutation.isPending}
+            isDisconnecting={resetMutation.isPending}
+            connectError={connectError}
+            onConnect={() => connectMutation.mutate()}
+            onDisconnect={() => setResetOpen(true)}
+          />
+
+          {isConnected && <IntegrationWidgetsSection provider="WORKDAY" />}
         </div>
-
-        {status?.mockMode && (
-          <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-            Mock Mode: using sample Workday help articles for development.
-          </div>
-        )}
-
-        {status?.connected && (
-          <div className="mb-6">
-            <IntegrationWidgetsSection provider="WORKDAY" />
-          </div>
-        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
@@ -279,21 +266,23 @@ export default function WorkdayIntegrationPage() {
                     onClick={() => testMutation.mutate()}
                     disabled={testMutation.isPending}
                   >
-                    {testMutation.isPending ? 'Testing...' : 'Test Connection'}
+                    {testMutation.isPending ? 'Testing…' : 'Test Connection'}
                   </Button>
-                  <Button
-                    onClick={() => connectMutation.mutate()}
-                    disabled={connectMutation.isPending}
-                  >
-                    {connectMutation.isPending ? 'Saving...' : 'Save Connection'}
-                  </Button>
+                  {isConnected && (
+                    <Button
+                      onClick={() => connectMutation.mutate()}
+                      disabled={connectMutation.isPending}
+                    >
+                      {connectMutation.isPending ? 'Saving…' : 'Update Connection'}
+                    </Button>
+                  )}
                   <Button
                     variant="secondary"
                     onClick={() => syncMutation.mutate()}
-                    disabled={syncMutation.isPending || !status?.connected}
+                    disabled={syncMutation.isPending || !isConnected}
                   >
                     <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-                    {syncMutation.isPending ? 'Syncing...' : 'Sync Articles'}
+                    {syncMutation.isPending ? 'Syncing…' : 'Sync Articles'}
                   </Button>
                 </div>
               </CardContent>

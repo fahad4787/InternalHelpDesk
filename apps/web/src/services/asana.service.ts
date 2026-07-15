@@ -6,8 +6,6 @@ export interface AsanaPreferences {
 
 export interface AsanaStatus {
   connected: boolean;
-  mockMode: boolean;
-  needsReconnect?: boolean;
   status: string;
   asanaEmail: string | null;
   asanaName: string | null;
@@ -54,21 +52,17 @@ export const asanaService = {
   getAuthUrl: () =>
     apiGet<{ url: string; state: string }>('/integrations/asana/auth-url'),
 
-  connectMock: () => apiPost('/integrations/asana/connect-mock'),
-
   disconnect: () => apiPost('/integrations/asana/disconnect'),
 
   getProjects: () =>
     apiGet<{
       connected: boolean;
-      mockMode: boolean;
       projects: AsanaProject[];
     }>('/integrations/asana/projects'),
 
   getProjectDetail: (projectGid: string) =>
     apiGet<{
       connected: boolean;
-      mockMode: boolean;
       project: AsanaProject;
       tasks: AsanaTask[];
     }>(`/integrations/asana/projects/${projectGid}`),

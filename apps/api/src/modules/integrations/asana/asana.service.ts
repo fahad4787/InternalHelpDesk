@@ -14,11 +14,6 @@ import {
   verifyOAuthState,
 } from '../google-calendar/utils/oauth-state.util';
 import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
-import {
-  MOCK_ASANA_MY_TASKS,
-  MOCK_ASANA_PROJECTS,
-  mockProjectDetail,
-} from './constants/mock-asana.constant';
 import { UpdateAsanaPreferencesDto } from './dto/update-asana-preferences.dto';
 import {
   AsanaProfile,
@@ -77,50 +72,26 @@ export class AsanaService {
     );
   }
 
-  isMockMode(): boolean {
-    const mode = this.configService.get<string>('ASANA_MODE', 'mock');
-    if (mode === 'mock') return true;
-    if (mode !== 'live') return true;
-    return !this.configService.get<string>('ASANA_CLIENT_ID');
-  }
-
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.asanaConnection.findUnique({
       where: { userId: user.id },
     });
 
-    const mockMode = this.isMockMode();
     const connected = connection?.status === IntegrationStatus.CONNECTED;
-    const hasLiveToken = Boolean(connection?.encryptedAccessToken);
-    const effectivelyConnected = connected && (mockMode || hasLiveToken);
 
     let workspaceNames: string[] = [];
-    if (effectivelyConnected) {
-      if (mockMode) {
-        workspaceNames = [
-          ...new Set(
-            MOCK_ASANA_PROJECTS.map((p) => p.workspaceName).filter(
-              (name): name is string => Boolean(name),
-            ),
-          ),
-        ];
-      } else if (connection) {
-        try {
-          const accessToken = await this.getValidAccessToken(connection);
-          workspaceNames = await this.fetchWorkspaceNames(accessToken);
-        } catch {
-          workspaceNames = [];
-        }
+    if (connected && connection) {
+      try {
+        const accessToken = await this.getValidAccessToken(connection);
+        workspaceNames = await this.fetchWorkspaceNames(accessToken);
+      } catch {
+        workspaceNames = [];
       }
     }
 
     return successResponse({
-      connected: effectivelyConnected,
-      mockMode,
-      needsReconnect: Boolean(connected && !mockMode && !hasLiveToken),
-      status: effectivelyConnected
-        ? IntegrationStatus.CONNECTED
-        : (connection?.status ?? IntegrationStatus.NOT_CONNECTED),
+      connected,
+      status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
       asanaEmail: connection?.asanaEmail ?? null,
       asanaName: connection?.asanaName ?? null,
       workspaceNames,
@@ -154,12 +125,6 @@ export class AsanaService {
   }
 
   getAuthUrl(user: AuthenticatedUser) {
-    if (this.isMockMode()) {
-      throw new BadRequestException(
-        'Asana OAuth is disabled in mock mode. Use the mock connect action instead.',
-      );
-    }
-
     const clientId = this.configService.get<string>('ASANA_CLIENT_ID')?.trim();
     const redirectUri = this.getRedirectUri();
     if (!clientId || !redirectUri) {
@@ -264,63 +229,12 @@ export class AsanaService {
     return userId;
   }
 
-  async connectMock(user: AuthenticatedUser) {
-    if (!this.isMockMode()) {
-      throw new BadRequestException('Mock connect is only available in mock mode');
-    }
-
-    await this.prisma.asanaConnection.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        asanaEmail: user.email,
-        asanaName: user.email.split('@')[0] ?? 'Mock Asana User',
-        asanaUserGid: 'mock-user',
-        status: IntegrationStatus.CONNECTED,
-        preferences:
-          DEFAULT_ASANA_PREFERENCES as unknown as Prisma.InputJsonValue,
-        lastSyncedAt: new Date(),
-      },
-      update: {
-        asanaEmail: user.email,
-        asanaName: user.email.split('@')[0] ?? 'Mock Asana User',
-        status: IntegrationStatus.CONNECTED,
-        lastSyncedAt: new Date(),
-      },
-    });
-
-    await this.prisma.integration.upsert({
-      where: {
-        companyId_provider: {
-          companyId: user.companyId,
-          provider: IntegrationProvider.ASANA,
-        },
-      },
-      create: {
-        companyId: user.companyId,
-        provider: IntegrationProvider.ASANA,
-        status: IntegrationStatus.CONNECTED,
-      },
-      update: { status: IntegrationStatus.CONNECTED },
-    });
-
-    return successResponse(
-      {
-        connected: true,
-        mockMode: true,
-        asanaEmail: user.email,
-        asanaName: user.email.split('@')[0] ?? 'Mock Asana User',
-      },
-      'Asana connected (mock mode)',
-    );
-  }
-
   async disconnect(user: AuthenticatedUser) {
     const connection = await this.prisma.asanaConnection.findUnique({
       where: { userId: user.id },
     });
 
-    if (connection?.encryptedAccessToken && !this.isMockMode()) {
+    if (connection?.encryptedAccessToken) {
       try {
         const token = decrypt(connection.encryptedAccessToken, this.encryptionKey);
         await fetch(ASANA_REVOKE_URL, {
@@ -361,16 +275,7 @@ export class AsanaService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         projects: [] as AsanaProject[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        projects: MOCK_ASANA_PROJECTS,
       });
     }
 
@@ -380,7 +285,6 @@ export class AsanaService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       projects,
     });
   }
@@ -394,21 +298,12 @@ export class AsanaService {
       throw new BadRequestException('Asana account is not connected');
     }
 
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        ...mockProjectDetail(projectGid),
-      });
-    }
-
     const accessToken = await this.getValidAccessToken(connection);
     const detail = await this.fetchProjectDetail(accessToken, projectGid);
     await this.touchLastSynced(user.id);
 
     return successResponse({
       connected: true,
-      mockMode: false,
       ...detail,
     });
   }
@@ -421,16 +316,7 @@ export class AsanaService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         tasks: [] as AsanaTask[],
-      });
-    }
-
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        tasks: MOCK_ASANA_MY_TASKS,
       });
     }
 
@@ -440,7 +326,6 @@ export class AsanaService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       tasks,
     });
   }

@@ -53,13 +53,10 @@ export default function SlackIntegrationPage() {
 
   const displayAuthError = isConnected ? null : authError;
 
-  const connectMockMutation = useMutation({
-    mutationFn: () => slackService.connectMock(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['slack-status'] });
-      queryClient.invalidateQueries({ queryKey: ['slack-profile'] });
-      queryClient.invalidateQueries({ queryKey: ['slack-channels'] });
-      queryClient.invalidateQueries({ queryKey: ['integrations'] });
+  const connectSlackMutation = useMutation({
+    mutationFn: () => slackService.getAuthUrl(),
+    onSuccess: (res) => {
+      window.location.href = res.data.url;
     },
   });
 
@@ -74,27 +71,11 @@ export default function SlackIntegrationPage() {
     },
   });
 
-  const handleConnect = async () => {
-    if (status?.mockMode) {
-      connectMockMutation.mutate();
-      return;
-    }
-
-    try {
-      const response = await slackService.getAuthUrl();
-      window.location.href = response.data.url;
-    } catch (error) {
-      connectMockMutation.reset();
-      setAuthError(getErrorMessage(error));
-    }
-  };
-
   const isPending =
-    connectMockMutation.isPending || disconnectMutation.isPending;
-  const connectError =
-    connectMockMutation.error != null
-      ? getErrorMessage(connectMockMutation.error)
-      : null;
+    connectSlackMutation.isPending || disconnectMutation.isPending;
+  const connectError = connectSlackMutation.error
+    ? getErrorMessage(connectSlackMutation.error)
+    : null;
 
   return (
     <PageContainer
@@ -117,7 +98,7 @@ export default function SlackIntegrationPage() {
           isPending={isPending}
           authError={displayAuthError}
           connectError={connectError}
-          onConnect={handleConnect}
+          onConnect={() => connectSlackMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
 

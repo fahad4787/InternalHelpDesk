@@ -23,10 +23,16 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiResponse>) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem('helpdesk_user');
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+      const requestUrl = error.config?.url ?? '';
+      // Integration provider session failures must not wipe the HelpDesk login.
+      // Only clear auth for app auth endpoints or generic authenticated routes.
+      const isIntegrationRequest = requestUrl.includes('/integrations/');
+      if (!isIntegrationRequest) {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem('helpdesk_user');
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);

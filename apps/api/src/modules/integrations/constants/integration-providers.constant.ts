@@ -32,6 +32,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'project-management',
   },
   {
+    provider: IntegrationProvider.MONDAY,
+    name: 'Monday.com',
+    description: 'Boards and items from your linked Monday.com account',
+    category: 'project-management',
+  },
+  {
     provider: IntegrationProvider.CALENDLY,
     name: 'Calendly',
     description: 'Event types and upcoming meetings from your Calendly account',

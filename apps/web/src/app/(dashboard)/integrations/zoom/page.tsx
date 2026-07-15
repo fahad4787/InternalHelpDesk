@@ -54,15 +54,6 @@ export default function ZoomIntegrationPage() {
 
   const displayAuthError = isConnected ? null : authError;
 
-  const connectMockMutation = useMutation({
-    mutationFn: () => zoomService.connectMock(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['zoom-status'] });
-      queryClient.invalidateQueries({ queryKey: ['zoom-meetings'] });
-      queryClient.invalidateQueries({ queryKey: ['integrations'] });
-    },
-  });
-
   const connectZoomMutation = useMutation({
     mutationFn: () => zoomService.getAuthUrl(),
     onSuccess: (res) => {
@@ -80,22 +71,11 @@ export default function ZoomIntegrationPage() {
   });
 
   const isPending =
-    connectMockMutation.isPending ||
-    connectZoomMutation.isPending ||
-    disconnectMutation.isPending;
+    connectZoomMutation.isPending || disconnectMutation.isPending;
 
-  const handleConnect = () => {
-    if (status?.mockMode) {
-      connectMockMutation.mutate();
-    } else {
-      connectZoomMutation.mutate();
-    }
-  };
-
-  const connectError =
-    connectMockMutation.error || connectZoomMutation.error
-      ? getErrorMessage(connectMockMutation.error || connectZoomMutation.error)
-      : null;
+  const connectError = connectZoomMutation.error
+    ? getErrorMessage(connectZoomMutation.error)
+    : null;
 
   return (
     <PageContainer
@@ -130,7 +110,7 @@ export default function ZoomIntegrationPage() {
           isPending={isPending}
           authError={displayAuthError}
           connectError={connectError}
-          onConnect={handleConnect}
+          onConnect={() => connectZoomMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
 

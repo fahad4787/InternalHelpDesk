@@ -4,39 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { FolderKanban, Ticket } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 import { JiraIssueList } from '@/components/shared/jira-issue-list';
-import { JiraProfileCard } from '@/components/shared/jira-profile-card';
 import { JiraProjectList } from '@/components/shared/jira-project-list';
 import { IntegrationIcon } from '@/components/shared/integration-icon';
 import { jiraService } from '@/services/jira.service';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
-
-export function JiraProfileDashboardWidget() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['jira-profile'],
-    queryFn: () => jiraService.getProfile(),
-  });
-
-  const profile = data?.data?.profile ?? null;
-
-  return (
-    <DashboardWidgetCard
-      source="Jira"
-      sourceLogo={<IntegrationIcon provider="JIRA" />}
-      title="Jira Profile"
-      deepLinkHref="/integrations/jira"
-      deepLinkLabel="Open Jira"
-    >
-      {isLoading ? (
-        <WidgetContentSkeleton lines={4} />
-      ) : profile ? (
-        <JiraProfileCard profile={profile} />
-      ) : (
-        <p className="text-sm text-muted">Profile unavailable.</p>
-      )}
-    </DashboardWidgetCard>
-  );
-}
 
 export function JiraAssignedDashboardWidget() {
   const { data, isLoading } = useQuery({
