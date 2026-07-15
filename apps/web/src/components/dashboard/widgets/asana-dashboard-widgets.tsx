@@ -38,29 +38,35 @@ export function AsanaProjectsDashboardWidget() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {projects.slice(0, 6).map((project) => {
-            const activity = project.modifiedAt ? new Date(project.modifiedAt) : null;
+            const activity = project.modifiedAt
+              ? new Date(project.modifiedAt)
+              : null;
             return (
               <Link
                 key={project.gid}
                 href={`/integrations/asana?project=${project.gid}`}
-                className="rounded-2xl border border-border-warm bg-white p-4 shadow-sm transition-all hover:border-brand-muted hover:shadow-md"
+                className="flex w-full items-start justify-between gap-3 rounded-2xl border border-border-warm bg-white p-4 text-left shadow-sm transition-all hover:border-brand-muted hover:shadow-md"
               >
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-light text-brand">
-                    <FolderKanban className="h-4 w-4" />
+                <div className="min-w-0">
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-light text-brand">
+                      <FolderKanban className="h-4 w-4" />
+                    </div>
+                    <Badge variant="info">Project</Badge>
                   </div>
-                  <Badge variant="info">Project</Badge>
+                  <h3 className="font-semibold text-ink">{project.name}</h3>
+                  {project.workspaceName && (
+                    <p className="mt-1 text-xs text-muted">
+                      {project.workspaceName}
+                    </p>
+                  )}
+                  {activity && (
+                    <p className="mt-2 text-xs text-muted">
+                      Updated {format(activity, 'MMM d, yyyy')} ·{' '}
+                      {formatDistanceToNow(activity, { addSuffix: true })}
+                    </p>
+                  )}
                 </div>
-                <h3 className="font-semibold text-ink">{project.name}</h3>
-                {project.workspaceName && (
-                  <p className="mt-1 text-xs text-muted">{project.workspaceName}</p>
-                )}
-                {activity && (
-                  <p className="mt-2 text-xs text-muted">
-                    Updated {format(activity, 'MMM d, yyyy')} ·{' '}
-                    {formatDistanceToNow(activity, { addSuffix: true })}
-                  </p>
-                )}
               </Link>
             );
           })}

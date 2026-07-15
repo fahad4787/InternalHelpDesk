@@ -96,6 +96,15 @@ export default function AsanaIntegrationPage() {
       ? getErrorMessage(connectMutation.error)
       : null;
 
+  const handleSelectProject = (projectGid: string | null) => {
+    setSelectedProjectGid(projectGid);
+    if (projectGid) {
+      router.replace(`/integrations/asana?project=${projectGid}`, { scroll: false });
+    } else {
+      router.replace('/integrations/asana', { scroll: false });
+    }
+  };
+
   return (
     <PageContainer
       title="Asana"
@@ -126,7 +135,7 @@ export default function AsanaIntegrationPage() {
         {isConnected && preferences.showProjects && (
           <AsanaProjectsSection
             selectedProjectGid={selectedProjectGid}
-            onSelectProject={setSelectedProjectGid}
+            onSelectProject={handleSelectProject}
           />
         )}
       </div>

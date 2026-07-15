@@ -3,11 +3,13 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import {
   ArrowLeft,
+  CalendarClock,
   CheckCircle2,
   Circle,
   ExternalLink,
   FolderKanban,
   ListTodo,
+  UserRound,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
@@ -29,31 +31,51 @@ interface AsanaProjectsSectionProps {
 
 function TaskRow({ task }: { task: AsanaTask }) {
   return (
-    <article className="rounded-xl border border-border-warm bg-white p-3 shadow-sm">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex min-w-0 items-start gap-2">
+    <article className="flex items-center justify-between gap-3 rounded-2xl border border-border-warm bg-white p-4 shadow-sm transition-colors hover:border-brand-muted hover:shadow-md">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border-warm bg-canvas">
           {task.completed ? (
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+            <CheckCircle2 className="h-5 w-5 text-brand" />
           ) : (
-            <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted" />
+            <Circle className="h-5 w-5 text-muted" />
           )}
-          <div className="min-w-0">
-            <h4 className="text-sm font-semibold text-ink">{task.name}</h4>
-            <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted">
-              {task.projectName && <span>{task.projectName}</span>}
-              {task.dueOn && <span>Due {task.dueOn}</span>}
-              {task.assigneeName && <span>{task.assigneeName}</span>}
-            </div>
+        </div>
+        <div className="min-w-0">
+          <p
+            className={`truncate font-medium text-ink ${
+              task.completed ? 'line-through opacity-70' : ''
+            }`}
+          >
+            {task.name}
+          </p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+            {task.dueOn && (
+              <span className="inline-flex items-center gap-1">
+                <CalendarClock className="h-3.5 w-3.5 text-brand" />
+                Due {task.dueOn}
+              </span>
+            )}
+            {task.assigneeName && (
+              <span className="inline-flex items-center gap-1">
+                <UserRound className="h-3.5 w-3.5" />
+                {task.assigneeName}
+              </span>
+            )}
+            {task.completed && <Badge variant="success">Done</Badge>}
           </div>
         </div>
-        {task.permalinkUrl && (
-          <a href={task.permalinkUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Button>
-          </a>
-        )}
       </div>
+      {task.permalinkUrl && (
+        <a
+          href={task.permalinkUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-brand hover:text-brand-hover"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <ExternalLink className="h-5 w-5" />
+        </a>
+      )}
     </article>
   );
 }
@@ -87,12 +109,17 @@ function ProjectCard({
         {project.notes && (
           <p className="mt-1 line-clamp-2 text-sm text-muted">{project.notes}</p>
         )}
-        {activity && (
-          <p className="mt-2 text-xs text-muted">
-            Updated {format(activity, 'MMM d, yyyy')} ·{' '}
-            {formatDistanceToNow(activity, { addSuffix: true })}
-          </p>
-        )}
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+          {typeof project.taskCount === 'number' && (
+            <span>{project.taskCount} tasks</span>
+          )}
+          {activity && (
+            <span>
+              Updated {format(activity, 'MMM d, yyyy')} ·{' '}
+              {formatDistanceToNow(activity, { addSuffix: true })}
+            </span>
+          )}
+        </div>
       </div>
     </button>
   );
@@ -114,34 +141,34 @@ function AsanaProjectDetailView({
   const tasks = data?.data?.tasks ?? [];
 
   return (
-    <Card>
-      <CardHeader className="space-y-3">
-        <Button variant="ghost" size="sm" className="w-fit px-0" onClick={onBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to projects
-        </Button>
-        {isLoading ? (
-          <WidgetContentSkeleton lines={2} />
-        ) : project ? (
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <CardTitle>{project.name}</CardTitle>
-              {project.workspaceName && (
-                <CardDescription>{project.workspaceName}</CardDescription>
-              )}
-            </div>
-            {project.permalinkUrl && (
-              <a href={project.permalinkUrl} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Open in Asana
-                </Button>
-              </a>
-            )}
-          </div>
-        ) : null}
+    <Card className="overflow-hidden">
+      <CardHeader className="flex flex-row items-start justify-between gap-3 widget-card-header pb-4">
+        <div className="min-w-0">
+          <CardTitle className="text-lg">
+            {project?.name ?? 'Project'}
+          </CardTitle>
+          <CardDescription className="mt-1">
+            {project?.workspaceName
+              ? `${project.workspaceName} · tasks in this project`
+              : 'Tasks in this Asana project'}
+          </CardDescription>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {project?.permalinkUrl && (
+            <a href={project.permalinkUrl} target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Open in Asana
+              </Button>
+            </a>
+          )}
+          <Button variant="outline" size="sm" onClick={onBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Projects
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {isLoading ? (
           <WidgetContentSkeleton lines={6} />
         ) : isError ? (
@@ -195,14 +222,16 @@ export function AsanaProjectsSection({
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="overflow-hidden">
+      <CardHeader className="widget-card-header pb-4">
         <CardTitle className="text-lg">Projects</CardTitle>
-        <CardDescription>Projects from your linked Asana account</CardDescription>
+        <CardDescription className="mt-1">
+          Click a project to view its tasks
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {isLoading ? (
-          <WidgetContentSkeleton lines={4} />
+          <WidgetContentSkeleton lines={5} />
         ) : isError ? (
           <EmptyState
             icon={FolderKanban}
@@ -216,7 +245,7 @@ export function AsanaProjectsSection({
             description="Asana projects you can access will appear here after connecting"
           />
         ) : (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {projects.map((project) => (
               <ProjectCard
                 key={project.gid}
