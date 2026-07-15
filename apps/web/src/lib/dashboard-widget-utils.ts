@@ -12,6 +12,10 @@ import {
   DEFAULT_MONDAY_PREFERENCES,
   type MondayStatus,
 } from '@/services/monday.service';
+import {
+  DEFAULT_CLICKUP_PREFERENCES,
+  type ClickUpStatus,
+} from '@/services/clickup.service';
 import { DEFAULT_OUTLOOK_PREFERENCES, type OutlookStatus } from '@/services/outlook.service';
 import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
 import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
@@ -33,6 +37,7 @@ export interface DashboardIntegrationStatuses {
   trello?: TrelloStatus | null;
   asana?: AsanaStatus | null;
   monday?: MondayStatus | null;
+  clickup?: ClickUpStatus | null;
   calendly?: CalendlyStatus | null;
   slack?: SlackStatus | null;
   zoom?: ZoomStatus | null;
@@ -80,6 +85,12 @@ export function resolveVisibleDashboardWidgets(
   if (monday?.connected) {
     const preferences = monday.preferences ?? DEFAULT_MONDAY_PREFERENCES;
     if (preferences.showBoards) visible.push('monday-boards');
+  }
+
+  const clickup = statuses.clickup;
+  if (clickup?.connected) {
+    const preferences = clickup.preferences ?? DEFAULT_CLICKUP_PREFERENCES;
+    if (preferences.showLists) visible.push('clickup-lists');
   }
 
   const calendly = statuses.calendly;
@@ -147,6 +158,9 @@ export function getConnectedIntegrationRoutes(
   if (statuses.monday?.connected) {
     routes.push({ provider: 'MONDAY', route: '/integrations/monday', label: 'Monday.com' });
   }
+  if (statuses.clickup?.connected) {
+    routes.push({ provider: 'CLICKUP', route: '/integrations/clickup', label: 'ClickUp' });
+  }
   if (statuses.calendly?.connected) {
     routes.push({ provider: 'CALENDLY', route: '/integrations/calendly', label: 'Calendly' });
   }
@@ -185,4 +199,5 @@ export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'dropbox-files',
   'asana-projects',
   'monday-boards',
+  'clickup-lists',
 ]);

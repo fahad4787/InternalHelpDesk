@@ -1,5 +1,6 @@
 import { asanaService } from '@/services/asana.service';
 import { mondayService } from '@/services/monday.service';
+import { clickupService } from '@/services/clickup.service';
 import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
@@ -20,6 +21,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return asanaService.disconnect();
     case 'MONDAY':
       return mondayService.disconnect();
+    case 'CLICKUP':
+      return clickupService.disconnect();
     case 'CALENDLY':
       return calendlyService.disconnect();
     case 'SLACK':

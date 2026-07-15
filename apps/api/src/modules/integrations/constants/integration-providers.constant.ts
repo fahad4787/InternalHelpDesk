@@ -38,6 +38,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'project-management',
   },
   {
+    provider: IntegrationProvider.CLICKUP,
+    name: 'ClickUp',
+    description: 'Lists and tasks from your linked ClickUp account',
+    category: 'project-management',
+  },
+  {
     provider: IntegrationProvider.CALENDLY,
     name: 'Calendly',
     description: 'Event types and upcoming meetings from your Calendly account',

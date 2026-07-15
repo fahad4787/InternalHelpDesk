@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { asanaService } from '@/services/asana.service';
 import { mondayService } from '@/services/monday.service';
+import { clickupService } from '@/services/clickup.service';
 import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
@@ -65,6 +66,13 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
     enabled,
   });
 
+  const clickupQuery = useQuery({
+    queryKey: ['clickup-status'],
+    queryFn: () => clickupService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
+  });
+
   const calendlyQuery = useQuery({
     queryKey: ['calendly-status'],
     queryFn: () => calendlyService.getStatus(),
@@ -115,6 +123,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
         trello: trelloQuery.data?.data,
         asana: asanaQuery.data?.data,
         monday: mondayQuery.data?.data,
+        clickup: clickupQuery.data?.data,
         calendly: calendlyQuery.data?.data,
         slack: slackQuery.data?.data,
         zoom: zoomQuery.data?.data,
@@ -128,6 +137,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       trelloQuery.data?.data,
       asanaQuery.data?.data,
       mondayQuery.data?.data,
+      clickupQuery.data?.data,
       calendlyQuery.data?.data,
       slackQuery.data?.data,
       zoomQuery.data?.data,
@@ -144,6 +154,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       isStatusPending(trelloQuery) ||
       isStatusPending(asanaQuery) ||
       isStatusPending(mondayQuery) ||
+      isStatusPending(clickupQuery) ||
       isStatusPending(calendlyQuery) ||
       isStatusPending(slackQuery) ||
       isStatusPending(zoomQuery) ||
@@ -160,6 +171,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       trello: trelloQuery.data?.data,
       asana: asanaQuery.data?.data,
       monday: mondayQuery.data?.data,
+      clickup: clickupQuery.data?.data,
       calendly: calendlyQuery.data?.data,
       slack: slackQuery.data?.data,
       zoom: zoomQuery.data?.data,

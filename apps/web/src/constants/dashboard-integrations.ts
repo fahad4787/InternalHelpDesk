@@ -100,8 +100,9 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     description: 'Tasks, lists, and workspaces from ClickUp',
     category: 'task',
     categoryLabel: 'Task Management',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/clickup',
+    available: true,
+    showWidgets: true,
   },
 
   // Calendar & Meetings

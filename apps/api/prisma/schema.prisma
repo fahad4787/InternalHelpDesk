@@ -55,6 +55,7 @@ enum IntegrationProvider {
   TRELLO
   ASANA
   MONDAY
+  CLICKUP
   CALENDLY
   SERVICENOW
   WORKDAY
@@ -140,6 +141,7 @@ model User {
   trelloConnection          TrelloConnection?
   asanaConnection           AsanaConnection?
   mondayConnection          MondayConnection?
+  clickupConnection         ClickUpConnection?
   calendlyConnection        CalendlyConnection?
   slackConnection           SlackConnection?
   outlookConnection         OutlookConnection?
@@ -512,6 +514,22 @@ model MondayConnection {
   lastSyncedAt          DateTime?
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ClickUpConnection {
+  id                   String            @id @default(uuid())
+  userId               String            @unique
+  clickupUserId        String?
+  clickupEmail         String?
+  clickupUsername      String?
+  encryptedAccessToken String?
+  status               IntegrationStatus @default(NOT_CONNECTED)
+  preferences          Json?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

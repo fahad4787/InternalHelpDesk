@@ -33,6 +33,9 @@ import {
   MondayBoardsDashboardWidget,
 } from '@/components/dashboard/widgets/monday-dashboard-widgets';
 import {
+  ClickUpListsDashboardWidget,
+} from '@/components/dashboard/widgets/clickup-dashboard-widgets';
+import {
   ZoomCalendarDashboardWidget,
   ZoomMeetingsDashboardWidget,
   ZoomProfileDashboardWidget,
@@ -52,6 +55,7 @@ export const DASHBOARD_WIDGET_IDS = [
   'trello-boards',
   'asana-projects',
   'monday-boards',
+  'clickup-lists',
   'calendly-event-types',
   'calendly-events',
   'slack-profile',
@@ -153,33 +157,40 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/monday',
     order: 27,
   },
+  'clickup-lists': {
+    id: 'clickup-lists',
+    label: 'Lists',
+    provider: 'CLICKUP',
+    configureRoute: '/integrations/clickup',
+    order: 28,
+  },
   'calendly-event-types': {
     id: 'calendly-event-types',
     label: 'Event types',
     provider: 'CALENDLY',
     configureRoute: '/integrations/calendly',
-    order: 28,
+    order: 29,
   },
   'calendly-events': {
     id: 'calendly-events',
     label: 'Upcoming events',
     provider: 'CALENDLY',
     configureRoute: '/integrations/calendly',
-    order: 29,
+    order: 30,
   },
   'slack-profile': {
     id: 'slack-profile',
     label: 'Workspace profile',
     provider: 'SLACK',
     configureRoute: '/integrations/slack',
-    order: 30,
+    order: 31,
   },
   'slack-messenger': {
     id: 'slack-messenger',
     label: 'Channels & messages',
     provider: 'SLACK',
     configureRoute: '/integrations/slack',
-    order: 31,
+    order: 32,
   },
   'zoom-profile': {
     id: 'zoom-profile',
@@ -244,6 +255,7 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'trello-boards': TrelloBoardsDashboardWidget,
   'asana-projects': AsanaProjectsDashboardWidget,
   'monday-boards': MondayBoardsDashboardWidget,
+  'clickup-lists': ClickUpListsDashboardWidget,
   'calendly-event-types': CalendlyEventTypesDashboardWidget,
   'calendly-events': CalendlyUpcomingEventsDashboardWidget,
   'slack-profile': SlackProfileDashboardWidget,
@@ -263,6 +275,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   TRELLO: '/integrations/trello',
   ASANA: '/integrations/asana',
   MONDAY: '/integrations/monday',
+  CLICKUP: '/integrations/clickup',
   CALENDLY: '/integrations/calendly',
   SLACK: '/integrations/slack',
   ZOOM: '/integrations/zoom',

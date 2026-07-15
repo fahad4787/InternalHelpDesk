@@ -5,6 +5,7 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   TRELLO: ['trello-status', 'trello-boards', 'trello-board'],
   ASANA: ['asana-status', 'asana-projects', 'asana-project'],
   MONDAY: ['monday-status', 'monday-boards', 'monday-board'],
+  CLICKUP: ['clickup-status', 'clickup-lists', 'clickup-list'],
   CALENDLY: ['calendly-status', 'calendly-event-types', 'calendly-events'],
   SLACK: ['slack-status', 'slack-channels', 'slack-messages', 'slack-profile'],
   GOOGLE_CALENDAR: [

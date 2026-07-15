@@ -74,6 +74,8 @@ function isProviderConnected(
       return statuses.asana?.connected === true;
     case 'MONDAY':
       return statuses.monday?.connected === true;
+    case 'CLICKUP':
+      return statuses.clickup?.connected === true;
     case 'CALENDLY':
       return statuses.calendly?.connected === true;
     case 'SLACK':
@@ -109,6 +111,8 @@ function connectedAtForProvider(
       return statuses.asana?.lastSyncedAt ?? null;
     case 'MONDAY':
       return statuses.monday?.lastSyncedAt ?? null;
+    case 'CLICKUP':
+      return statuses.clickup?.lastSyncedAt ?? null;
     case 'CALENDLY':
       return statuses.calendly?.lastSyncedAt ?? null;
     case 'SLACK':

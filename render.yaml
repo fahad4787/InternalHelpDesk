@@ -30,3 +30,9 @@ services:
         sync: false
       - key: MONDAY_CLIENT_SECRET
         sync: false
+      - key: CLICKUP_REDIRECT_URI
+        value: https://internal-helpdesk-api.onrender.com/api/integrations/clickup/callback
+      - key: CLICKUP_CLIENT_ID
+        sync: false
+      - key: CLICKUP_CLIENT_SECRET
+        sync: false

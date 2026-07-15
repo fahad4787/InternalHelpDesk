@@ -27,6 +27,7 @@ export class IntegrationsService {
       trelloConnection,
       asanaConnection,
       mondayConnection,
+      clickupConnection,
       calendlyConnection,
       slackConnection,
       outlookConnection,
@@ -71,6 +72,12 @@ export class IntegrationsService {
       ),
       this.softQuery(
         this.prisma.mondayConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.clickUpConnection.findUnique({
           where: { userId: user.id },
         }),
         null,
@@ -183,6 +190,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: mondayConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.CLICKUP) {
+        const userConnected =
+          clickupConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: clickupConnection?.updatedAt ?? null,
         };
       }
 

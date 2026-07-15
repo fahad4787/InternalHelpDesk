@@ -19,6 +19,8 @@ import { AsanaModule } from './asana/asana.module';
 import { AsanaController } from './asana/asana.controller';
 import { MondayModule } from './monday/monday.module';
 import { MondayController } from './monday/monday.controller';
+import { ClickUpModule } from './clickup/clickup.module';
+import { ClickUpController } from './clickup/clickup.controller';
 import { CalendlyModule } from './calendly/calendly.module';
 import { CalendlyController } from './calendly/calendly.controller';
 import { DropboxModule } from './dropbox/dropbox.module';
@@ -33,6 +35,7 @@ import { DropboxController } from './dropbox/dropbox.controller';
     TrelloModule,
     AsanaModule,
     MondayModule,
+    ClickUpModule,
     CalendlyModule,
     SlackModule,
     OutlookModule,
@@ -46,6 +49,7 @@ import { DropboxController } from './dropbox/dropbox.controller';
     TrelloController,
     AsanaController,
     MondayController,
+    ClickUpController,
     CalendlyController,
     SlackController,
     OutlookController,
@@ -62,6 +66,7 @@ import { DropboxController } from './dropbox/dropbox.controller';
     TrelloModule,
     AsanaModule,
     MondayModule,
+    ClickUpModule,
     CalendlyModule,
     SlackModule,
     OutlookModule,
