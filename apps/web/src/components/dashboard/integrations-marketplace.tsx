@@ -18,8 +18,9 @@ import { SearchInput } from '@/components/shared/search-input';
 import { integrationsService } from '@/services/integrations.service';
 import { Integration } from '@/types/api.types';
 import {
+  MARKETPLACE_APPS,
   MARKETPLACE_CATEGORY_FILTERS,
-  REAL_INTEGRATION_META,
+  PRIMARY_MARKETPLACE_BY_PROVIDER,
   type MarketplaceAppMeta,
   type MarketplaceCategory,
 } from '@/constants/dashboard-integrations';
@@ -31,8 +32,6 @@ import {
 import { MARKETPLACE_APP_COUNT } from '@/constants/navigation';
 import { useDashboardVisibleWidgets } from '@/hooks/use-dashboard-visible-widgets';
 import { useDashboardUi, type IntegrationsTab } from './dashboard-ui-context';
-
-const HIDDEN_PROVIDERS = new Set(['GOOGLE_DRIVE', 'GMAIL', 'GOOGLE_MEET']);
 
 const TAB_OPTIONS: { id: IntegrationsTab; label: string }[] = [
   { id: 'browse', label: 'Browse' },
@@ -60,22 +59,19 @@ function buildEntries(
   const byProvider = new Map(
     integrations.map((item) => [item.provider, item] as const),
   );
-  const entries: MarketplaceEntry[] = [];
 
-  for (const meta of Object.values(REAL_INTEGRATION_META)) {
-    if (HIDDEN_PROVIDERS.has(meta.provider)) continue;
-
+  return MARKETPLACE_APPS.map((meta) => {
     const item = byProvider.get(meta.provider);
-    const widgetLabels = getWidgetLabelsForProvider(meta.provider);
-    const dashboardWidgetCount = countDashboardWidgetsForProvider(
-      meta.provider,
-      visibleWidgetIds,
-    );
+    const showWidgets = Boolean(meta.showWidgets);
+    const widgetLabels = showWidgets ? getWidgetLabelsForProvider(meta.provider) : [];
+    const dashboardWidgetCount = showWidgets
+      ? countDashboardWidgetsForProvider(meta.provider, visibleWidgetIds)
+      : 0;
 
-    entries.push({
-      id: meta.widgetId,
-      name: item?.name ?? meta.name,
-      description: item?.description ?? meta.description,
+    return {
+      id: meta.id,
+      name: meta.name,
+      description: meta.description,
       category: meta.category,
       categoryLabel: meta.categoryLabel,
       meta,
@@ -84,6 +80,41 @@ function buildEntries(
       isConnected: item?.status === 'CONNECTED',
       dashboardWidgetCount,
       widgetLabels,
+    };
+  });
+}
+
+function buildConnectedEntries(
+  integrations: Integration[],
+  visibleWidgetIds: DashboardWidgetId[],
+): MarketplaceEntry[] {
+  const byProvider = new Map(
+    integrations.map((item) => [item.provider, item] as const),
+  );
+  const entries: MarketplaceEntry[] = [];
+
+  for (const [provider, item] of byProvider) {
+    if (item.status !== 'CONNECTED') continue;
+    const meta =
+      PRIMARY_MARKETPLACE_BY_PROVIDER[provider] ??
+      MARKETPLACE_APPS.find((app) => app.provider === provider);
+    if (!meta) continue;
+
+    entries.push({
+      id: meta.id,
+      name: item.name ?? meta.name,
+      description: item.description ?? meta.description,
+      category: meta.category,
+      categoryLabel: meta.categoryLabel,
+      meta,
+      status: item.status,
+      connectedAt: item.connectedAt ?? null,
+      isConnected: true,
+      dashboardWidgetCount: countDashboardWidgetsForProvider(
+        meta.provider,
+        visibleWidgetIds,
+      ),
+      widgetLabels: getWidgetLabelsForProvider(meta.provider),
     });
   }
 
@@ -92,20 +123,23 @@ function buildEntries(
 
 function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
   const { meta, isConnected, dashboardWidgetCount, widgetLabels } = entry;
+  const iconKey = meta.iconKey;
 
   return (
     <article className="flex h-full flex-col rounded-2xl border border-border-warm bg-white p-5 shadow-sm transition-colors hover:border-positive-muted hover:shadow-md">
       <div className="flex items-start gap-3">
         <IntegrationIcon
-          provider={isIntegrationIconProvider(meta.provider) ? meta.provider : 'JIRA'}
+          provider={isIntegrationIconProvider(iconKey) ? iconKey : 'JIRA'}
           size="md"
           tile
+          dimmed={!meta.available}
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-semibold text-ink">{entry.name}</h3>
             <Badge variant="secondary">{entry.categoryLabel}</Badge>
-            {isConnected && <Badge variant="success">Connected</Badge>}
+            {isConnected && meta.available && <Badge variant="success">Connected</Badge>}
+            {!meta.available && <Badge variant="secondary">Coming soon</Badge>}
             {dashboardWidgetCount > 0 && (
               <Badge variant="default">
                 {dashboardWidgetCount} on dashboard
@@ -135,20 +169,18 @@ function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
       )}
 
       <div className="mt-auto flex flex-wrap gap-2 pt-4">
-        {isConnected ? (
-          meta.configureRoute && (
-            <Link href={meta.configureRoute} className={buttonVariants({ size: 'sm' })}>
-              Manage widgets
-            </Link>
-          )
-        ) : meta.configureRoute ? (
-          <Link href={meta.configureRoute} className={buttonVariants({ size: 'sm' })}>
-            Connect
-          </Link>
-        ) : (
+        {!meta.available || !meta.configureRoute ? (
           <Button size="sm" disabled>
             Coming soon
           </Button>
+        ) : isConnected ? (
+          <Link href={meta.configureRoute} className={buttonVariants({ size: 'sm' })}>
+            Manage widgets
+          </Link>
+        ) : (
+          <Link href={meta.configureRoute} className={buttonVariants({ size: 'sm' })}>
+            Connect
+          </Link>
         )}
       </div>
     </article>
@@ -167,13 +199,14 @@ function ConnectedAppDetailCard({
   error: string | null;
 }) {
   const { meta, dashboardWidgetCount } = entry;
+  const iconKey = meta.iconKey;
 
   return (
     <article className="rounded-2xl border border-positive-muted bg-gradient-to-br from-positive-light/80 to-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
           <IntegrationIcon
-            provider={isIntegrationIconProvider(meta.provider) ? meta.provider : 'JIRA'}
+            provider={isIntegrationIconProvider(iconKey) ? iconKey : 'JIRA'}
             size="md"
             tile
           />
@@ -250,6 +283,11 @@ export function IntegrationsMarketplace() {
     [integrations, visibleWidgetIds],
   );
 
+  const connectedEntries = useMemo(
+    () => buildConnectedEntries(integrations, visibleWidgetIds),
+    [integrations, visibleWidgetIds],
+  );
+
   const filteredBrowse = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return entries.filter((entry) => {
@@ -257,15 +295,11 @@ export function IntegrationsMarketplace() {
       const matchesSearch =
         !query ||
         entry.name.toLowerCase().includes(query) ||
-        entry.description.toLowerCase().includes(query);
+        entry.description.toLowerCase().includes(query) ||
+        entry.categoryLabel.toLowerCase().includes(query);
       return matchesCategory && matchesSearch;
     });
   }, [entries, category, searchQuery]);
-
-  const connectedEntries = useMemo(
-    () => entries.filter((entry) => entry.isConnected),
-    [entries],
-  );
 
   const revokeMutation = useMutation({
     mutationFn: (provider: string) => disconnectIntegrationProvider(provider),
@@ -371,8 +405,8 @@ export function IntegrationsMarketplace() {
       )}
 
       <p className="border-t border-border-warm pt-4 text-center text-sm text-muted">
-        {MARKETPLACE_APP_COUNT} apps available · {connectedCount} connected · Toggle widgets on
-        each integration page
+        {MARKETPLACE_APP_COUNT} apps listed · {connectedCount} connected · Coming soon apps
+        unlock as we ship them
       </p>
     </div>
   );

@@ -7,7 +7,6 @@ export interface OutlookPreferences {
 
 export interface OutlookStatus {
   connected: boolean;
-  mockMode: boolean;
   status: string;
   outlookEmail: string | null;
   lastSyncedAt: string | null;
@@ -28,7 +27,6 @@ export interface OutlookMessage {
 
 export interface OutlookMessagesResponse {
   connected: boolean;
-  mockMode: boolean;
   outlookEmail?: string | null;
   messages: OutlookMessage[];
 }
@@ -40,7 +38,6 @@ export interface OutlookProfile {
 
 export interface OutlookProfileResponse {
   connected: boolean;
-  mockMode: boolean;
   profile: OutlookProfile | null;
 }
 
@@ -53,11 +50,6 @@ export const outlookService = {
   getStatus: () => apiGet<OutlookStatus>('/integrations/outlook/status'),
 
   getAuthUrl: () => apiGet<{ url: string }>('/integrations/outlook/auth-url'),
-
-  connectMock: () =>
-    apiPost<{ connected: boolean; mockMode: boolean; outlookEmail: string }>(
-      '/integrations/outlook/connect-mock',
-    ),
 
   disconnect: () => apiPost('/integrations/outlook/disconnect'),
 

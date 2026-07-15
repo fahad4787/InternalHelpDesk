@@ -14,7 +14,6 @@ import {
   verifyOAuthState,
 } from '../google-calendar/utils/oauth-state.util';
 import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
-import { MOCK_OUTLOOK_MESSAGES } from './constants/mock-messages.constant';
 import { UpdateOutlookPreferencesDto } from './dto/update-outlook-preferences.dto';
 import {
   DEFAULT_OUTLOOK_PREFERENCES,
@@ -82,13 +81,6 @@ export class OutlookService {
     );
   }
 
-  isMockMode(): boolean {
-    const mode = this.configService.get<string>('OUTLOOK_MODE', 'mock');
-    if (mode === 'mock') return true;
-    if (mode !== 'live') return true;
-    return !this.configService.get<string>('OUTLOOK_CLIENT_ID');
-  }
-
   async getStatus(user: AuthenticatedUser) {
     const connection = await this.prisma.outlookConnection.findUnique({
       where: { userId: user.id },
@@ -96,7 +88,6 @@ export class OutlookService {
 
     return successResponse({
       connected: connection?.status === IntegrationStatus.CONNECTED,
-      mockMode: this.isMockMode(),
       status: connection?.status ?? IntegrationStatus.NOT_CONNECTED,
       outlookEmail: connection?.outlookEmail ?? null,
       lastSyncedAt: connection?.lastSyncedAt?.toISOString() ?? null,
@@ -130,19 +121,17 @@ export class OutlookService {
   }
 
   getAuthUrl(user: AuthenticatedUser) {
-    if (this.isMockMode()) {
+    const clientId = this.configService.get<string>('OUTLOOK_CLIENT_ID')?.trim();
+    const redirectUri = this.getRedirectUri();
+    if (!clientId || !redirectUri) {
       throw new BadRequestException(
-        'Outlook OAuth is disabled in mock mode. Use the mock connect action instead.',
+        'Outlook is not configured. Set OUTLOOK_CLIENT_ID and OUTLOOK_REDIRECT_URI.',
       );
     }
 
-    const clientId = this.configService.get<string>('OUTLOOK_CLIENT_ID');
-    const redirectUri = this.getRedirectUri();
-    if (!clientId || !redirectUri) {
-      throw new BadRequestException('Outlook is not configured');
-    }
-
-    const clientSecret = this.configService.get<string>('OUTLOOK_CLIENT_SECRET');
+    const clientSecret = this.configService
+      .get<string>('OUTLOOK_CLIENT_SECRET')
+      ?.trim();
     if (!clientSecret) {
       throw new BadRequestException(
         'OUTLOOK_CLIENT_SECRET is missing. Add it to your server environment.',
@@ -229,49 +218,6 @@ export class OutlookService {
     return userId;
   }
 
-  async connectMock(user: AuthenticatedUser) {
-    if (!this.isMockMode()) {
-      throw new BadRequestException('Mock connect is only available in mock mode');
-    }
-
-    await this.prisma.outlookConnection.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        outlookEmail: user.email,
-        status: IntegrationStatus.CONNECTED,
-        preferences:
-          DEFAULT_OUTLOOK_PREFERENCES as unknown as Prisma.InputJsonValue,
-        lastSyncedAt: new Date(),
-      },
-      update: {
-        outlookEmail: user.email,
-        status: IntegrationStatus.CONNECTED,
-        lastSyncedAt: new Date(),
-      },
-    });
-
-    await this.prisma.integration.upsert({
-      where: {
-        companyId_provider: {
-          companyId: user.companyId,
-          provider: IntegrationProvider.OUTLOOK,
-        },
-      },
-      create: {
-        companyId: user.companyId,
-        provider: IntegrationProvider.OUTLOOK,
-        status: IntegrationStatus.CONNECTED,
-      },
-      update: { status: IntegrationStatus.CONNECTED },
-    });
-
-    return successResponse(
-      { connected: true, mockMode: true, outlookEmail: user.email },
-      'Outlook connected (mock mode)',
-    );
-  }
-
   async disconnect(user: AuthenticatedUser) {
     await this.prisma.outlookConnection.deleteMany({
       where: { userId: user.id },
@@ -302,22 +248,14 @@ export class OutlookService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         profile: null as OutlookProfile | null,
       });
     }
 
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        profile: {
-          email: connection.outlookEmail,
-          displayName: user.firstName
-            ? `${user.firstName} ${user.lastName}`.trim()
-            : null,
-        },
-      });
+    if (!connection.encryptedAccessToken) {
+      throw new BadRequestException(
+        'Outlook session expired. Please reconnect your account.',
+      );
     }
 
     const accessToken = await this.getValidAccessToken(connection);
@@ -325,7 +263,6 @@ export class OutlookService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       profile,
     });
   }
@@ -338,18 +275,14 @@ export class OutlookService {
     if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
       return successResponse({
         connected: false,
-        mockMode: this.isMockMode(),
         messages: [] as OutlookMessage[],
       });
     }
 
-    if (this.isMockMode()) {
-      return successResponse({
-        connected: true,
-        mockMode: true,
-        outlookEmail: connection.outlookEmail,
-        messages: MOCK_OUTLOOK_MESSAGES.slice(0, limit),
-      });
+    if (!connection.encryptedAccessToken) {
+      throw new BadRequestException(
+        'Outlook session expired. Please reconnect your account.',
+      );
     }
 
     const accessToken = await this.getValidAccessToken(connection);
@@ -362,7 +295,6 @@ export class OutlookService {
 
     return successResponse({
       connected: true,
-      mockMode: false,
       outlookEmail: connection.outlookEmail,
       messages,
     });

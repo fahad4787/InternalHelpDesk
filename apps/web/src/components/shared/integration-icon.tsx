@@ -4,18 +4,28 @@ export type IntegrationIconProvider =
   | 'GOOGLE_CALENDAR'
   | 'GOOGLE_MEET'
   | 'GOOGLE_DRIVE'
+  | 'GOOGLE_CHAT'
   | 'GMAIL'
   | 'JIRA'
   | 'TRELLO'
   | 'ASANA'
+  | 'MONDAY'
+  | 'CLICKUP'
   | 'CALENDLY'
   | 'SLACK'
   | 'ZOOM'
   | 'OUTLOOK'
   | 'DROPBOX'
+  | 'ONEDRIVE'
+  | 'SHAREPOINT'
+  | 'BOX'
   | 'WORKDAY'
   | 'MICROSOFT_TEAMS'
-  | 'SERVICENOW';
+  | 'SERVICENOW'
+  | 'SALESFORCE'
+  | 'HUBSPOT'
+  | 'ZOHO'
+  | 'DYNAMICS_365';
 
 const SIZE_CLASSES = {
   sm: { box: 'h-9 w-9', icon: 'h-5 w-5', radius: 'rounded-xl' },
@@ -226,6 +236,47 @@ function DropboxIcon({ className }: { className?: string }) {
   );
 }
 
+function GoogleChatIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="#00AC47"
+        d="M12 2C6.48 2 2 5.92 2 10.8c0 2.7 1.4 5.1 3.6 6.7V22l3.4-1.9c.9.2 1.9.3 2.9.3 5.52 0 10-3.92 10-8.8S17.52 2 12 2z"
+      />
+      <circle fill="#fff" cx="8" cy="10.5" r="1.2" />
+      <circle fill="#fff" cx="12" cy="10.5" r="1.2" />
+      <circle fill="#fff" cx="16" cy="10.5" r="1.2" />
+    </svg>
+  );
+}
+
+function LetterIcon({
+  letter,
+  bg,
+  className,
+}: {
+  letter: string;
+  bg: string;
+  className?: string;
+}) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <rect width="24" height="24" rx="5" fill={bg} />
+      <text
+        x="12"
+        y="16"
+        textAnchor="middle"
+        fill="#fff"
+        fontSize="11"
+        fontWeight="700"
+        fontFamily="system-ui, sans-serif"
+      >
+        {letter}
+      </text>
+    </svg>
+  );
+}
+
 function BrandGlyph({
   provider,
   className,
@@ -240,6 +291,8 @@ function BrandGlyph({
       return <GoogleMeetIcon className={className} />;
     case 'GOOGLE_DRIVE':
       return <GoogleDriveIcon className={className} />;
+    case 'GOOGLE_CHAT':
+      return <GoogleChatIcon className={className} />;
     case 'GMAIL':
       return <GmailIcon className={className} />;
     case 'JIRA':
@@ -248,6 +301,10 @@ function BrandGlyph({
       return <TrelloIcon className={className} />;
     case 'ASANA':
       return <AsanaIcon className={className} />;
+    case 'MONDAY':
+      return <LetterIcon letter="M" bg="#FF3D57" className={className} />;
+    case 'CLICKUP':
+      return <LetterIcon letter="C" bg="#7B68EE" className={className} />;
     case 'CALENDLY':
       return <CalendlyIcon className={className} />;
     case 'SLACK':
@@ -258,12 +315,26 @@ function BrandGlyph({
       return <OutlookIcon className={className} />;
     case 'DROPBOX':
       return <DropboxIcon className={className} />;
+    case 'ONEDRIVE':
+      return <LetterIcon letter="O" bg="#0078D4" className={className} />;
+    case 'SHAREPOINT':
+      return <LetterIcon letter="S" bg="#038387" className={className} />;
+    case 'BOX':
+      return <LetterIcon letter="B" bg="#0061D5" className={className} />;
     case 'WORKDAY':
       return <WorkdayIcon className={className} />;
     case 'MICROSOFT_TEAMS':
       return <TeamsIcon className={className} />;
     case 'SERVICENOW':
       return <ServiceNowIcon className={className} />;
+    case 'SALESFORCE':
+      return <LetterIcon letter="SF" bg="#00A1E0" className={className} />;
+    case 'HUBSPOT':
+      return <LetterIcon letter="H" bg="#FF7A59" className={className} />;
+    case 'ZOHO':
+      return <LetterIcon letter="Z" bg="#E42527" className={className} />;
+    case 'DYNAMICS_365':
+      return <LetterIcon letter="D" bg="#002050" className={className} />;
     default:
       return <GoogleIcon className={className} />;
   }
@@ -276,18 +347,28 @@ export function isIntegrationIconProvider(
     'GOOGLE_CALENDAR',
     'GOOGLE_MEET',
     'GOOGLE_DRIVE',
+    'GOOGLE_CHAT',
     'GMAIL',
     'JIRA',
     'TRELLO',
     'ASANA',
+    'MONDAY',
+    'CLICKUP',
     'CALENDLY',
     'SLACK',
     'ZOOM',
     'OUTLOOK',
     'DROPBOX',
+    'ONEDRIVE',
+    'SHAREPOINT',
+    'BOX',
     'WORKDAY',
     'MICROSOFT_TEAMS',
     'SERVICENOW',
+    'SALESFORCE',
+    'HUBSPOT',
+    'ZOHO',
+    'DYNAMICS_365',
   ].includes(value);
 }
 

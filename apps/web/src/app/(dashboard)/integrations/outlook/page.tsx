@@ -53,17 +53,7 @@ export default function OutlookIntegrationPage() {
 
   const displayAuthError = isConnected ? null : authError;
 
-  const connectMockMutation = useMutation({
-    mutationFn: () => outlookService.connectMock(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['outlook-status'] });
-      queryClient.invalidateQueries({ queryKey: ['outlook-profile'] });
-      queryClient.invalidateQueries({ queryKey: ['outlook-messages'] });
-      queryClient.invalidateQueries({ queryKey: ['integrations'] });
-    },
-  });
-
-  const connectOutlookMutation = useMutation({
+  const connectMutation = useMutation({
     mutationFn: () => outlookService.getAuthUrl(),
     onSuccess: (res) => {
       window.location.href = res.data.url;
@@ -80,22 +70,10 @@ export default function OutlookIntegrationPage() {
     },
   });
 
-  const isPending =
-    connectMockMutation.isPending ||
-    connectOutlookMutation.isPending ||
-    disconnectMutation.isPending;
-
-  const handleConnect = () => {
-    if (status?.mockMode) {
-      connectMockMutation.mutate();
-    } else {
-      connectOutlookMutation.mutate();
-    }
-  };
-
+  const isPending = connectMutation.isPending || disconnectMutation.isPending;
   const connectError =
-    connectMockMutation.error || connectOutlookMutation.error
-      ? getErrorMessage(connectMockMutation.error || connectOutlookMutation.error)
+    connectMutation.error != null
+      ? getErrorMessage(connectMutation.error)
       : null;
 
   return (
@@ -119,7 +97,7 @@ export default function OutlookIntegrationPage() {
           isPending={isPending}
           authError={displayAuthError}
           connectError={connectError}
-          onConnect={handleConnect}
+          onConnect={() => connectMutation.mutate()}
           onDisconnect={() => disconnectMutation.mutate()}
         />
 

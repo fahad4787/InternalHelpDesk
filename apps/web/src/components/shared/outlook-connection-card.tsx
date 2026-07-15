@@ -80,7 +80,8 @@ export function OutlookConnectionCard({
 
               {isConnected && status?.lastSyncedAt && (
                 <p className="text-xs text-muted">
-                  Last synced {format(new Date(status.lastSyncedAt), 'MMM d, yyyy · h:mm a')}
+                  Last synced{' '}
+                  {format(new Date(status.lastSyncedAt), 'MMM d, yyyy · h:mm a')}
                 </p>
               )}
             </div>
@@ -89,7 +90,7 @@ export function OutlookConnectionCard({
           <div className="flex shrink-0 items-center gap-2 sm:pl-4">
             {!isConnected ? (
               <Button onClick={onConnect} disabled={isPending} className="w-full sm:w-auto">
-                {status?.mockMode ? 'Connect (Mock)' : 'Connect with Microsoft'}
+                Connect with Microsoft
               </Button>
             ) : (
               <Button
@@ -105,13 +106,8 @@ export function OutlookConnectionCard({
           </div>
         </div>
 
-        {(status?.mockMode || authError || connectError) && (
+        {(authError || connectError) && (
           <div className="space-y-2 border-t border-border-warm bg-white/70 px-5 py-3">
-            {status?.mockMode && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                Mock mode is enabled. Configure OUTLOOK_MODE=live and Microsoft OAuth credentials to use live authentication.
-              </p>
-            )}
             {authError && (
               <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                 {authError === 'access_denied'

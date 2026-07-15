@@ -11,9 +11,9 @@ import {
   Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { REAL_INTEGRATION_META } from './dashboard-integrations';
+import { getMarketplaceAppCount } from './dashboard-integrations';
 
-export const MARKETPLACE_APP_COUNT = Object.keys(REAL_INTEGRATION_META).length;
+export const MARKETPLACE_APP_COUNT = getMarketplaceAppCount();
 
 export interface NavItem {
   href: string | null;
