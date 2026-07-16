@@ -36,3 +36,17 @@ services:
         sync: false
       - key: CLICKUP_CLIENT_SECRET
         sync: false
+      - key: BOX_REDIRECT_URI
+        value: https://internal-helpdesk-api.onrender.com/api/integrations/box/callback
+      - key: BOX_CLIENT_ID
+        sync: false
+      - key: BOX_CLIENT_SECRET
+        sync: false
+      - key: HUBSPOT_REDIRECT_URI
+        value: https://internal-helpdesk-api.onrender.com/api/integrations/hubspot/callback
+      - key: HUBSPOT_SCOPES
+        value: crm.objects.contacts.read crm.objects.deals.read
+      - key: HUBSPOT_CLIENT_ID
+        sync: false
+      - key: HUBSPOT_CLIENT_SECRET
+        sync: false

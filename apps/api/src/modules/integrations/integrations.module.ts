@@ -25,6 +25,10 @@ import { CalendlyModule } from './calendly/calendly.module';
 import { CalendlyController } from './calendly/calendly.controller';
 import { DropboxModule } from './dropbox/dropbox.module';
 import { DropboxController } from './dropbox/dropbox.controller';
+import { BoxModule } from './box/box.module';
+import { BoxController } from './box/box.controller';
+import { HubSpotModule } from './hubspot/hubspot.module';
+import { HubSpotController } from './hubspot/hubspot.controller';
 
 @Module({
   imports: [
@@ -40,6 +44,8 @@ import { DropboxController } from './dropbox/dropbox.controller';
     SlackModule,
     OutlookModule,
     DropboxModule,
+    BoxModule,
+    HubSpotModule,
   ],
   controllers: [
     WorkdayController,
@@ -54,6 +60,8 @@ import { DropboxController } from './dropbox/dropbox.controller';
     SlackController,
     OutlookController,
     DropboxController,
+    BoxController,
+    HubSpotController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -71,6 +79,8 @@ import { DropboxController } from './dropbox/dropbox.controller';
     SlackModule,
     OutlookModule,
     DropboxModule,
+    BoxModule,
+    HubSpotModule,
   ],
 })
 export class IntegrationsModule {}

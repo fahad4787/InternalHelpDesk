@@ -10,6 +10,8 @@ import { trelloService } from '@/services/trello.service';
 import { workdayService } from '@/services/workday.service';
 import { zoomService } from '@/services/zoom.service';
 import { dropboxService } from '@/services/dropbox.service';
+import { boxService } from '@/services/box.service';
+import { hubspotService } from '@/services/hubspot.service';
 
 export async function disconnectIntegrationProvider(provider: string) {
   switch (provider) {
@@ -35,6 +37,10 @@ export async function disconnectIntegrationProvider(provider: string) {
       return outlookService.disconnect();
     case 'DROPBOX':
       return dropboxService.disconnect();
+    case 'BOX':
+      return boxService.disconnect();
+    case 'HUBSPOT':
+      return hubspotService.disconnect();
     case 'WORKDAY':
       return workdayService.reset();
     default:

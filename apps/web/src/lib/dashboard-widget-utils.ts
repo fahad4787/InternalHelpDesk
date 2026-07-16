@@ -24,6 +24,11 @@ import {
   DEFAULT_DROPBOX_PREFERENCES,
   type DropboxStatus,
 } from '@/services/dropbox.service';
+import { DEFAULT_BOX_PREFERENCES, type BoxStatus } from '@/services/box.service';
+import {
+  DEFAULT_HUBSPOT_PREFERENCES,
+  type HubSpotStatus,
+} from '@/services/hubspot.service';
 import type { WorkdayStatus } from '@/services/workday.service';
 import {
   DASHBOARD_WIDGET_DEFINITIONS,
@@ -43,6 +48,8 @@ export interface DashboardIntegrationStatuses {
   zoom?: ZoomStatus | null;
   outlook?: OutlookStatus | null;
   dropbox?: DropboxStatus | null;
+  box?: BoxStatus | null;
+  hubspot?: HubSpotStatus | null;
   workday?: WorkdayStatus | null;
 }
 
@@ -129,6 +136,20 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showFiles) visible.push('dropbox-files');
   }
 
+  const box = statuses.box;
+  if (box?.connected) {
+    const preferences = box.preferences ?? DEFAULT_BOX_PREFERENCES;
+    if (preferences.showFiles) visible.push('box-files');
+  }
+
+  const hubspot = statuses.hubspot;
+  if (hubspot?.connected) {
+    const preferences = hubspot.preferences ?? DEFAULT_HUBSPOT_PREFERENCES;
+    if (preferences.showContacts) visible.push('hubspot-contacts');
+    if (preferences.showDeals) visible.push('hubspot-deals');
+    if (preferences.showTickets) visible.push('hubspot-tickets');
+  }
+
   if (statuses.workday?.connected) {
     visible.push('workday-articles');
   }
@@ -176,6 +197,12 @@ export function getConnectedIntegrationRoutes(
   if (statuses.dropbox?.connected) {
     routes.push({ provider: 'DROPBOX', route: '/integrations/dropbox', label: 'Dropbox' });
   }
+  if (statuses.box?.connected) {
+    routes.push({ provider: 'BOX', route: '/integrations/box', label: 'Box' });
+  }
+  if (statuses.hubspot?.connected) {
+    routes.push({ provider: 'HUBSPOT', route: '/integrations/hubspot', label: 'HubSpot' });
+  }
   if (statuses.workday?.connected) {
     routes.push({ provider: 'WORKDAY', route: '/integrations/workday', label: 'Workday' });
   }
@@ -197,7 +224,9 @@ export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'google-chat',
   'trello-boards',
   'dropbox-files',
+  'box-files',
   'asana-projects',
   'monday-boards',
   'clickup-lists',
+  'hubspot-tickets',
 ]);

@@ -186,8 +186,9 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     description: 'Contacts, deals, and pipeline from HubSpot',
     category: 'crm',
     categoryLabel: 'CRM',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/hubspot',
+    available: true,
+    showWidgets: true,
   },
   {
     id: 'zoho-crm',
@@ -289,11 +290,12 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     provider: 'BOX',
     iconKey: 'BOX',
     name: 'Box',
-    description: 'Files and folders from Box',
+    description: 'Files and folders from your Box account',
     category: 'storage',
     categoryLabel: 'Cloud Storage',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/box',
+    available: true,
+    showWidgets: true,
   },
 
   // HR & Employee Management
@@ -341,6 +343,7 @@ export const PROVIDER_CATEGORY_MAP: Record<string, MarketplaceCategory> = {
   calendar: 'calendar',
   communication: 'communication',
   productivity: 'storage',
+  crm: 'crm',
   hr: 'hr',
   itsm: 'task',
 };

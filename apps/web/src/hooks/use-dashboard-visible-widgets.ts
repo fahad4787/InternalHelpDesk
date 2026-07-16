@@ -14,6 +14,8 @@ import { trelloService } from '@/services/trello.service';
 import { workdayService } from '@/services/workday.service';
 import { zoomService } from '@/services/zoom.service';
 import { dropboxService } from '@/services/dropbox.service';
+import { boxService } from '@/services/box.service';
+import { hubspotService } from '@/services/hubspot.service';
 import { resolveVisibleDashboardWidgets } from '@/lib/dashboard-widget-utils';
 
 const STATUS_STALE_MS = 120_000;
@@ -108,6 +110,20 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
     enabled,
   });
 
+  const boxQuery = useQuery({
+    queryKey: ['box-status'],
+    queryFn: () => boxService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
+  });
+
+  const hubspotQuery = useQuery({
+    queryKey: ['hubspot-status'],
+    queryFn: () => hubspotService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
+  });
+
   const workdayQuery = useQuery({
     queryKey: ['workday-status'],
     queryFn: () => workdayService.getStatus(),
@@ -129,6 +145,8 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
         zoom: zoomQuery.data?.data,
         outlook: outlookQuery.data?.data,
         dropbox: dropboxQuery.data?.data,
+        box: boxQuery.data?.data,
+        hubspot: hubspotQuery.data?.data,
         workday: workdayQuery.data?.data,
       }),
     [
@@ -143,6 +161,8 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       zoomQuery.data?.data,
       outlookQuery.data?.data,
       dropboxQuery.data?.data,
+      boxQuery.data?.data,
+      hubspotQuery.data?.data,
       workdayQuery.data?.data,
     ],
   );
@@ -160,6 +180,8 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       isStatusPending(zoomQuery) ||
       isStatusPending(outlookQuery) ||
       isStatusPending(dropboxQuery) ||
+      isStatusPending(boxQuery) ||
+      isStatusPending(hubspotQuery) ||
       isStatusPending(workdayQuery));
 
   return {
@@ -177,6 +199,8 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       zoom: zoomQuery.data?.data,
       outlook: outlookQuery.data?.data,
       dropbox: dropboxQuery.data?.data,
+      box: boxQuery.data?.data,
+      hubspot: hubspotQuery.data?.data,
       workday: workdayQuery.data?.data,
     },
   };

@@ -42,6 +42,12 @@ import {
 } from '@/components/dashboard/widgets/zoom-dashboard-widgets';
 import { WorkdayDashboardWidget } from '@/components/dashboard/widgets/workday-dashboard-widget';
 import { DropboxFilesDashboardWidget } from '@/components/dashboard/widgets/dropbox-dashboard-widgets';
+import { BoxFilesDashboardWidget } from '@/components/dashboard/widgets/box-dashboard-widgets';
+import {
+  HubSpotContactsDashboardWidget,
+  HubSpotDealsDashboardWidget,
+  HubSpotTicketsDashboardWidget,
+} from '@/components/dashboard/widgets/hubspot-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -66,6 +72,10 @@ export const DASHBOARD_WIDGET_IDS = [
   'outlook-profile',
   'outlook-inbox',
   'dropbox-files',
+  'box-files',
+  'hubspot-contacts',
+  'hubspot-deals',
+  'hubspot-tickets',
   'workday-articles',
 ] as const;
 
@@ -234,6 +244,34 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/dropbox',
     order: 55,
   },
+  'box-files': {
+    id: 'box-files',
+    label: 'Box files',
+    provider: 'BOX',
+    configureRoute: '/integrations/box',
+    order: 56,
+  },
+  'hubspot-contacts': {
+    id: 'hubspot-contacts',
+    label: 'Contacts',
+    provider: 'HUBSPOT',
+    configureRoute: '/integrations/hubspot',
+    order: 57,
+  },
+  'hubspot-deals': {
+    id: 'hubspot-deals',
+    label: 'Deals',
+    provider: 'HUBSPOT',
+    configureRoute: '/integrations/hubspot',
+    order: 58,
+  },
+  'hubspot-tickets': {
+    id: 'hubspot-tickets',
+    label: 'Tickets',
+    provider: 'HUBSPOT',
+    configureRoute: '/integrations/hubspot',
+    order: 59,
+  },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
@@ -266,6 +304,10 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'outlook-profile': OutlookProfileDashboardWidget,
   'outlook-inbox': OutlookInboxDashboardWidget,
   'dropbox-files': DropboxFilesDashboardWidget,
+  'box-files': BoxFilesDashboardWidget,
+  'hubspot-contacts': HubSpotContactsDashboardWidget,
+  'hubspot-deals': HubSpotDealsDashboardWidget,
+  'hubspot-tickets': HubSpotTicketsDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -281,6 +323,8 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   ZOOM: '/integrations/zoom',
   OUTLOOK: '/integrations/outlook',
   DROPBOX: '/integrations/dropbox',
+  BOX: '/integrations/box',
+  HUBSPOT: '/integrations/hubspot',
   WORKDAY: '/integrations/workday',
 };
 

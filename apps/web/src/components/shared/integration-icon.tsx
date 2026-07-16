@@ -236,6 +236,38 @@ function DropboxIcon({ className }: { className?: string }) {
   );
 }
 
+function BoxIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <rect fill="#0061D5" width="24" height="24" rx="5" />
+      <text
+        x="12"
+        y="16"
+        textAnchor="middle"
+        fill="#fff"
+        fontSize="10"
+        fontWeight="800"
+        fontFamily="system-ui, sans-serif"
+        letterSpacing="-0.5"
+      >
+        box
+      </text>
+    </svg>
+  );
+}
+
+function HubSpotIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden>
+      <rect fill="#FF7A59" width="24" height="24" rx="5" />
+      <path
+        fill="#fff"
+        d="M16.3 9.36V7.2a1.32 1.32 0 0 0 .76-1.19v-.05a1.32 1.32 0 0 0-1.32-1.32h-.05a1.32 1.32 0 0 0-1.32 1.32v.05a1.32 1.32 0 0 0 .76 1.19v2.16a3.74 3.74 0 0 0-1.78.78L8.4 6.45a1.49 1.49 0 1 0-.7.9l4.65 3.62a3.75 3.75 0 0 0 .06 4.28l-1.42 1.42a1.2 1.2 0 0 0-.35-.05 1.22 1.22 0 1 0 1.22 1.22 1.2 1.2 0 0 0-.05-.35l1.4-1.4a3.77 3.77 0 1 0 3.09-6.75zm-.83 5.66a1.94 1.94 0 1 1 1.94-1.94 1.94 1.94 0 0 1-1.94 1.94z"
+      />
+    </svg>
+  );
+}
+
 function GoogleChatIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden>
@@ -320,7 +352,7 @@ function BrandGlyph({
     case 'SHAREPOINT':
       return <LetterIcon letter="S" bg="#038387" className={className} />;
     case 'BOX':
-      return <LetterIcon letter="B" bg="#0061D5" className={className} />;
+      return <BoxIcon className={className} />;
     case 'WORKDAY':
       return <WorkdayIcon className={className} />;
     case 'MICROSOFT_TEAMS':
@@ -330,7 +362,7 @@ function BrandGlyph({
     case 'SALESFORCE':
       return <LetterIcon letter="SF" bg="#00A1E0" className={className} />;
     case 'HUBSPOT':
-      return <LetterIcon letter="H" bg="#FF7A59" className={className} />;
+      return <HubSpotIcon className={className} />;
     case 'ZOHO':
       return <LetterIcon letter="Z" bg="#E42527" className={className} />;
     case 'DYNAMICS_365':

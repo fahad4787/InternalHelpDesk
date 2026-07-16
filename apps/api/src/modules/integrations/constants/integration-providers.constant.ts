@@ -80,6 +80,18 @@ export const INTEGRATION_PROVIDERS = [
     category: 'productivity',
   },
   {
+    provider: IntegrationProvider.BOX,
+    name: 'Box',
+    description: 'Files and folders from your linked Box account',
+    category: 'productivity',
+  },
+  {
+    provider: IntegrationProvider.HUBSPOT,
+    name: 'HubSpot',
+    description: 'Contacts and deals from your linked HubSpot account',
+    category: 'crm',
+  },
+  {
     provider: IntegrationProvider.SERVICENOW,
     name: 'ServiceNow',
     description: 'Connect with ServiceNow incidents',

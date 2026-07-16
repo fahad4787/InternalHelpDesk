@@ -32,6 +32,8 @@ export class IntegrationsService {
       slackConnection,
       outlookConnection,
       dropboxConnection,
+      boxConnection,
+      hubspotConnection,
       workdayConnection,
     ] = await Promise.all([
       this.softQuery(
@@ -102,6 +104,18 @@ export class IntegrationsService {
       ),
       this.softQuery(
         this.prisma.dropboxConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.boxConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.hubSpotConnection.findUnique({
           where: { userId: user.id },
         }),
         null,
@@ -250,6 +264,30 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: dropboxConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.BOX) {
+        const userConnected =
+          boxConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: boxConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.HUBSPOT) {
+        const userConnected =
+          hubspotConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: hubspotConnection?.updatedAt ?? null,
         };
       }
 

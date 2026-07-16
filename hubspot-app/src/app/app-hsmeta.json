@@ -1,0 +1,37 @@
+{
+  "uid": "workhub_helpdesk_hubspot_app",
+  "type": "app",
+  "config": {
+    "description": "Workhub Internal HelpDesk HubSpot integration (contacts, deals, and tickets).",
+    "name": "Workhub HelpDesk",
+    "distribution": "private",
+    "auth": {
+      "type": "oauth",
+      "redirectUrls": [
+        "https://internal-helpdesk-api.onrender.com/api/integrations/hubspot/callback",
+        "http://localhost:3001/api/integrations/hubspot/callback"
+      ],
+      "requiredScopes": [
+        "oauth",
+        "crm.objects.contacts.read",
+        "crm.objects.deals.read",
+        "tickets"
+      ],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": [
+        "https://api.hubapi.com"
+      ],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "support@workhub.example.com",
+      "documentationUrl": "https://workhub.example.com/docs",
+      "supportUrl": "https://workhub.example.com/support",
+      "supportPhone": "+18005555555"
+    }
+  }
+}
