@@ -25,6 +25,10 @@ import { appConfig } from '@/config/app.config';
 import { MARKETPLACE_APPS } from '@/constants/dashboard-integrations';
 import { WorkhubLogo } from '@/components/shared/workhub-logo';
 import {
+  IntegrationIcon,
+  isIntegrationIconProvider,
+} from '@/components/shared/integration-icon';
+import {
   FeatureCard,
   Kicker,
   Marquee,
@@ -35,6 +39,11 @@ import {
 import { scrollLandingTo } from './hooks';
 
 const APPS = MARKETPLACE_APPS.filter((a) => a.available);
+
+function AppBrandIcon({ iconKey, size = 'sm' }: { iconKey: string; size?: 'sm' | 'md' }) {
+  const provider = isIntegrationIconProvider(iconKey) ? iconKey : 'JIRA';
+  return <IntegrationIcon provider={provider} size={size} className="shadow-none" />;
+}
 
 export function LogoMarquee() {
   const items = ['Knowledge', 'AI Chat', 'Integrations', 'Dashboard', 'Workspace', 'Widgets', 'Citations', 'OAuth'];
@@ -354,11 +363,9 @@ export function Integrations() {
               <Link
                 key={`${it.id}-${i}`}
                 href="/register"
-                className="group flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 shadow-card transition hover:border-primary/50 hover:shadow-glow"
+                className="group flex items-center gap-2.5 rounded-full border border-border bg-surface px-3.5 py-2 shadow-card transition hover:border-primary/50 hover:shadow-glow"
               >
-                <span className="grid h-6 w-6 place-items-center rounded-md bg-primary/10 text-[11px] font-bold text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                  {it.name.charAt(0)}
-                </span>
+                <AppBrandIcon iconKey={it.iconKey} size="sm" />
                 <span className="whitespace-nowrap text-sm font-semibold">{it.name}</span>
               </Link>
             ))}
@@ -383,8 +390,8 @@ export function Integrations() {
                       'radial-gradient(120px 80px at 50% 0%, oklch(0.78 0.16 45 / 0.22), transparent 70%)',
                   }}
                 />
-                <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-primary/10 font-bold text-primary transition group-hover:scale-105 group-hover:bg-primary group-hover:text-primary-foreground">
-                  {it.name.charAt(0)}
+                <div className="relative transition-transform group-hover:scale-105">
+                  <AppBrandIcon iconKey={it.iconKey} size="md" />
                 </div>
                 <div className="relative mt-3 text-sm font-semibold">{it.name}</div>
                 <div className="relative text-xs text-muted-foreground">{it.categoryLabel}</div>

@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from 'react';
 
+const SIZE = 360;
+const HALF = SIZE / 2;
+
 export function CursorGlow({ enabled = true }: { enabled?: boolean }) {
   const glowRef = useRef<HTMLDivElement>(null);
-  const dotRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!enabled) return;
@@ -13,35 +15,45 @@ export function CursorGlow({ enabled = true }: { enabled?: boolean }) {
     if (window.matchMedia('(max-width: 767px)').matches) return;
 
     const glow = glowRef.current;
-    const dot = dotRef.current;
-    if (!glow || !dot) return;
+    if (!glow) return;
 
-    let x = -9999;
-    let y = -9999;
+    let targetX = -9999;
+    let targetY = -9999;
+    let currentX = targetX;
+    let currentY = targetY;
     let raf = 0;
-    let pending = false;
+    let running = false;
     let idle = 0;
 
-    const flush = () => {
-      pending = false;
-      glow.style.transform = `translate3d(${(x - 120).toFixed(1)}px, ${(y - 120).toFixed(1)}px, 0)`;
-      dot.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+    const tick = () => {
+      currentX += (targetX - currentX) * 0.14;
+      currentY += (targetY - currentY) * 0.14;
+
+      glow.style.transform = `translate3d(${(currentX - HALF).toFixed(2)}px, ${(currentY - HALF).toFixed(2)}px, 0)`;
+
+      const dx = targetX - currentX;
+      const dy = targetY - currentY;
+      if (dx * dx + dy * dy > 0.2) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        running = false;
+        glow.style.transform = `translate3d(${(targetX - HALF).toFixed(2)}px, ${(targetY - HALF).toFixed(2)}px, 0)`;
+      }
     };
 
     const onMove = (e: PointerEvent) => {
       if (document.documentElement.classList.contains('lp-scrolling')) return;
-      x = e.clientX;
-      y = e.clientY;
+      targetX = e.clientX;
+      targetY = e.clientY;
       glow.style.opacity = '1';
-      dot.style.opacity = '1';
       window.clearTimeout(idle);
       idle = window.setTimeout(() => {
         glow.style.opacity = '0';
-        dot.style.opacity = '0';
-      }, 1800);
-      if (pending) return;
-      pending = true;
-      raf = requestAnimationFrame(flush);
+      }, 1600);
+      if (!running) {
+        running = true;
+        raf = requestAnimationFrame(tick);
+      }
     };
 
     window.addEventListener('pointermove', onMove, { passive: true });
@@ -54,10 +66,5 @@ export function CursorGlow({ enabled = true }: { enabled?: boolean }) {
 
   if (!enabled) return null;
 
-  return (
-    <>
-      <div ref={glowRef} className="lp-cursor-glow" aria-hidden />
-      <div ref={dotRef} className="lp-cursor-dot" aria-hidden />
-    </>
-  );
+  return <div ref={glowRef} className="lp-cursor-glow" aria-hidden />;
 }
