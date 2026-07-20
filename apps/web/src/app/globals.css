@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "lenis/dist/lenis.css";
 
 :root {
   --bg-base: #f6f3ec;
@@ -55,6 +54,7 @@
 html {
   background-color: var(--bg-base);
   color: var(--text-primary);
+  scroll-behavior: smooth;
 }
 
 body {
