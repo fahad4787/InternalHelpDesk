@@ -55,24 +55,33 @@ html {
   background-color: var(--bg-base);
   color: var(--text-primary);
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-inter), system-ui, sans-serif;
   min-height: 100vh;
 }
 
 h1,
 h2,
 h3,
-.font-heading {
-  font-family: var(--font-heading);
+h4,
+.font-heading,
+.font-display {
+  font-family: var(--font-bricolage), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.font-sans {
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 .font-mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
 }
 
 .ai-gradient-text {
