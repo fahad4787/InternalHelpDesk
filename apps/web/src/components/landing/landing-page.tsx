@@ -1,19 +1,14 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useRef } from 'react';
 import { useLandingEngine } from './hooks';
 import { BootLoader } from './boot-loader';
+import { BelowFold } from './below-fold';
 import { LandingNav } from './nav';
 import { LandingHero } from './hero';
 import { LogoMarquee } from './sections';
 import { CursorGlow } from './cursor-glow';
 import './landing.css';
-
-const BelowFold = dynamic(
-  () => import('./below-fold').then((m) => ({ default: m.BelowFold })),
-  { ssr: true, loading: () => <div className="min-h-[60vh]" aria-hidden /> },
-);
 
 export function LandingPage() {
   const barRef = useRef<HTMLDivElement>(null);
