@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 
-const MIN_MS = 850;
+const MIN_MS = 280;
+const BOOT_KEY = 'lp-booted';
 
 declare global {
   interface Window {
@@ -10,34 +11,66 @@ declare global {
   }
 }
 
+function hasSeenBoot() {
+  try {
+    return sessionStorage.getItem(BOOT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markBootSeen() {
+  try {
+    sessionStorage.setItem(BOOT_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
+function finishBoot() {
+  document.documentElement.classList.remove('lp-booting');
+  window.dispatchEvent(new Event('lp-ready'));
+}
+
 export function BootLoader({ ready }: { ready: boolean }) {
   const [visible, setVisible] = useState(true);
   const [leaving, setLeaving] = useState(false);
+  const [skipped, setSkipped] = useState(false);
 
-  useEffect(() => {
-    if (!window.__lpBootStart) window.__lpBootStart = performance.now();
-    document.documentElement.classList.add('lp-booting');
-    return () => {
-      document.documentElement.classList.remove('lp-booting');
-    };
+  useLayoutEffect(() => {
+    if (!hasSeenBoot()) return;
+    setSkipped(true);
+    setVisible(false);
+    finishBoot();
   }, []);
 
   useEffect(() => {
-    if (!ready || !visible || leaving) return;
+    if (skipped || hasSeenBoot()) return;
+
+    if (!window.__lpBootStart) window.__lpBootStart = performance.now();
+    document.documentElement.classList.add('lp-booting');
+
+    return () => {
+      document.documentElement.classList.remove('lp-booting');
+    };
+  }, [skipped]);
+
+  useEffect(() => {
+    if (skipped || !ready || !visible || leaving) return;
 
     const started = window.__lpBootStart ?? performance.now();
     const wait = Math.max(0, MIN_MS - (performance.now() - started));
     const t = window.setTimeout(() => {
+      markBootSeen();
       setLeaving(true);
-      document.documentElement.classList.remove('lp-booting');
-      window.dispatchEvent(new Event('lp-ready'));
-      window.setTimeout(() => setVisible(false), 380);
+      finishBoot();
+      window.setTimeout(() => setVisible(false), 200);
     }, wait);
 
     return () => window.clearTimeout(t);
-  }, [ready, visible, leaving]);
+  }, [skipped, ready, visible, leaving]);
 
-  if (!visible) return null;
+  if (!visible || skipped) return null;
 
   return (
     <div
@@ -50,7 +83,7 @@ export function BootLoader({ ready }: { ready: boolean }) {
         display: 'grid',
         placeItems: 'center',
         background: '#faf7f2',
-        transition: 'opacity 0.4s ease, visibility 0.4s ease',
+        transition: 'opacity 0.2s ease, visibility 0.2s ease',
         opacity: leaving ? 0 : 1,
         visibility: leaving ? 'hidden' : 'visible',
         pointerEvents: leaving ? 'none' : 'auto',

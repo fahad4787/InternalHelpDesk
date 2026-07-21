@@ -8,18 +8,32 @@ import { cn } from '@/lib/utils';
 export function SoftOrb({
   className,
   color = 'brand',
+  animate = true,
 }: {
   className?: string;
   color?: 'brand' | 'warm' | 'mint';
+  animate?: boolean;
 }) {
   const bg =
     color === 'mint'
-      ? 'radial-gradient(circle, oklch(0.85 0.08 140 / 0.4), transparent 70%)'
+      ? 'radial-gradient(circle, oklch(0.85 0.08 140 / 0.55), oklch(0.85 0.08 140 / 0.18) 45%, transparent 70%)'
       : color === 'warm'
-        ? 'radial-gradient(circle, oklch(0.78 0.16 45 / 0.42), transparent 70%)'
-        : 'radial-gradient(circle, oklch(0.7 0.19 35 / 0.42), transparent 70%)';
+        ? 'radial-gradient(circle, oklch(0.78 0.16 45 / 0.6), oklch(0.78 0.16 45 / 0.2) 45%, transparent 70%)'
+        : 'radial-gradient(circle, oklch(0.7 0.19 35 / 0.6), oklch(0.7 0.19 35 / 0.22) 45%, transparent 70%)';
 
-  return <div aria-hidden className={cn('pointer-events-none absolute rounded-full', className)} style={{ background: bg }} />;
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        'pointer-events-none absolute rounded-full will-change-[transform,opacity]',
+        animate && 'lp-orb',
+        animate && color === 'warm' && 'lp-orb--warm',
+        animate && color === 'mint' && 'lp-orb--mint',
+        className,
+      )}
+      style={{ background: bg }}
+    />
+  );
 }
 
 export function Kicker({ children }: { children: React.ReactNode; light?: boolean }) {
@@ -29,6 +43,10 @@ export function Kicker({ children }: { children: React.ReactNode; light?: boolea
       {children}
     </div>
   );
+}
+
+export function BrandText({ text }: { text: string }) {
+  return <span className="text-gradient-brand">{text}</span>;
 }
 
 export function AnimatedHeadline({
@@ -49,39 +67,63 @@ export function AnimatedHeadline({
     }
 
     const start = () => setPlay(true);
+    try {
+      if (sessionStorage.getItem('lp-booted') === '1') {
+        start();
+        return;
+      }
+    } catch {
+      /* ignore */
+    }
+
+    window.addEventListener('lp-ready', start, { once: true });
     if (!document.getElementById('lp-boot-loader')) {
       start();
-      return;
     }
-    window.addEventListener('lp-ready', start, { once: true });
     return () => window.removeEventListener('lp-ready', start);
   }, []);
 
   let index = 0;
 
   return (
-    <h1 className="mt-6 text-[clamp(2.5rem,6.5vw,5.25rem)] font-extrabold leading-[1.02] tracking-tight">
-      {lines.map((line, lineIdx) => (
-        <span
-          key={lineIdx}
-          className={cn('lp-headline-line block')}
-        >
-          {line.split(' ').map((word) => {
-            const i = index++;
-            const accent = accentLine === lineIdx;
-            return (
-              <span key={`${lineIdx}-${word}-${i}`} className={cn('lp-word', play && 'is-in')}>
+    <h1 className="mt-6 text-[clamp(2.5rem,6.5vw,5.25rem)] font-extrabold leading-[1.02] tracking-tight max-sm:text-[clamp(2rem,8vw,5.25rem)]">
+      {lines.map((line, lineIdx) => {
+        const accent = accentLine === lineIdx;
+
+        if (accent) {
+          const i = index++;
+          return (
+            <span key={lineIdx} className="lp-headline-line block">
+              <span className={cn('lp-word', play && 'is-in')}>
                 <span
-                  className={cn('lp-word-inner', accent && 'text-gradient-brand')}
-                  style={{ transitionDelay: play ? `${90 + i * 75}ms` : '0ms' }}
+                  className="lp-word-inner text-gradient-brand"
+                  style={{ transitionDelay: play ? `${40 + i * 48}ms` : '0ms' }}
                 >
-                  {word}
+                  {line}
                 </span>
               </span>
-            );
-          })}
-        </span>
-      ))}
+            </span>
+          );
+        }
+
+        return (
+          <span key={lineIdx} className="lp-headline-line block">
+            {line.split(' ').map((word) => {
+              const i = index++;
+              return (
+                <span key={`${lineIdx}-${word}-${i}`} className={cn('lp-word', play && 'is-in')}>
+                  <span
+                    className="lp-word-inner"
+                    style={{ transitionDelay: play ? `${40 + i * 48}ms` : '0ms' }}
+                  >
+                    {word}
+                  </span>
+                </span>
+              );
+            })}
+          </span>
+        );
+      })}
     </h1>
   );
 }
@@ -106,7 +148,7 @@ export function FeatureCard({
       data-reveal
       data-delay={delay}
       className={cn(
-        'lp-card group relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 shadow-card',
+        'lp-card group relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 shadow-card max-sm:p-6',
         className,
       )}
     >
@@ -114,7 +156,7 @@ export function FeatureCard({
       <div className="relative">
         {Icon && (
           <div
-            className="mb-6 grid h-12 w-12 place-items-center rounded-2xl text-primary-foreground shadow-glow transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105"
+            className="mb-6 grid h-12 w-12 place-items-center rounded-2xl text-primary-foreground shadow-glow transition-transform duration-200 group-hover:rotate-3 group-hover:scale-105"
             style={{ background: 'var(--gradient-brand)' }}
           >
             <Icon className="h-5 w-5" />
