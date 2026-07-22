@@ -57,6 +57,10 @@ interface GraphChatItem {
   lastMessagePreview?: {
     body?: { content?: string };
   };
+  members?: Array<{
+    displayName?: string;
+    userId?: string;
+  }>;
 }
 
 @Injectable()
@@ -299,6 +303,7 @@ export class TeamsService {
   }
 
   async getChats(user: AuthenticatedUser, limit = 15) {
+    await ensureTeamsConnectionTable(this.prisma);
     const connection = await this.prisma.teamsConnection.findUnique({
       where: { userId: user.id },
     });
@@ -444,31 +449,64 @@ export class TeamsService {
     limit: number,
   ): Promise<TeamsChat[]> {
     const params = new URLSearchParams({
-      $top: String(limit),
+      $top: String(Math.min(Math.max(limit, 1), 50)),
+      $expand: 'lastMessagePreview,members',
       $orderby: 'lastUpdatedDateTime desc',
     });
 
     const response = await fetch(`${GRAPH_API_URL}/me/chats?${params}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ConsistencyLevel: 'eventual',
+      },
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new BadRequestException(`Failed to fetch Teams chats: ${error}`);
+      // Fallback without $orderby (some tenants reject advanced query).
+      const fallbackParams = new URLSearchParams({
+        $top: String(Math.min(Math.max(limit, 1), 50)),
+        $expand: 'lastMessagePreview,members',
+      });
+      const fallback = await fetch(`${GRAPH_API_URL}/me/chats?${fallbackParams}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!fallback.ok) {
+        const error = await fallback.text();
+        throw new BadRequestException(`Failed to fetch Teams chats: ${error}`);
+      }
+      const fallbackData = (await fallback.json()) as {
+        value?: GraphChatItem[];
+      };
+      return this.mapChats(fallbackData.value ?? [], limit);
     }
 
     const data = (await response.json()) as { value?: GraphChatItem[] };
-    return (data.value ?? []).map((chat) => {
-      const preview = chat.lastMessagePreview?.body?.content?.trim() || null;
+    return this.mapChats(data.value ?? [], limit);
+  }
+
+  private mapChats(items: GraphChatItem[], limit: number): TeamsChat[] {
+    return items.slice(0, limit).map((chat) => {
+      const preview = chat.lastMessagePreview?.body?.content
+        ?.replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim() || null;
+
+      const memberName = (chat.members ?? [])
+        .map((m) => m.displayName?.trim())
+        .find((name) => Boolean(name));
+
       const topic =
         chat.topic?.trim() ||
+        memberName ||
         (chat.chatType === 'oneOnOne' ? 'Direct chat' : 'Group chat');
 
       return {
         id: chat.id,
         topic,
         chatType: chat.chatType ?? 'unknown',
-        webUrl: chat.webUrl ?? null,
+        webUrl:
+          chat.webUrl ??
+          `https://teams.microsoft.com/l/chat/${encodeURIComponent(chat.id)}/conversations`,
         lastMessagePreview: preview,
         lastUpdatedAt: chat.lastUpdatedDateTime
           ? new Date(chat.lastUpdatedDateTime).toISOString()
