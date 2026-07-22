@@ -177,7 +177,7 @@ export default function TeamsIntegrationPage() {
                 <EmptyState
                   icon={MessagesSquare}
                   title="No chats found"
-                  description="Your recent Teams chats will appear here"
+                  description="Connect a Microsoft 365 work account that has Teams chats. Personal teams.live.com chats may not appear via Graph."
                 />
               ) : (
                 <TeamsChatList chats={chats} />

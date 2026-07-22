@@ -6,9 +6,12 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { TeamsProfileCard } from '@/components/shared/teams-profile-card';
 import { TeamsChatList, TeamsTeamList } from '@/components/shared/teams-lists';
 import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { getErrorMessage } from '@/lib/api-client';
 import { teamsService } from '@/services/teams.service';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
+
+const TEAMS_HOME_URL = 'https://teams.microsoft.com';
 
 export function TeamsProfileDashboardWidget() {
   const { data, isLoading } = useQuery({
@@ -23,7 +26,7 @@ export function TeamsProfileDashboardWidget() {
       source="Teams"
       sourceLogo={<IntegrationIcon provider="MICROSOFT_TEAMS" />}
       title="Teams profile"
-      deepLinkHref="/integrations/teams"
+      deepLinkHref={TEAMS_HOME_URL}
       deepLinkLabel="Open Teams"
     >
       {isLoading ? (
@@ -38,7 +41,7 @@ export function TeamsProfileDashboardWidget() {
 }
 
 export function TeamsJoinedDashboardWidget() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['teams-joined'],
     queryFn: () => teamsService.getTeams(),
   });
@@ -50,11 +53,13 @@ export function TeamsJoinedDashboardWidget() {
       source="Teams"
       sourceLogo={<IntegrationIcon provider="MICROSOFT_TEAMS" />}
       title="Joined teams"
-      deepLinkHref="/integrations/teams"
+      deepLinkHref={TEAMS_HOME_URL}
       deepLinkLabel="Open Teams"
     >
       {isLoading ? (
         <WidgetContentSkeleton lines={5} />
+      ) : isError ? (
+        <p className="text-sm text-red-600">{getErrorMessage(error)}</p>
       ) : teams.length === 0 ? (
         <EmptyState
           icon={Users}
@@ -69,7 +74,7 @@ export function TeamsJoinedDashboardWidget() {
 }
 
 export function TeamsChatsDashboardWidget() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['teams-chats'],
     queryFn: () => teamsService.getChats(),
   });
@@ -81,16 +86,18 @@ export function TeamsChatsDashboardWidget() {
       source="Teams"
       sourceLogo={<IntegrationIcon provider="MICROSOFT_TEAMS" />}
       title="Recent chats"
-      deepLinkHref="/integrations/teams"
+      deepLinkHref={TEAMS_HOME_URL}
       deepLinkLabel="Open Teams"
     >
       {isLoading ? (
         <WidgetContentSkeleton lines={5} />
+      ) : isError ? (
+        <p className="text-sm text-red-600">{getErrorMessage(error)}</p>
       ) : chats.length === 0 ? (
         <EmptyState
           icon={MessagesSquare}
           title="No chats found"
-          description="Your recent Teams chats will appear here"
+          description="Connect a Microsoft 365 work account that has Teams chats. Personal teams.live.com chats may not appear here."
         />
       ) : (
         <TeamsChatList chats={chats.slice(0, 6)} />
