@@ -17,6 +17,10 @@ import {
   type ClickUpStatus,
 } from '@/services/clickup.service';
 import { DEFAULT_OUTLOOK_PREFERENCES, type OutlookStatus } from '@/services/outlook.service';
+import {
+  DEFAULT_TEAMS_PREFERENCES,
+  type TeamsStatus,
+} from '@/services/teams.service';
 import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
 import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
 import { DEFAULT_ZOOM_PREFERENCES, type ZoomStatus } from '@/services/zoom.service';
@@ -47,6 +51,7 @@ export interface DashboardIntegrationStatuses {
   slack?: SlackStatus | null;
   zoom?: ZoomStatus | null;
   outlook?: OutlookStatus | null;
+  teams?: TeamsStatus | null;
   dropbox?: DropboxStatus | null;
   box?: BoxStatus | null;
   hubspot?: HubSpotStatus | null;
@@ -130,6 +135,14 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showInbox) visible.push('outlook-inbox');
   }
 
+  const teams = statuses.teams;
+  if (teams?.connected) {
+    const preferences = teams.preferences ?? DEFAULT_TEAMS_PREFERENCES;
+    if (preferences.showProfile) visible.push('teams-profile');
+    if (preferences.showTeams) visible.push('teams-joined');
+    if (preferences.showChats) visible.push('teams-chats');
+  }
+
   const dropbox = statuses.dropbox;
   if (dropbox?.connected) {
     const preferences = dropbox.preferences ?? DEFAULT_DROPBOX_PREFERENCES;
@@ -193,6 +206,13 @@ export function getConnectedIntegrationRoutes(
   }
   if (statuses.outlook?.connected) {
     routes.push({ provider: 'OUTLOOK', route: '/integrations/outlook', label: 'Outlook' });
+  }
+  if (statuses.teams?.connected) {
+    routes.push({
+      provider: 'MICROSOFT_TEAMS',
+      route: '/integrations/teams',
+      label: 'Teams',
+    });
   }
   if (statuses.dropbox?.connected) {
     routes.push({ provider: 'DROPBOX', route: '/integrations/dropbox', label: 'Dropbox' });

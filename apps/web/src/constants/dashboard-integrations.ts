@@ -150,8 +150,9 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     description: 'Meetings and channels from Microsoft Teams',
     category: 'calendar',
     categoryLabel: 'Calendar & Meetings',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/teams',
+    available: true,
+    showWidgets: true,
   },
   {
     id: 'calendly',
@@ -234,8 +235,9 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     description: 'Team channels and chat from Microsoft Teams',
     category: 'communication',
     categoryLabel: 'Communication',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/teams',
+    available: true,
+    showWidgets: true,
   },
   {
     id: 'outlook',

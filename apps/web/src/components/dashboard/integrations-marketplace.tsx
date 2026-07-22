@@ -84,6 +84,8 @@ function isProviderConnected(
       return statuses.zoom?.connected === true;
     case 'OUTLOOK':
       return statuses.outlook?.connected === true;
+    case 'MICROSOFT_TEAMS':
+      return statuses.teams?.connected === true;
     case 'DROPBOX':
       return statuses.dropbox?.connected === true;
     case 'WORKDAY':
@@ -121,6 +123,8 @@ function connectedAtForProvider(
       return statuses.zoom?.lastSyncedAt ?? null;
     case 'OUTLOOK':
       return statuses.outlook?.lastSyncedAt ?? null;
+    case 'MICROSOFT_TEAMS':
+      return statuses.teams?.lastSyncedAt ?? null;
     case 'DROPBOX':
       return statuses.dropbox?.lastSyncedAt ?? null;
     case 'WORKDAY':
