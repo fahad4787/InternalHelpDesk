@@ -4,18 +4,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, MessagesSquare, Users } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { TeamsConnectionCard } from '@/components/shared/teams-connection-card';
 import { TeamsPreferencesCard } from '@/components/shared/teams-preferences-card';
-import { TeamsProfileCard } from '@/components/shared/teams-profile-card';
-import { TeamsChatList, TeamsTeamList } from '@/components/shared/teams-lists';
+import { TeamsUnsupportedAccountCard } from '@/components/shared/teams-unsupported-account-card';
 import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
-import { EmptyState } from '@/components/shared/empty-state';
-import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getErrorMessage } from '@/lib/api-client';
+import {
+  isPersonalMicrosoftAccount,
+  isTeamsGraphUnsupportedError,
+} from '@/lib/teams-account';
 import {
   DEFAULT_TEAMS_PREFERENCES,
   teamsService,
@@ -35,24 +35,28 @@ export default function TeamsIntegrationPage() {
   const status = statusData?.data;
   const isConnected = status?.connected === true;
   const preferences = status?.preferences ?? DEFAULT_TEAMS_PREFERENCES;
-
-  const profileQuery = useQuery({
-    queryKey: ['teams-profile'],
-    queryFn: () => teamsService.getProfile(),
-    enabled: isConnected && preferences.showProfile,
-  });
+  const isPersonalAccount = isPersonalMicrosoftAccount(status?.teamsEmail);
 
   const teamsQuery = useQuery({
     queryKey: ['teams-joined'],
     queryFn: () => teamsService.getTeams(),
-    enabled: isConnected && preferences.showTeams,
+    enabled: isConnected && !isPersonalAccount && preferences.showTeams,
+    retry: false,
   });
 
   const chatsQuery = useQuery({
     queryKey: ['teams-chats'],
     queryFn: () => teamsService.getChats(),
-    enabled: isConnected && preferences.showChats,
+    enabled: isConnected && !isPersonalAccount && preferences.showChats,
+    retry: false,
   });
+
+  const graphUnsupported =
+    isPersonalAccount ||
+    (teamsQuery.isError &&
+      isTeamsGraphUnsupportedError(getErrorMessage(teamsQuery.error))) ||
+    (chatsQuery.isError &&
+      isTeamsGraphUnsupportedError(getErrorMessage(chatsQuery.error)));
 
   useEffect(() => {
     const connected = searchParams.get('connected');
@@ -61,7 +65,6 @@ export default function TeamsIntegrationPage() {
     if (connected === 'true') {
       setAuthError(null);
       queryClient.invalidateQueries({ queryKey: ['teams-status'] });
-      queryClient.invalidateQueries({ queryKey: ['teams-profile'] });
       queryClient.invalidateQueries({ queryKey: ['teams-joined'] });
       queryClient.invalidateQueries({ queryKey: ['teams-chats'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -88,7 +91,6 @@ export default function TeamsIntegrationPage() {
     mutationFn: () => teamsService.disconnect(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams-status'] });
-      queryClient.removeQueries({ queryKey: ['teams-profile'] });
       queryClient.removeQueries({ queryKey: ['teams-joined'] });
       queryClient.removeQueries({ queryKey: ['teams-chats'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -100,10 +102,6 @@ export default function TeamsIntegrationPage() {
     connectMutation.error != null
       ? getErrorMessage(connectMutation.error)
       : null;
-
-  const teams = teamsQuery.data?.data?.teams ?? [];
-  const chats = chatsQuery.data?.data?.chats ?? [];
-  const profile = profileQuery.data?.data?.profile ?? null;
 
   return (
     <PageContainer
@@ -130,63 +128,16 @@ export default function TeamsIntegrationPage() {
           onDisconnect={() => disconnectMutation.mutate()}
         />
 
-        {isConnected && <TeamsPreferencesCard preferences={preferences} />}
-
-        {isConnected && preferences.showProfile && (
-          <div>
-            {profileQuery.isLoading ? (
-              <WidgetContentSkeleton lines={3} />
-            ) : profile ? (
-              <TeamsProfileCard profile={profile} />
-            ) : (
-              <p className="text-sm text-muted">Profile unavailable.</p>
-            )}
-          </div>
+        {isConnected && graphUnsupported && (
+          <TeamsUnsupportedAccountCard email={status?.teamsEmail} />
         )}
 
-        {isConnected && preferences.showTeams && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Joined teams</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {teamsQuery.isLoading ? (
-                <WidgetContentSkeleton lines={4} />
-              ) : teams.length === 0 ? (
-                <EmptyState
-                  icon={Users}
-                  title="No teams found"
-                  description="You are not a member of any Microsoft Teams yet"
-                />
-              ) : (
-                <TeamsTeamList teams={teams} />
-              )}
-            </CardContent>
-          </Card>
+        {isConnected && !graphUnsupported && (
+          <>
+            <TeamsPreferencesCard preferences={preferences} />
+            <IntegrationWidgetsSection provider="MICROSOFT_TEAMS" />
+          </>
         )}
-
-        {isConnected && preferences.showChats && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Recent chats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {chatsQuery.isLoading ? (
-                <WidgetContentSkeleton lines={4} />
-              ) : chats.length === 0 ? (
-                <EmptyState
-                  icon={MessagesSquare}
-                  title="No chats found"
-                  description="Connect a Microsoft 365 work account that has Teams chats. Personal teams.live.com chats may not appear via Graph."
-                />
-              ) : (
-                <TeamsChatList chats={chats} />
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {isConnected && <IntegrationWidgetsSection provider="MICROSOFT_TEAMS" />}
       </div>
     </PageContainer>
   );

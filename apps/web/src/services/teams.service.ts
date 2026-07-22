@@ -1,7 +1,6 @@
 import { apiGet, apiPatch, apiPost } from '@/lib/api-client';
 
 export interface TeamsPreferences {
-  showProfile: boolean;
   showTeams: boolean;
   showChats: boolean;
 }
@@ -12,16 +11,6 @@ export interface TeamsStatus {
   teamsEmail: string | null;
   lastSyncedAt: string | null;
   preferences: TeamsPreferences;
-}
-
-export interface TeamsProfile {
-  email: string | null;
-  displayName: string | null;
-}
-
-export interface TeamsProfileResponse {
-  connected: boolean;
-  profile: TeamsProfile | null;
 }
 
 export interface TeamsTeam {
@@ -51,7 +40,6 @@ export interface TeamsChatsResponse {
 }
 
 export const DEFAULT_TEAMS_PREFERENCES: TeamsPreferences = {
-  showProfile: true,
   showTeams: true,
   showChats: true,
 };
@@ -62,8 +50,6 @@ export const teamsService = {
   getAuthUrl: () => apiGet<{ url: string }>('/integrations/teams/auth-url'),
 
   disconnect: () => apiPost('/integrations/teams/disconnect'),
-
-  getProfile: () => apiGet<TeamsProfileResponse>('/integrations/teams/profile'),
 
   getTeams: () => apiGet<TeamsTeamsResponse>('/integrations/teams/joined-teams'),
 

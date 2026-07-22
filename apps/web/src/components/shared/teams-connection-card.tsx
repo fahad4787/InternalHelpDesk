@@ -34,7 +34,7 @@ export function TeamsConnectionCard({
     <IntegrationConnectionCard
       provider="MICROSOFT_TEAMS"
       title="Microsoft Teams Account"
-      disconnectedHint="Link your Microsoft account to view teams and chats"
+      disconnectedHint="Link a Microsoft 365 work or school account to view teams and chats"
       isLoading={isLoading}
       isConnected={isConnected}
       isPending={isPending}

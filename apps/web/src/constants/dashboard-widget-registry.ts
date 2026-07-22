@@ -22,7 +22,6 @@ import {
 import {
   TeamsChatsDashboardWidget,
   TeamsJoinedDashboardWidget,
-  TeamsProfileDashboardWidget,
 } from '@/components/dashboard/widgets/teams-dashboard-widgets';
 import {
   SlackMessengerDashboardWidget,
@@ -76,7 +75,6 @@ export const DASHBOARD_WIDGET_IDS = [
   'zoom-meetings',
   'outlook-profile',
   'outlook-inbox',
-  'teams-profile',
   'teams-joined',
   'teams-chats',
   'dropbox-files',
@@ -245,26 +243,19 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/outlook',
     order: 51,
   },
-  'teams-profile': {
-    id: 'teams-profile',
-    label: 'Teams profile',
-    provider: 'MICROSOFT_TEAMS',
-    configureRoute: '/integrations/teams',
-    order: 52,
-  },
   'teams-joined': {
     id: 'teams-joined',
     label: 'Joined teams',
     provider: 'MICROSOFT_TEAMS',
     configureRoute: '/integrations/teams',
-    order: 53,
+    order: 52,
   },
   'teams-chats': {
     id: 'teams-chats',
     label: 'Recent chats',
     provider: 'MICROSOFT_TEAMS',
     configureRoute: '/integrations/teams',
-    order: 54,
+    order: 53,
   },
   'dropbox-files': {
     id: 'dropbox-files',
@@ -332,7 +323,6 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'zoom-meetings': ZoomMeetingsDashboardWidget,
   'outlook-profile': OutlookProfileDashboardWidget,
   'outlook-inbox': OutlookInboxDashboardWidget,
-  'teams-profile': TeamsProfileDashboardWidget,
   'teams-joined': TeamsJoinedDashboardWidget,
   'teams-chats': TeamsChatsDashboardWidget,
   'dropbox-files': DropboxFilesDashboardWidget,

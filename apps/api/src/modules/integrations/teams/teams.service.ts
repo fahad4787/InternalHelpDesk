@@ -27,6 +27,36 @@ import {
 const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
 const DEFAULT_SCOPES =
   'User.Read offline_access Team.ReadBasic.All Channel.ReadBasic.All Chat.Read ChannelMessage.Read.All';
+const PERSONAL_EMAIL_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'msn.com',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'yahoo.com',
+  'ymail.com',
+]);
+const TEAMS_WORK_ACCOUNT_REQUIRED =
+  'Teams and chats require a Microsoft 365 work or school account with a Teams license. Personal Microsoft accounts (for example Gmail, Outlook.com, or teams.live.com) can sign in, but Microsoft Graph cannot return their teams or chats.';
+
+function isPersonalMicrosoftAccount(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const domain = email.trim().split('@')[1]?.toLowerCase();
+  return Boolean(domain && PERSONAL_EMAIL_DOMAINS.has(domain));
+}
+
+function isGraphPersonalAccountError(body: string): boolean {
+  const normalized = body.toLowerCase();
+  return (
+    normalized.includes('no authorization information present') ||
+    normalized.includes('personal microsoft account') ||
+    normalized.includes('failed to get license')
+  );
+}
 
 interface TeamsTokenResponse {
   access_token: string;
@@ -107,7 +137,6 @@ export class TeamsService {
     }
 
     const preferences: TeamsPreferences = {
-      showProfile: dto.showProfile,
       showTeams: dto.showTeams,
       showChats: dto.showChats,
     };
@@ -243,33 +272,6 @@ export class TeamsService {
     return successResponse(null, 'Microsoft Teams disconnected');
   }
 
-  async getProfile(user: AuthenticatedUser) {
-    const connection = await this.prisma.teamsConnection.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
-      return successResponse({
-        connected: false,
-        profile: null as TeamsProfile | null,
-      });
-    }
-
-    if (!connection.encryptedAccessToken) {
-      throw new BadRequestException(
-        'Teams session expired. Please reconnect your account.',
-      );
-    }
-
-    const accessToken = await this.getValidAccessToken(connection);
-    const profile = await this.fetchTeamsProfile(accessToken);
-
-    return successResponse({
-      connected: true,
-      profile,
-    });
-  }
-
   async getTeams(user: AuthenticatedUser) {
     const connection = await this.prisma.teamsConnection.findUnique({
       where: { userId: user.id },
@@ -280,6 +282,10 @@ export class TeamsService {
         connected: false,
         teams: [] as TeamsTeam[],
       });
+    }
+
+    if (isPersonalMicrosoftAccount(connection.teamsEmail)) {
+      throw new BadRequestException(TEAMS_WORK_ACCOUNT_REQUIRED);
     }
 
     if (!connection.encryptedAccessToken) {
@@ -315,6 +321,10 @@ export class TeamsService {
       });
     }
 
+    if (isPersonalMicrosoftAccount(connection.teamsEmail)) {
+      throw new BadRequestException(TEAMS_WORK_ACCOUNT_REQUIRED);
+    }
+
     if (!connection.encryptedAccessToken) {
       throw new BadRequestException(
         'Teams session expired. Please reconnect your account.',
@@ -342,10 +352,6 @@ export class TeamsService {
 
     const record = prefs as Record<string, unknown>;
     return {
-      showProfile:
-        typeof record.showProfile === 'boolean'
-          ? record.showProfile
-          : DEFAULT_TEAMS_PREFERENCES.showProfile,
       showTeams:
         typeof record.showTeams === 'boolean'
           ? record.showTeams
@@ -432,6 +438,9 @@ export class TeamsService {
 
     if (!response.ok) {
       const error = await response.text();
+      if (isGraphPersonalAccountError(error)) {
+        throw new BadRequestException(TEAMS_WORK_ACCOUNT_REQUIRED);
+      }
       throw new BadRequestException(`Failed to fetch Teams: ${error}`);
     }
 
@@ -462,6 +471,11 @@ export class TeamsService {
     });
 
     if (!response.ok) {
+      const primaryError = await response.text();
+      if (isGraphPersonalAccountError(primaryError)) {
+        throw new BadRequestException(TEAMS_WORK_ACCOUNT_REQUIRED);
+      }
+
       // Fallback without $orderby (some tenants reject advanced query).
       const fallbackParams = new URLSearchParams({
         $top: String(Math.min(Math.max(limit, 1), 50)),
@@ -472,6 +486,9 @@ export class TeamsService {
       });
       if (!fallback.ok) {
         const error = await fallback.text();
+        if (isGraphPersonalAccountError(error)) {
+          throw new BadRequestException(TEAMS_WORK_ACCOUNT_REQUIRED);
+        }
         throw new BadRequestException(`Failed to fetch Teams chats: ${error}`);
       }
       const fallbackData = (await fallback.json()) as {
