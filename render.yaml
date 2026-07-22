@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm ci && npm run build --workspace=apps/api
-    startCommand: node apps/api/dist/main.js
+    startCommand: npm run prisma:push --workspace=apps/api && node apps/api/dist/main.js
     envVars:
       - key: NODE_VERSION
         value: "20"
@@ -57,4 +57,14 @@ services:
       - key: OUTLOOK_CLIENT_ID
         sync: false
       - key: OUTLOOK_CLIENT_SECRET
+        sync: false
+      - key: TEAMS_REDIRECT_URI
+        value: https://internal-helpdesk-api.onrender.com/api/integrations/teams/callback
+      - key: TEAMS_SCOPES
+        value: User.Read offline_access Team.ReadBasic.All Channel.ReadBasic.All Chat.Read ChannelMessage.Read.All
+      - key: TEAMS_TENANT_ID
+        sync: false
+      - key: TEAMS_CLIENT_ID
+        sync: false
+      - key: TEAMS_CLIENT_SECRET
         sync: false
