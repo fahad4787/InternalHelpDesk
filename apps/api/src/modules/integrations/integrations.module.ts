@@ -13,6 +13,8 @@ import { SlackModule } from './slack/slack.module';
 import { SlackController } from './slack/slack.controller';
 import { OutlookModule } from './outlook/outlook.module';
 import { OutlookController } from './outlook/outlook.controller';
+import { TeamsModule } from './teams/teams.module';
+import { TeamsController } from './teams/teams.controller';
 import { TrelloModule } from './trello/trello.module';
 import { TrelloController } from './trello/trello.controller';
 import { AsanaModule } from './asana/asana.module';
@@ -43,6 +45,7 @@ import { HubSpotController } from './hubspot/hubspot.controller';
     CalendlyModule,
     SlackModule,
     OutlookModule,
+    TeamsModule,
     DropboxModule,
     BoxModule,
     HubSpotModule,
@@ -59,6 +62,7 @@ import { HubSpotController } from './hubspot/hubspot.controller';
     CalendlyController,
     SlackController,
     OutlookController,
+    TeamsController,
     DropboxController,
     BoxController,
     HubSpotController,
@@ -78,6 +82,7 @@ import { HubSpotController } from './hubspot/hubspot.controller';
     CalendlyModule,
     SlackModule,
     OutlookModule,
+    TeamsModule,
     DropboxModule,
     BoxModule,
     HubSpotModule,

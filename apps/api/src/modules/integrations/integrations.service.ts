@@ -31,6 +31,7 @@ export class IntegrationsService {
       calendlyConnection,
       slackConnection,
       outlookConnection,
+      teamsConnection,
       dropboxConnection,
       boxConnection,
       hubspotConnection,
@@ -98,6 +99,12 @@ export class IntegrationsService {
       ),
       this.softQuery(
         this.prisma.outlookConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.teamsConnection.findUnique({
           where: { userId: user.id },
         }),
         null,
@@ -252,6 +259,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: outlookConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.MICROSOFT_TEAMS) {
+        const userConnected =
+          teamsConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: teamsConnection?.updatedAt ?? null,
         };
       }
 

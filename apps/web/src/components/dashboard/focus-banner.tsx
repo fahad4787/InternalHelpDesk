@@ -22,6 +22,7 @@ const SOURCE_BADGE: Record<string, string> = {
   SLACK: 'bg-purple-500/90 text-white',
   ZOOM: 'bg-blue-500/90 text-white',
   OUTLOOK: 'bg-sky-600/90 text-white',
+  MICROSOFT_TEAMS: 'bg-indigo-600/90 text-white',
   DROPBOX: 'bg-blue-600/90 text-white',
   WORKDAY: 'bg-orange-500/90 text-white',
 };
@@ -37,6 +38,7 @@ function providerBadge(provider: string) {
   if (provider === 'SLACK') return 'SLACK';
   if (provider === 'ZOOM') return 'ZOOM';
   if (provider === 'OUTLOOK') return 'OUTLOOK';
+  if (provider === 'MICROSOFT_TEAMS') return 'TEAMS';
   if (provider === 'DROPBOX') return 'DROP';
   if (provider === 'WORKDAY') return 'WORKDAY';
   return provider.slice(0, 4);

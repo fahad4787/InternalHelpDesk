@@ -5,6 +5,7 @@ import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
 import { outlookService } from '@/services/outlook.service';
+import { teamsService } from '@/services/teams.service';
 import { slackService } from '@/services/slack.service';
 import { trelloService } from '@/services/trello.service';
 import { workdayService } from '@/services/workday.service';
@@ -35,6 +36,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return zoomService.disconnect();
     case 'OUTLOOK':
       return outlookService.disconnect();
+    case 'MICROSOFT_TEAMS':
+      return teamsService.disconnect();
     case 'DROPBOX':
       return dropboxService.disconnect();
     case 'BOX':

@@ -9,6 +9,7 @@ import { calendlyService } from '@/services/calendly.service';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { jiraService } from '@/services/jira.service';
 import { outlookService } from '@/services/outlook.service';
+import { teamsService } from '@/services/teams.service';
 import { slackService } from '@/services/slack.service';
 import { trelloService } from '@/services/trello.service';
 import { workdayService } from '@/services/workday.service';
@@ -103,6 +104,13 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
     enabled,
   });
 
+  const teamsQuery = useQuery({
+    queryKey: ['teams-status'],
+    queryFn: () => teamsService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
+  });
+
   const dropboxQuery = useQuery({
     queryKey: ['dropbox-status'],
     queryFn: () => dropboxService.getStatus(),
@@ -144,6 +152,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
         slack: slackQuery.data?.data,
         zoom: zoomQuery.data?.data,
         outlook: outlookQuery.data?.data,
+        teams: teamsQuery.data?.data,
         dropbox: dropboxQuery.data?.data,
         box: boxQuery.data?.data,
         hubspot: hubspotQuery.data?.data,
@@ -160,6 +169,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       slackQuery.data?.data,
       zoomQuery.data?.data,
       outlookQuery.data?.data,
+      teamsQuery.data?.data,
       dropboxQuery.data?.data,
       boxQuery.data?.data,
       hubspotQuery.data?.data,
@@ -179,6 +189,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       isStatusPending(slackQuery) ||
       isStatusPending(zoomQuery) ||
       isStatusPending(outlookQuery) ||
+      isStatusPending(teamsQuery) ||
       isStatusPending(dropboxQuery) ||
       isStatusPending(boxQuery) ||
       isStatusPending(hubspotQuery) ||
@@ -198,6 +209,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       slack: slackQuery.data?.data,
       zoom: zoomQuery.data?.data,
       outlook: outlookQuery.data?.data,
+      teams: teamsQuery.data?.data,
       dropbox: dropboxQuery.data?.data,
       box: boxQuery.data?.data,
       hubspot: hubspotQuery.data?.data,
