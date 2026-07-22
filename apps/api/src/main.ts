@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { PrismaService } from './database/prisma.service';
+import { ensureTeamsConnectionTable } from './modules/integrations/teams/ensure-teams-connection-table';
 
 try {
   tls.setDefaultCACertificates(tls.getCACertificates('system'));
@@ -27,49 +28,6 @@ async function connectDatabase(prisma: PrismaService) {
       }
       await new Promise((resolve) => setTimeout(resolve, attempt * 2000));
     }
-  }
-}
-
-async function ensureTeamsConnectionTable(prisma: PrismaService) {
-  try {
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "TeamsConnection" (
-        "id" TEXT NOT NULL,
-        "userId" TEXT NOT NULL,
-        "teamsUserId" TEXT,
-        "teamsEmail" TEXT,
-        "tenantId" TEXT,
-        "tenantName" TEXT,
-        "encryptedAccessToken" TEXT,
-        "encryptedRefreshToken" TEXT,
-        "tokenExpiresAt" TIMESTAMP(3),
-        "status" "IntegrationStatus" NOT NULL DEFAULT 'NOT_CONNECTED',
-        "preferences" JSONB,
-        "lastSyncedAt" TIMESTAMP(3),
-        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP(3) NOT NULL,
-        CONSTRAINT "TeamsConnection_pkey" PRIMARY KEY ("id")
-      )
-    `);
-    await prisma.$executeRawUnsafe(`
-      CREATE UNIQUE INDEX IF NOT EXISTS "TeamsConnection_userId_key"
-      ON "TeamsConnection"("userId")
-    `);
-    await prisma.$executeRawUnsafe(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = 'TeamsConnection_userId_fkey'
-        ) THEN
-          ALTER TABLE "TeamsConnection"
-            ADD CONSTRAINT "TeamsConnection_userId_fkey"
-            FOREIGN KEY ("userId") REFERENCES "User"("id")
-            ON DELETE CASCADE ON UPDATE CASCADE;
-        END IF;
-      END $$;
-    `);
-  } catch (error) {
-    console.error('Failed to ensure TeamsConnection table', error);
   }
 }
 
