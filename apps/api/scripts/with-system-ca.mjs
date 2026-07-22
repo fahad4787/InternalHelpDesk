@@ -11,7 +11,7 @@ const env = {
   NODE_OPTIONS: [process.env.NODE_OPTIONS, '--use-system-ca']
     .filter(Boolean)
     .join(' ')
-    .trim(),
+    .trim(), 
 };
 
 const nestBin = path.join(apiRoot, 'node_modules', '@nestjs/cli', 'bin', 'nest.js');
