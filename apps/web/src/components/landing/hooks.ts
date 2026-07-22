@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
 
 type ScrollRefs = {
   barRef: RefObject<HTMLDivElement | null>;
@@ -51,7 +51,7 @@ function startLandingEngine({
           revealIo?.unobserve(e.target);
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -6% 0px' },
+      { threshold: 0.25, rootMargin: '0px 0px -18% 0px' },
     );
   }
 
@@ -132,7 +132,7 @@ function startLandingEngine({
   document.addEventListener('visibilitychange', onVisibility);
 
   const finish = () => {
-    const wait = Math.max(0, 180 - (performance.now() - started));
+    const wait = Math.max(0, 80 - (performance.now() - started));
     window.setTimeout(() => setReady(true), wait);
   };
 

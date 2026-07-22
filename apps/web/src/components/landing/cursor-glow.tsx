@@ -26,8 +26,8 @@ export function CursorGlow({ enabled = true }: { enabled?: boolean }) {
     let idle = 0;
 
     const tick = () => {
-      currentX += (targetX - currentX) * 0.14;
-      currentY += (targetY - currentY) * 0.14;
+      currentX += (targetX - currentX) * 0.22;
+      currentY += (targetY - currentY) * 0.22;
 
       glow.style.transform = `translate3d(${(currentX - HALF).toFixed(2)}px, ${(currentY - HALF).toFixed(2)}px, 0)`;
 

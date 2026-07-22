@@ -4,14 +4,11 @@ import { type RefObject } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
-  Bell,
   Blocks,
   BookOpen,
-  Calendar,
   Check,
   FileText,
   Home,
-  LayoutDashboard,
   MessageSquareText,
   Plug,
   Quote,
@@ -19,16 +16,17 @@ import {
   UserCog,
   Users,
   Video,
-  Wrench,
 } from 'lucide-react';
 import { appConfig } from '@/config/app.config';
 import { MARKETPLACE_APPS } from '@/constants/dashboard-integrations';
 import { WorkhubLogo } from '@/components/shared/workhub-logo';
 import {
   IntegrationIcon,
+  type IntegrationIconProvider,
   isIntegrationIconProvider,
 } from '@/components/shared/integration-icon';
 import {
+  BrandText,
   FeatureCard,
   Kicker,
   Marquee,
@@ -46,24 +44,27 @@ function AppBrandIcon({ iconKey, size = 'sm' }: { iconKey: string; size?: 'sm' |
 }
 
 export function LogoMarquee() {
-  const items = ['Knowledge', 'AI Chat', 'Integrations', 'Dashboard', 'Workspace', 'Widgets', 'Citations', 'OAuth'];
   return (
     <section data-tone="surface" className="lp-section relative border-y border-border/60 bg-surface/40 py-8">
       <div className="mx-auto mb-3 max-w-6xl px-4">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        <p className="text-balance text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           Everything your employees need — in one command center
         </p>
       </div>
-      <Marquee speed="normal" className="gap-12">
-        {[...items, ...items, ...items].map((t, i) => (
-          <span
-            key={i}
-            className="font-display whitespace-nowrap text-2xl font-bold text-foreground/25 transition-colors hover:text-primary md:text-3xl"
-          >
-            {t} <span className="mx-4 text-primary/40">✦</span>
-          </span>
-        ))}
-      </Marquee>
+      <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
+        <Marquee speed="slow" className="gap-3">
+          {[...APPS, ...APPS].map((it, i) => (
+            <Link
+              key={`${it.id}-${i}`}
+              href="/register"
+              className="group flex items-center gap-2.5 rounded-full border border-border bg-surface px-3.5 py-2 shadow-card transition hover:border-primary/50 hover:shadow-glow"
+            >
+              <AppBrandIcon iconKey={it.iconKey} size="sm" />
+              <span className="whitespace-nowrap text-sm font-semibold">{it.name}</span>
+            </Link>
+          ))}
+        </Marquee>
+      </div>
     </section>
   );
 }
@@ -79,12 +80,12 @@ export function Pillars() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Why Workhub</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight md:text-6xl">
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight md:text-6xl max-md:text-3xl">
             Stop hunting folders.
             <br />
             Stop hopping tabs.
             <br />
-            <span className="text-gradient-brand">Start knowing.</span>
+            <BrandText text="Start knowing." />
           </h2>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-3">
@@ -133,10 +134,10 @@ export function Platform() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Platform</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight md:text-6xl">
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight md:text-6xl max-md:text-3xl">
             Four systems.
             <br />
-            <span className="text-gradient-brand">One employee experience.</span>
+            <BrandText text="One employee experience." />
           </h2>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-2">
@@ -146,7 +147,7 @@ export function Platform() {
               href={it.href}
               data-reveal
               data-delay={(i % 2) + 1}
-              className="lp-card group relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 shadow-card md:p-10"
+              className="lp-card group relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 shadow-card md:p-10 max-sm:p-6"
               onClick={(e) => {
                 e.preventDefault();
                 scrollLandingTo(it.href);
@@ -155,18 +156,18 @@ export function Platform() {
               <div aria-hidden className="lp-card-glow" />
               <div className="relative flex items-start justify-between gap-6">
                 <span
-                  className="font-display text-6xl font-extrabold text-transparent transition group-hover:[-webkit-text-stroke:1.5px_oklch(0.7_0.19_35_/_0.9)]"
+                  className="font-display text-6xl font-extrabold text-transparent transition group-hover:[-webkit-text-stroke:1.5px_oklch(0.7_0.19_35_/_0.9)] max-sm:text-5xl"
                   style={{ WebkitTextStroke: '1.5px oklch(0.7 0.19 35 / 0.35)' }}
                 >
                   {it.n}
                 </span>
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
                   <it.icon className="h-5 w-5" />
                 </div>
               </div>
-              <h3 className="relative mt-6 text-2xl font-bold">{it.title}</h3>
+              <h3 className="relative mt-6 text-2xl font-bold max-sm:text-xl">{it.title}</h3>
               <p className="relative mt-2 text-muted-foreground">{it.desc}</p>
-              <div className="relative mt-6 flex -translate-x-2 items-center gap-1.5 text-sm font-semibold text-primary opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+              <div className="relative mt-6 flex items-center gap-1.5 text-sm font-semibold text-primary transition-all duration-300 max-md:translate-x-0 max-md:opacity-100 md:-translate-x-2 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100">
                 Explore <ArrowRight className="h-4 w-4" />
               </div>
             </a>
@@ -204,14 +205,14 @@ export function AIChatSection() {
     >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 mesh-bg opacity-40" />
-        <SoftOrb className="left-10 top-10 h-64 w-64 opacity-70" color="brand" />
-        <SoftOrb className="bottom-0 right-0 h-80 w-80 opacity-60" color="warm" />
+        <SoftOrb className="left-10 top-10 h-72 w-72 max-sm:left-4 max-sm:top-6 max-sm:h-48 max-sm:w-48" color="brand" />
+        <SoftOrb className="-bottom-8 -right-8 h-96 w-96 max-sm:h-64 max-sm:w-64" color="warm" />
       </div>
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 md:grid-cols-2">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2 md:gap-14">
         <div>
           <Kicker light>AI Chat</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl">
-            Ask once. Get the policy — <span className="text-gradient-brand">with proof.</span>
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+            Ask once. Get the policy — <BrandText text="with proof." />
           </h2>
           <p data-reveal data-delay="1" className="mt-5 max-w-lg text-lg text-white/70">
             Employees type a question. Workhub answers from your uploaded documents and shows the
@@ -280,7 +281,7 @@ export function KnowledgeSection() {
   ];
   return (
     <section id="knowledge" data-tone="page" className="lp-section lp-section-y">
-      <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 md:grid-cols-2">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2 md:gap-14">
         <div data-reveal className="relative order-2 md:order-1">
           <div
             aria-hidden
@@ -302,7 +303,7 @@ export function KnowledgeSection() {
                 Synced
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {docs.map((d, i) => (
                 <Link
                   key={d.title}
@@ -327,8 +328,8 @@ export function KnowledgeSection() {
         </div>
         <div className="order-1 md:order-2">
           <Kicker>Knowledge base</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl">
-            Your documents become the <span className="text-gradient-brand">system of record.</span>
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+            Your documents become the <BrandText text="system of record." />
           </h2>
           <p data-reveal data-delay="1" className="mt-5 max-w-lg text-lg text-muted-foreground">
             Upload, preview and manage policies in Documents. The knowledge base feeds AI Chat — so
@@ -349,36 +350,21 @@ export function Integrations() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Integrations</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl">
-            Connect the stack. <span className="text-gradient-brand">Surface it on Home.</span>
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+            Connect the stack. <BrandText text="Surface it on Home." />
           </h2>
           <p data-reveal data-delay="1" className="mt-4 text-lg text-muted-foreground">
             Browse by category, connect with OAuth, set preferences and pin live widgets.
           </p>
         </div>
 
-        <div className="relative mt-10 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
-          <Marquee speed="slow" className="gap-3">
-            {[...APPS, ...APPS].map((it, i) => (
-              <Link
-                key={`${it.id}-${i}`}
-                href="/register"
-                className="group flex items-center gap-2.5 rounded-full border border-border bg-surface px-3.5 py-2 shadow-card transition hover:border-primary/50 hover:shadow-glow"
-              >
-                <AppBrandIcon iconKey={it.iconKey} size="sm" />
-                <span className="whitespace-nowrap text-sm font-semibold">{it.name}</span>
-              </Link>
-            ))}
-          </Marquee>
-        </div>
-
-        <div className="mt-8 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card">
+        <div className="mt-10 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
             {APPS.map((it, i) => (
               <Link
                 key={it.id}
                 href="/register"
-                className="group relative overflow-hidden border-b border-r border-border/60 p-6 transition-colors hover:bg-surface"
+                className="group relative min-w-0 overflow-hidden border-b border-r border-border/60 p-4 transition-colors hover:bg-surface sm:p-6"
                 data-reveal
                 data-delay={(i % 4) + 1}
               >
@@ -393,33 +379,42 @@ export function Integrations() {
                 <div className="relative transition-transform group-hover:scale-105">
                   <AppBrandIcon iconKey={it.iconKey} size="md" />
                 </div>
-                <div className="relative mt-3 text-sm font-semibold">{it.name}</div>
-                <div className="relative text-xs text-muted-foreground">{it.categoryLabel}</div>
+                <div className="relative mt-3 truncate text-sm font-semibold">{it.name}</div>
+                <div className="relative truncate text-xs text-muted-foreground">{it.categoryLabel}</div>
               </Link>
             ))}
           </div>
         </div>
 
-        <div id="home" className="mt-16 grid gap-4 md:grid-cols-4">
-          {[
-            { app: 'Jira', head: '12 open', sub: 'Assigned to me', icon: Wrench },
-            { app: 'Google', head: '4 events', sub: "Today's calendar", icon: Calendar },
-            { app: 'Monday', head: 'Launch board', sub: '3 items due', icon: LayoutDashboard },
-            { app: 'Slack', head: '#ops-alerts', sub: 'Latest messages', icon: Bell },
-          ].map((w, i) => (
+        <div id="home" className="mt-16 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {(
+            [
+              { app: 'Jira', head: '12 open', sub: 'Assigned to me', iconKey: 'JIRA' },
+              { app: 'Zoom', head: '4 events', sub: "Today's calendar", iconKey: 'ZOOM' },
+              { app: 'Salesforce', head: 'Launch board', sub: '3 items due', iconKey: 'SALESFORCE' },
+              { app: 'Microsoft Outlook', head: '15 mails', sub: 'Unread messages', iconKey: 'OUTLOOK' },
+              { app: 'Google Drive', head: '3 shared', sub: 'Recently shared with you', iconKey: 'GOOGLE_DRIVE' },
+              { app: 'Workday', head: '2 pending', sub: 'Awaiting approval', iconKey: 'WORKDAY' },
+            ] as const satisfies ReadonlyArray<{
+              app: string;
+              head: string;
+              sub: string;
+              iconKey: IntegrationIconProvider;
+            }>
+          ).map((w, i) => (
             <Link
               key={w.app}
               href="/register"
               data-reveal
               data-delay={i + 1}
-              className="lp-card group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-card"
+              className="lp-card group relative min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-card"
             >
               <div aria-hidden className="lp-card-glow" />
-              <div className="relative flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="relative flex items-center justify-between gap-2">
+                <span className="truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {w.app}
                 </span>
-                <w.icon className="h-4 w-4 text-primary transition-transform group-hover:scale-110" />
+                <AppBrandIcon iconKey={w.iconKey} size="sm" />
               </div>
               <div className="relative mt-4 text-xl font-bold">{w.head}</div>
               <div className="relative text-sm text-muted-foreground">{w.sub}</div>
@@ -465,8 +460,8 @@ export function HowItWorks({
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>How it works</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl">
-            Live in minutes. <span className="text-gradient-brand">Useful by lunch.</span>
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+            Live in minutes. <BrandText text="Useful by lunch." />
           </h2>
         </div>
         <div data-progress-wrap className="relative mt-16 grid gap-6 md:grid-cols-3">
@@ -535,8 +530,8 @@ export function Testimonials() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Loved by operators</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl">
-            Teams stop searching. <span className="text-gradient-brand">They start shipping.</span>
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+            Teams stop searching. <BrandText text="They start shipping." />
           </h2>
         </div>
       </div>
@@ -546,20 +541,20 @@ export function Testimonials() {
           {[...quotes, ...quotes].map((t, i) => (
             <figure
               key={i}
-              className="lp-card relative w-[360px] shrink-0 rounded-3xl border border-border/60 bg-card p-8 shadow-card md:w-[440px]"
+              className="lp-card relative w-[440px] shrink-0 rounded-3xl border border-border/60 bg-card p-8 shadow-card max-md:w-[min(360px,calc(100vw-2.5rem))] max-sm:p-6"
             >
               <Quote className="h-8 w-8 text-primary/40" />
               <blockquote className="mt-4 text-lg font-medium leading-snug">&ldquo;{t.q}&rdquo;</blockquote>
-              <figcaption className="mt-6 flex items-center gap-3">
+              <figcaption className="mt-6 flex min-w-0 items-center gap-3">
                 <span
-                  className="grid h-10 w-10 place-items-center rounded-full font-bold text-primary-foreground shadow-glow"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full font-bold text-primary-foreground shadow-glow"
                   style={{ background: 'var(--gradient-brand)' }}
                 >
                   {t.name.charAt(0)}
                 </span>
-                <div>
-                  <div className="text-sm font-semibold">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">{t.role}</div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold">{t.name}</div>
+                  <div className="truncate text-xs text-muted-foreground">{t.role}</div>
                 </div>
               </figcaption>
             </figure>
@@ -593,8 +588,8 @@ export function BuiltFor() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Built for</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl">
-            The teams that <span className="text-gradient-brand">keep the company moving.</span>
+          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+            The teams that <BrandText text="keep the company moving." />
           </h2>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-3">
@@ -612,15 +607,15 @@ export function CTA() {
     <section id="cta" data-tone="page" className="lp-section lp-section-y pb-24 md:pb-32">
       <div className="mx-auto max-w-6xl px-4">
         <div
-          className="relative overflow-hidden rounded-[2rem] p-10 shadow-lift md:p-16"
+          className="relative overflow-hidden rounded-[2rem] p-10 shadow-lift md:p-16 max-sm:rounded-[1.5rem] max-sm:p-6"
           style={{
             background: 'linear-gradient(135deg, oklch(0.24 0.03 250), oklch(0.19 0.03 250))',
           }}
         >
           <div aria-hidden className="pointer-events-none absolute inset-0">
             <div className="absolute inset-0 mesh-bg opacity-35" />
-            <SoftOrb className="-right-32 -top-32 h-80 w-80 opacity-70" color="brand" />
-            <SoftOrb className="-bottom-40 -left-20 h-80 w-80 opacity-60" color="warm" />
+            <SoftOrb className="-right-24 -top-24 h-[28rem] w-[28rem] max-sm:-right-16 max-sm:-top-16 max-sm:h-64 max-sm:w-64" color="brand" />
+            <SoftOrb className="-bottom-32 -left-16 h-[26rem] w-[26rem] max-sm:-bottom-20 max-sm:-left-10 max-sm:h-60 max-sm:w-60" color="warm" />
             <div
               className="absolute inset-0 opacity-[0.05]"
               style={{
@@ -633,17 +628,23 @@ export function CTA() {
             <Kicker light>Get started</Kicker>
             <h2
               data-reveal
-              className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight text-white md:text-6xl"
+              className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight text-white md:text-6xl max-md:text-3xl"
             >
-              Put Workhub in front of <span className="text-gradient-brand">your team.</span>
+              Put Workhub in front of <BrandText text="your team." />
             </h2>
             <p data-reveal data-delay="1" className="mt-5 max-w-lg text-lg text-white/70">
               Create a workspace, upload your first docs, connect the apps you already use — and
               give every employee a clearer workday.
             </p>
-            <div data-reveal data-delay="2" className="mt-9 flex flex-wrap gap-3">
-              <PrimaryCta href="/register">Create your workspace</PrimaryCta>
-              <SecondaryCta href="/login" dark>
+            <div
+              data-reveal
+              data-delay="2"
+              className="mt-9 flex flex-wrap gap-3 max-sm:flex-col max-sm:items-stretch"
+            >
+              <PrimaryCta href="/register" className="max-sm:justify-center">
+                Create your workspace
+              </PrimaryCta>
+              <SecondaryCta href="/login" dark className="max-sm:justify-center">
                 Sign in
               </SecondaryCta>
             </div>
@@ -657,11 +658,12 @@ export function CTA() {
 export function LandingFooter() {
   return (
     <footer className="border-t border-border/60 py-10">
-      <div className="mx-auto grid max-w-6xl items-center gap-4 px-4 md:grid-cols-[1fr_auto]">
-        <div className="flex items-center gap-2.5">
+      <div className="mx-auto grid max-w-6xl items-center gap-4 px-4 md:grid-cols-[1fr_auto] max-md:flex max-md:flex-col max-md:items-start">
+        <div className="flex min-w-0 items-center gap-2.5">
           <WorkhubLogo size="sm" showText={false} />
           <span className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} {appConfig.name} · {appConfig.tagline}
+            © {new Date().getFullYear()} {appConfig.name}
+            <span className="max-sm:hidden"> · {appConfig.tagline}</span>
           </span>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
