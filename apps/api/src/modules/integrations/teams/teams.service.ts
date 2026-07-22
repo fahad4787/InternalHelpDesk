@@ -14,6 +14,7 @@ import {
   verifyOAuthState,
 } from '../google-calendar/utils/oauth-state.util';
 import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
+import { ensureTeamsConnectionTable } from './ensure-teams-connection-table';
 import { UpdateTeamsPreferencesDto } from './dto/update-teams-preferences.dto';
 import {
   DEFAULT_TEAMS_PREFERENCES,
@@ -75,6 +76,7 @@ export class TeamsService {
   }
 
   async getStatus(user: AuthenticatedUser) {
+    await ensureTeamsConnectionTable(this.prisma);
     const connection = await this.prisma.teamsConnection.findUnique({
       where: { userId: user.id },
     });
@@ -154,6 +156,8 @@ export class TeamsService {
     if (!userId) {
       throw new UnauthorizedException('Invalid or expired OAuth state');
     }
+
+    await ensureTeamsConnectionTable(this.prisma);
 
     const tokens = await this.exchangeCodeForTokens(code);
     const profile = await this.fetchTeamsProfile(tokens.access_token);
