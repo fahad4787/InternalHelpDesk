@@ -17,6 +17,7 @@ import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.uti
 import { UpdateOutlookPreferencesDto } from './dto/update-outlook-preferences.dto';
 import {
   DEFAULT_OUTLOOK_PREFERENCES,
+  OutlookCalendarEvent,
   OutlookMessage,
   OutlookPreferences,
   OutlookProfile,
@@ -27,7 +28,7 @@ const OUTLOOK_AUTH_URL =
 const OUTLOOK_TOKEN_URL =
   'https://login.microsoftonline.com/common/oauth2/v2.0/token';
 const GRAPH_API_URL = 'https://graph.microsoft.com/v1.0';
-const DEFAULT_SCOPES = 'Mail.Read User.Read offline_access';
+const DEFAULT_SCOPES = 'Mail.Read Calendars.Read User.Read offline_access';
 
 interface OutlookTokenResponse {
   access_token: string;
@@ -108,7 +109,7 @@ export class OutlookService {
     }
 
     const preferences: OutlookPreferences = {
-      showProfile: dto.showProfile,
+      showCalendar: dto.showCalendar,
       showInbox: dto.showInbox,
     };
 
@@ -300,6 +301,39 @@ export class OutlookService {
     });
   }
 
+  async getEvents(user: AuthenticatedUser, limit = 10) {
+    const connection = await this.prisma.outlookConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        events: [] as OutlookCalendarEvent[],
+      });
+    }
+
+    if (!connection.encryptedAccessToken) {
+      throw new BadRequestException(
+        'Outlook session expired. Please reconnect your account.',
+      );
+    }
+
+    const accessToken = await this.getValidAccessToken(connection);
+    const events = await this.fetchOutlookEvents(accessToken, limit);
+
+    await this.prisma.outlookConnection.update({
+      where: { userId: user.id },
+      data: { lastSyncedAt: new Date() },
+    });
+
+    return successResponse({
+      connected: true,
+      outlookEmail: connection.outlookEmail,
+      events,
+    });
+  }
+
   private resolvePreferences(prefs: unknown): OutlookPreferences {
     if (!prefs || typeof prefs !== 'object') {
       return DEFAULT_OUTLOOK_PREFERENCES;
@@ -307,10 +341,12 @@ export class OutlookService {
 
     const record = prefs as Record<string, unknown>;
     return {
-      showProfile:
-        typeof record.showProfile === 'boolean'
-          ? record.showProfile
-          : DEFAULT_OUTLOOK_PREFERENCES.showProfile,
+      showCalendar:
+        typeof record.showCalendar === 'boolean'
+          ? record.showCalendar
+          : typeof record.showProfile === 'boolean'
+            ? record.showProfile
+            : DEFAULT_OUTLOOK_PREFERENCES.showCalendar,
       showInbox:
         typeof record.showInbox === 'boolean'
           ? record.showInbox
@@ -404,6 +440,82 @@ export class OutlookService {
 
     const data = (await response.json()) as GraphMessagesResponse;
     return (data.value ?? []).map((message) => this.mapGraphMessage(message));
+  }
+
+  private async fetchOutlookEvents(
+    accessToken: string,
+    limit: number,
+  ): Promise<OutlookCalendarEvent[]> {
+    const start = new Date();
+    const end = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const params = new URLSearchParams({
+      startDateTime: start.toISOString(),
+      endDateTime: end.toISOString(),
+      $top: String(Math.min(Math.max(limit, 1), 25)),
+      $orderby: 'start/dateTime',
+      $select:
+        'id,subject,bodyPreview,start,end,location,webLink,isAllDay,organizer,attendees,onlineMeeting',
+    });
+
+    const response = await fetch(
+      `${GRAPH_API_URL}/me/calendarView?${params}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Prefer: 'outlook.timezone="UTC"',
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new BadRequestException(
+        `Failed to fetch Outlook calendar events: ${error}`,
+      );
+    }
+
+    const data = (await response.json()) as {
+      value?: Array<{
+        id: string;
+        subject?: string;
+        bodyPreview?: string;
+        start?: { dateTime?: string; date?: string };
+        end?: { dateTime?: string; date?: string };
+        location?: { displayName?: string };
+        webLink?: string;
+        isAllDay?: boolean;
+        organizer?: {
+          emailAddress?: { name?: string; address?: string };
+        };
+        attendees?: unknown[];
+        onlineMeeting?: { joinUrl?: string };
+      }>;
+    };
+
+    return (data.value ?? []).map((event) => {
+      const startIso =
+        event.start?.dateTime ||
+        (event.start?.date ? `${event.start.date}T00:00:00.000Z` : null);
+      const endIso =
+        event.end?.dateTime ||
+        (event.end?.date ? `${event.end.date}T00:00:00.000Z` : null);
+
+      return {
+        id: event.id,
+        title: event.subject?.trim() || '(No title)',
+        description: event.bodyPreview?.trim() || null,
+        start: startIso ? new Date(startIso).toISOString() : new Date().toISOString(),
+        end: endIso ? new Date(endIso).toISOString() : new Date().toISOString(),
+        location: event.location?.displayName?.trim() || null,
+        htmlLink: event.webLink ?? 'https://outlook.office.com/calendar/',
+        meetLink: event.onlineMeeting?.joinUrl ?? null,
+        meetCode: null,
+        allDay: event.isAllDay === true,
+        organizerName: event.organizer?.emailAddress?.name?.trim() ?? null,
+        organizerEmail: event.organizer?.emailAddress?.address?.trim() ?? null,
+        attendeeCount: Array.isArray(event.attendees) ? event.attendees.length : 0,
+      };
+    });
   }
 
   private mapGraphMessage(message: GraphMessageItem): OutlookMessage {

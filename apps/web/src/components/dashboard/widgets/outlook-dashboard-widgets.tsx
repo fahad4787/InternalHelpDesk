@@ -1,44 +1,53 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Mail } from 'lucide-react';
+import { Calendar, Mail } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
-import { OutlookProfileCard } from '@/components/shared/outlook-profile-card';
+import { MeetEventList } from '@/components/shared/meet-event-list';
 import { OutlookMessageList } from '@/components/shared/outlook-message-list';
 import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { getErrorMessage } from '@/lib/api-client';
 import { outlookService } from '@/services/outlook.service';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 
-export function OutlookProfileDashboardWidget() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['outlook-profile'],
-    queryFn: () => outlookService.getProfile(),
+const OUTLOOK_CALENDAR_URL = 'https://outlook.office.com/calendar/';
+
+export function OutlookCalendarDashboardWidget() {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['outlook-events'],
+    queryFn: () => outlookService.getEvents(),
   });
 
-  const profile = data?.data?.profile ?? null;
+  const events = data?.data?.events ?? [];
 
   return (
     <DashboardWidgetCard
       source="Outlook"
       sourceLogo={<IntegrationIcon provider="OUTLOOK" />}
-      title="Outlook profile"
-      deepLinkHref="/integrations/outlook"
-      deepLinkLabel="Open Outlook"
+      title="Outlook Calendar"
+      deepLinkHref={OUTLOOK_CALENDAR_URL}
+      deepLinkLabel="Open Calendar"
     >
       {isLoading ? (
-        <WidgetContentSkeleton lines={4} />
-      ) : profile ? (
-        <OutlookProfileCard profile={profile} />
+        <WidgetContentSkeleton lines={5} />
+      ) : isError ? (
+        <p className="text-sm text-red-600">{getErrorMessage(error)}</p>
+      ) : events.length === 0 ? (
+        <EmptyState
+          icon={Calendar}
+          title="No upcoming events"
+          description="Your Outlook calendar events for the next 30 days will appear here"
+        />
       ) : (
-        <p className="text-sm text-muted">Profile unavailable.</p>
+        <MeetEventList events={events} />
       )}
     </DashboardWidgetCard>
   );
 }
 
 export function OutlookInboxDashboardWidget() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['outlook-messages'],
     queryFn: () => outlookService.getMessages(),
   });
@@ -50,11 +59,13 @@ export function OutlookInboxDashboardWidget() {
       source="Outlook"
       sourceLogo={<IntegrationIcon provider="OUTLOOK" />}
       title="Inbox"
-      deepLinkHref="/integrations/outlook"
+      deepLinkHref="https://outlook.office.com/mail/"
       deepLinkLabel="Open Outlook"
     >
       {isLoading ? (
         <WidgetContentSkeleton lines={5} />
+      ) : isError ? (
+        <p className="text-sm text-red-600">{getErrorMessage(error)}</p>
       ) : messages.length === 0 ? (
         <EmptyState
           icon={Mail}

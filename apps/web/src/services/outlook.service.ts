@@ -1,7 +1,8 @@
 import { apiGet, apiPatch, apiPost } from '@/lib/api-client';
+import type { CalendarEvent } from '@/types/api.types';
 
 export interface OutlookPreferences {
-  showProfile: boolean;
+  showCalendar: boolean;
   showInbox: boolean;
 }
 
@@ -31,6 +32,12 @@ export interface OutlookMessagesResponse {
   messages: OutlookMessage[];
 }
 
+export interface OutlookEventsResponse {
+  connected: boolean;
+  outlookEmail?: string | null;
+  events: CalendarEvent[];
+}
+
 export interface OutlookProfile {
   email: string | null;
   displayName: string | null;
@@ -42,7 +49,7 @@ export interface OutlookProfileResponse {
 }
 
 export const DEFAULT_OUTLOOK_PREFERENCES: OutlookPreferences = {
-  showProfile: true,
+  showCalendar: true,
   showInbox: true,
 };
 
@@ -58,6 +65,8 @@ export const outlookService = {
 
   getMessages: () =>
     apiGet<OutlookMessagesResponse>('/integrations/outlook/messages'),
+
+  getEvents: () => apiGet<OutlookEventsResponse>('/integrations/outlook/events'),
 
   updatePreferences: (preferences: OutlookPreferences) =>
     apiPatch<OutlookPreferences>('/integrations/outlook/preferences', preferences),

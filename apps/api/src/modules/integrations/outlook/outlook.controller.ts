@@ -104,6 +104,12 @@ export class OutlookController {
     return this.outlookService.getMessages(user);
   }
 
+  @Get('events')
+  @UseGuards(JwtAuthGuard)
+  getEvents(@CurrentUser() user: AuthenticatedUser) {
+    return this.outlookService.getEvents(user);
+  }
+
   @Patch('preferences')
   @UseGuards(JwtAuthGuard)
   updatePreferences(

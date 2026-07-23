@@ -1,10 +1,10 @@
 export interface OutlookPreferences {
-  showProfile: boolean;
+  showCalendar: boolean;
   showInbox: boolean;
 }
 
 export const DEFAULT_OUTLOOK_PREFERENCES: OutlookPreferences = {
-  showProfile: true,
+  showCalendar: true,
   showInbox: true,
 };
 
@@ -23,4 +23,20 @@ export interface OutlookMessage {
 export interface OutlookProfile {
   email: string | null;
   displayName: string | null;
+}
+
+export interface OutlookCalendarEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  start: string;
+  end: string;
+  location: string | null;
+  htmlLink: string | null;
+  meetLink: string | null;
+  meetCode: string | null;
+  allDay: boolean;
+  organizerName: string | null;
+  organizerEmail: string | null;
+  attendeeCount: number;
 }

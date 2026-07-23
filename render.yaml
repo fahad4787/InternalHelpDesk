@@ -53,7 +53,7 @@ services:
       - key: OUTLOOK_REDIRECT_URI
         value: https://internal-helpdesk-api.onrender.com/api/integrations/outlook/callback
       - key: OUTLOOK_SCOPES
-        value: Mail.Read User.Read offline_access
+        value: Mail.Read Calendars.Read User.Read offline_access
       - key: OUTLOOK_CLIENT_ID
         sync: false
       - key: OUTLOOK_CLIENT_SECRET
