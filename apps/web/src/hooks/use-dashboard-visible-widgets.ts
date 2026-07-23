@@ -17,6 +17,7 @@ import { zoomService } from '@/services/zoom.service';
 import { dropboxService } from '@/services/dropbox.service';
 import { boxService } from '@/services/box.service';
 import { hubspotService } from '@/services/hubspot.service';
+import { dynamicsService } from '@/services/dynamics.service';
 import { resolveVisibleDashboardWidgets } from '@/lib/dashboard-widget-utils';
 
 const STATUS_STALE_MS = 120_000;
@@ -132,6 +133,13 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
     enabled,
   });
 
+  const dynamicsQuery = useQuery({
+    queryKey: ['dynamics-status'],
+    queryFn: () => dynamicsService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
+  });
+
   const workdayQuery = useQuery({
     queryKey: ['workday-status'],
     queryFn: () => workdayService.getStatus(),
@@ -156,6 +164,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
         dropbox: dropboxQuery.data?.data,
         box: boxQuery.data?.data,
         hubspot: hubspotQuery.data?.data,
+        dynamics: dynamicsQuery.data?.data,
         workday: workdayQuery.data?.data,
       }),
     [
@@ -173,6 +182,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       dropboxQuery.data?.data,
       boxQuery.data?.data,
       hubspotQuery.data?.data,
+      dynamicsQuery.data?.data,
       workdayQuery.data?.data,
     ],
   );
@@ -193,6 +203,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       isStatusPending(dropboxQuery) ||
       isStatusPending(boxQuery) ||
       isStatusPending(hubspotQuery) ||
+      isStatusPending(dynamicsQuery) ||
       isStatusPending(workdayQuery));
 
   return {
@@ -213,6 +224,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       dropbox: dropboxQuery.data?.data,
       box: boxQuery.data?.data,
       hubspot: hubspotQuery.data?.data,
+      dynamics: dynamicsQuery.data?.data,
       workday: workdayQuery.data?.data,
     },
   };

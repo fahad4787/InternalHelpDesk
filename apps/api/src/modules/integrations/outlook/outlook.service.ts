@@ -301,7 +301,10 @@ export class OutlookService {
     });
   }
 
-  async getEvents(user: AuthenticatedUser, limit = 10) {
+  async getEvents(
+    user: AuthenticatedUser,
+    options?: { start?: string; end?: string; limit?: number },
+  ) {
     const connection = await this.prisma.outlookConnection.findUnique({
       where: { userId: user.id },
     });
@@ -320,7 +323,7 @@ export class OutlookService {
     }
 
     const accessToken = await this.getValidAccessToken(connection);
-    const events = await this.fetchOutlookEvents(accessToken, limit);
+    const events = await this.fetchOutlookEvents(accessToken, options);
 
     await this.prisma.outlookConnection.update({
       where: { userId: user.id },
@@ -444,14 +447,25 @@ export class OutlookService {
 
   private async fetchOutlookEvents(
     accessToken: string,
-    limit: number,
+    options?: { start?: string; end?: string; limit?: number },
   ): Promise<OutlookCalendarEvent[]> {
-    const start = new Date();
-    const end = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const start = options?.start
+      ? new Date(options.start)
+      : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const end = options?.end
+      ? new Date(options.end)
+      : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid Outlook calendar date range');
+    }
+
+    const limit = Math.min(Math.max(options?.limit ?? 100, 1), 100);
     const params = new URLSearchParams({
       startDateTime: start.toISOString(),
       endDateTime: end.toISOString(),
-      $top: String(Math.min(Math.max(limit, 1), 25)),
+      $top: String(limit),
       $orderby: 'start/dateTime',
       $select:
         'id,subject,bodyPreview,start,end,location,webLink,isAllDay,organizer,attendees,onlineMeeting',
@@ -493,19 +507,25 @@ export class OutlookService {
     };
 
     return (data.value ?? []).map((event) => {
-      const startIso =
-        event.start?.dateTime ||
-        (event.start?.date ? `${event.start.date}T00:00:00.000Z` : null);
-      const endIso =
-        event.end?.dateTime ||
-        (event.end?.date ? `${event.end.date}T00:00:00.000Z` : null);
+      const toIso = (value?: string, dateOnly?: string) => {
+        if (value) {
+          const normalized = /Z$|[+-]\d{2}:\d{2}$/.test(value)
+            ? value
+            : `${value}Z`;
+          return new Date(normalized).toISOString();
+        }
+        if (dateOnly) {
+          return new Date(`${dateOnly}T00:00:00.000Z`).toISOString();
+        }
+        return new Date().toISOString();
+      };
 
       return {
         id: event.id,
         title: event.subject?.trim() || '(No title)',
         description: event.bodyPreview?.trim() || null,
-        start: startIso ? new Date(startIso).toISOString() : new Date().toISOString(),
-        end: endIso ? new Date(endIso).toISOString() : new Date().toISOString(),
+        start: toIso(event.start?.dateTime, event.start?.date),
+        end: toIso(event.end?.dateTime, event.end?.date),
         location: event.location?.displayName?.trim() || null,
         htmlLink: event.webLink ?? 'https://outlook.office.com/calendar/',
         meetLink: event.onlineMeeting?.joinUrl ?? null,

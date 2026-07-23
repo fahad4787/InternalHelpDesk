@@ -13,6 +13,7 @@ import { zoomService } from '@/services/zoom.service';
 import { dropboxService } from '@/services/dropbox.service';
 import { boxService } from '@/services/box.service';
 import { hubspotService } from '@/services/hubspot.service';
+import { dynamicsService } from '@/services/dynamics.service';
 
 export async function disconnectIntegrationProvider(provider: string) {
   switch (provider) {
@@ -44,6 +45,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return boxService.disconnect();
     case 'HUBSPOT':
       return hubspotService.disconnect();
+    case 'DYNAMICS_365':
+      return dynamicsService.disconnect();
     case 'WORKDAY':
       return workdayService.reset();
     default:

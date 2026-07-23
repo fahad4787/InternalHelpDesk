@@ -50,6 +50,16 @@ services:
         sync: false
       - key: HUBSPOT_CLIENT_SECRET
         sync: false
+      - key: DYNAMICS_REDIRECT_URI
+        value: https://internal-helpdesk-api.onrender.com/api/integrations/dynamics/callback
+      - key: DYNAMICS_CLIENT_ID
+        sync: false
+      - key: DYNAMICS_CLIENT_SECRET
+        sync: false
+      - key: DYNAMICS_TENANT_ID
+        sync: false
+      - key: DYNAMICS_ORG_URL
+        sync: false
       - key: OUTLOOK_REDIRECT_URI
         value: https://internal-helpdesk-api.onrender.com/api/integrations/outlook/callback
       - key: OUTLOOK_SCOPES

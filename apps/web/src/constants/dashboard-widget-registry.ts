@@ -52,6 +52,11 @@ import {
   HubSpotDealsDashboardWidget,
   HubSpotTicketsDashboardWidget,
 } from '@/components/dashboard/widgets/hubspot-dashboard-widgets';
+import {
+  DynamicsAccountsDashboardWidget,
+  DynamicsContactsDashboardWidget,
+  DynamicsOpportunitiesDashboardWidget,
+} from '@/components/dashboard/widgets/dynamics-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -82,6 +87,9 @@ export const DASHBOARD_WIDGET_IDS = [
   'hubspot-contacts',
   'hubspot-deals',
   'hubspot-tickets',
+  'dynamics-contacts',
+  'dynamics-accounts',
+  'dynamics-opportunities',
   'workday-articles',
 ] as const;
 
@@ -292,12 +300,33 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/hubspot',
     order: 59,
   },
+  'dynamics-contacts': {
+    id: 'dynamics-contacts',
+    label: 'Contacts',
+    provider: 'DYNAMICS_365',
+    configureRoute: '/integrations/dynamics',
+    order: 60,
+  },
+  'dynamics-accounts': {
+    id: 'dynamics-accounts',
+    label: 'Accounts',
+    provider: 'DYNAMICS_365',
+    configureRoute: '/integrations/dynamics',
+    order: 61,
+  },
+  'dynamics-opportunities': {
+    id: 'dynamics-opportunities',
+    label: 'Opportunities',
+    provider: 'DYNAMICS_365',
+    configureRoute: '/integrations/dynamics',
+    order: 62,
+  },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 60,
+    order: 63,
   },
 };
 
@@ -330,6 +359,9 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'hubspot-contacts': HubSpotContactsDashboardWidget,
   'hubspot-deals': HubSpotDealsDashboardWidget,
   'hubspot-tickets': HubSpotTicketsDashboardWidget,
+  'dynamics-contacts': DynamicsContactsDashboardWidget,
+  'dynamics-accounts': DynamicsAccountsDashboardWidget,
+  'dynamics-opportunities': DynamicsOpportunitiesDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -348,6 +380,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   DROPBOX: '/integrations/dropbox',
   BOX: '/integrations/box',
   HUBSPOT: '/integrations/hubspot',
+  DYNAMICS_365: '/integrations/dynamics',
   WORKDAY: '/integrations/workday',
 };
 

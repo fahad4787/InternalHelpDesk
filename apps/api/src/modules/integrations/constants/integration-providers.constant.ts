@@ -92,6 +92,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'crm',
   },
   {
+    provider: IntegrationProvider.DYNAMICS_365,
+    name: 'Microsoft Dynamics 365',
+    description: 'Contacts, accounts, and opportunities from Dynamics 365',
+    category: 'crm',
+  },
+  {
     provider: IntegrationProvider.SERVICENOW,
     name: 'ServiceNow',
     description: 'Connect with ServiceNow incidents',

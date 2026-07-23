@@ -34,6 +34,10 @@ import {
   DEFAULT_HUBSPOT_PREFERENCES,
   type HubSpotStatus,
 } from '@/services/hubspot.service';
+import {
+  DEFAULT_DYNAMICS_PREFERENCES,
+  type DynamicsStatus,
+} from '@/services/dynamics.service';
 import type { WorkdayStatus } from '@/services/workday.service';
 import {
   DASHBOARD_WIDGET_DEFINITIONS,
@@ -56,6 +60,7 @@ export interface DashboardIntegrationStatuses {
   dropbox?: DropboxStatus | null;
   box?: BoxStatus | null;
   hubspot?: HubSpotStatus | null;
+  dynamics?: DynamicsStatus | null;
   workday?: WorkdayStatus | null;
 }
 
@@ -163,6 +168,14 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showTickets) visible.push('hubspot-tickets');
   }
 
+  const dynamics = statuses.dynamics;
+  if (dynamics?.connected) {
+    const preferences = dynamics.preferences ?? DEFAULT_DYNAMICS_PREFERENCES;
+    if (preferences.showContacts) visible.push('dynamics-contacts');
+    if (preferences.showAccounts) visible.push('dynamics-accounts');
+    if (preferences.showOpportunities) visible.push('dynamics-opportunities');
+  }
+
   if (statuses.workday?.connected) {
     visible.push('workday-articles');
   }
@@ -222,6 +235,13 @@ export function getConnectedIntegrationRoutes(
   }
   if (statuses.hubspot?.connected) {
     routes.push({ provider: 'HUBSPOT', route: '/integrations/hubspot', label: 'HubSpot' });
+  }
+  if (statuses.dynamics?.connected) {
+    routes.push({
+      provider: 'DYNAMICS_365',
+      route: '/integrations/dynamics',
+      label: 'Dynamics 365',
+    });
   }
   if (statuses.workday?.connected) {
     routes.push({ provider: 'WORKDAY', route: '/integrations/workday', label: 'Workday' });

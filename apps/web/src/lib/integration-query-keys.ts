@@ -22,6 +22,12 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   DROPBOX: ['dropbox-status', 'dropbox-files'],
   BOX: ['box-status', 'box-files'],
   HUBSPOT: ['hubspot-status', 'hubspot-contacts', 'hubspot-deals', 'hubspot-tickets'],
+  DYNAMICS_365: [
+    'dynamics-status',
+    'dynamics-contacts',
+    'dynamics-accounts',
+    'dynamics-opportunities',
+  ],
   WORKDAY: ['workday-status', 'workday-sync-logs', 'workday-articles'],
 };
 

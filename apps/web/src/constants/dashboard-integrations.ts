@@ -195,11 +195,12 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     provider: 'DYNAMICS_365',
     iconKey: 'DYNAMICS_365',
     name: 'Microsoft Dynamics 365',
-    description: 'CRM records from Microsoft Dynamics 365',
+    description: 'Contacts, accounts, and opportunities from Dynamics 365',
     category: 'crm',
     categoryLabel: 'CRM',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/dynamics',
+    available: true,
+    showWidgets: true,
   },
 
   // Communication & Collaboration

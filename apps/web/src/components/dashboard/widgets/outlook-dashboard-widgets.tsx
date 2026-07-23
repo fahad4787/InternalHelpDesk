@@ -1,9 +1,14 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Mail } from 'lucide-react';
+import { startOfWeek } from 'date-fns';
+import { Mail } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
-import { MeetEventList } from '@/components/shared/meet-event-list';
+import {
+  getOutlookWeekRange,
+  OutlookWeekCalendar,
+} from '@/components/shared/outlook-week-calendar';
 import { OutlookMessageList } from '@/components/shared/outlook-message-list';
 import { IntegrationIcon } from '@/components/shared/integration-icon';
 import { getErrorMessage } from '@/lib/api-client';
@@ -14,9 +19,16 @@ import { DashboardWidgetCard } from '../dashboard-widget-card';
 const OUTLOOK_CALENDAR_URL = 'https://outlook.office.com/calendar/';
 
 export function OutlookCalendarDashboardWidget() {
+  const [weekStart, setWeekStart] = useState(() =>
+    startOfWeek(new Date(), { weekStartsOn: 0 }),
+  );
+  const [selectedDay, setSelectedDay] = useState(() => new Date());
+
+  const range = useMemo(() => getOutlookWeekRange(weekStart), [weekStart]);
+
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['outlook-events'],
-    queryFn: () => outlookService.getEvents(),
+    queryKey: ['outlook-events', range.start, range.end],
+    queryFn: () => outlookService.getEvents(range),
   });
 
   const events = data?.data?.events ?? [];
@@ -28,19 +40,20 @@ export function OutlookCalendarDashboardWidget() {
       title="Outlook Calendar"
       deepLinkHref={OUTLOOK_CALENDAR_URL}
       deepLinkLabel="Open Calendar"
+      fillContent
     >
       {isLoading ? (
-        <WidgetContentSkeleton lines={5} />
+        <WidgetContentSkeleton lines={6} />
       ) : isError ? (
         <p className="text-sm text-red-600">{getErrorMessage(error)}</p>
-      ) : events.length === 0 ? (
-        <EmptyState
-          icon={Calendar}
-          title="No upcoming events"
-          description="Your Outlook calendar events for the next 30 days will appear here"
-        />
       ) : (
-        <MeetEventList events={events} />
+        <OutlookWeekCalendar
+          events={events}
+          weekStart={weekStart}
+          onWeekChange={setWeekStart}
+          selectedDay={selectedDay}
+          onSelectedDayChange={setSelectedDay}
+        />
       )}
     </DashboardWidgetCard>
   );
