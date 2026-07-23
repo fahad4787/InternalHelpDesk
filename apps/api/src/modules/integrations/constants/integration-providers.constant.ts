@@ -92,6 +92,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'productivity',
   },
   {
+    provider: IntegrationProvider.SHAREPOINT,
+    name: 'SharePoint',
+    description: 'Followed sites from your linked SharePoint account',
+    category: 'productivity',
+  },
+  {
     provider: IntegrationProvider.HUBSPOT,
     name: 'HubSpot',
     description: 'Contacts and deals from your linked HubSpot account',

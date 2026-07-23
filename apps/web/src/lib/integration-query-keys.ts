@@ -22,6 +22,7 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   DROPBOX: ['dropbox-status', 'dropbox-files'],
   BOX: ['box-status', 'box-files'],
   ONEDRIVE: ['onedrive-status', 'onedrive-files'],
+  SHAREPOINT: ['sharepoint-status', 'sharepoint-sites'],
   HUBSPOT: ['hubspot-status', 'hubspot-contacts', 'hubspot-deals', 'hubspot-tickets'],
   WORKDAY: ['workday-status', 'workday-sync-logs', 'workday-articles'],
 };

@@ -48,6 +48,7 @@ import { WorkdayDashboardWidget } from '@/components/dashboard/widgets/workday-d
 import { DropboxFilesDashboardWidget } from '@/components/dashboard/widgets/dropbox-dashboard-widgets';
 import { BoxFilesDashboardWidget } from '@/components/dashboard/widgets/box-dashboard-widgets';
 import { OneDriveFilesDashboardWidget } from '@/components/dashboard/widgets/onedrive-dashboard-widgets';
+import { SharePointSitesDashboardWidget } from '@/components/dashboard/widgets/sharepoint-dashboard-widgets';
 import {
   HubSpotContactsDashboardWidget,
   HubSpotDealsDashboardWidget,
@@ -81,6 +82,7 @@ export const DASHBOARD_WIDGET_IDS = [
   'dropbox-files',
   'box-files',
   'onedrive-files',
+  'sharepoint-sites',
   'hubspot-contacts',
   'hubspot-deals',
   'hubspot-tickets',
@@ -280,33 +282,40 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/onedrive',
     order: 57,
   },
+  'sharepoint-sites': {
+    id: 'sharepoint-sites',
+    label: 'SharePoint sites',
+    provider: 'SHAREPOINT',
+    configureRoute: '/integrations/sharepoint',
+    order: 58,
+  },
   'hubspot-contacts': {
     id: 'hubspot-contacts',
     label: 'Contacts',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 58,
+    order: 59,
   },
   'hubspot-deals': {
     id: 'hubspot-deals',
     label: 'Deals',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 59,
+    order: 60,
   },
   'hubspot-tickets': {
     id: 'hubspot-tickets',
     label: 'Tickets',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 60,
+    order: 61,
   },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 61,
+    order: 62,
   },
 };
 
@@ -337,6 +346,7 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'dropbox-files': DropboxFilesDashboardWidget,
   'box-files': BoxFilesDashboardWidget,
   'onedrive-files': OneDriveFilesDashboardWidget,
+  'sharepoint-sites': SharePointSitesDashboardWidget,
   'hubspot-contacts': HubSpotContactsDashboardWidget,
   'hubspot-deals': HubSpotDealsDashboardWidget,
   'hubspot-tickets': HubSpotTicketsDashboardWidget,
@@ -358,6 +368,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   DROPBOX: '/integrations/dropbox',
   BOX: '/integrations/box',
   ONEDRIVE: '/integrations/onedrive',
+  SHAREPOINT: '/integrations/sharepoint',
   HUBSPOT: '/integrations/hubspot',
   WORKDAY: '/integrations/workday',
 };

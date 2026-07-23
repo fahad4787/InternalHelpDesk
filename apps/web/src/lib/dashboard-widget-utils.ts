@@ -35,6 +35,10 @@ import {
   type OneDriveStatus,
 } from '@/services/onedrive.service';
 import {
+  DEFAULT_SHAREPOINT_PREFERENCES,
+  type SharePointStatus,
+} from '@/services/sharepoint.service';
+import {
   DEFAULT_HUBSPOT_PREFERENCES,
   type HubSpotStatus,
 } from '@/services/hubspot.service';
@@ -60,6 +64,7 @@ export interface DashboardIntegrationStatuses {
   dropbox?: DropboxStatus | null;
   box?: BoxStatus | null;
   onedrive?: OneDriveStatus | null;
+  sharepoint?: SharePointStatus | null;
   hubspot?: HubSpotStatus | null;
   workday?: WorkdayStatus | null;
 }
@@ -166,6 +171,15 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showFiles) visible.push('onedrive-files');
   }
 
+  const sharepoint = statuses.sharepoint;
+  if (
+    sharepoint?.connected &&
+    !isPersonalMicrosoftAccount(sharepoint.sharepointEmail)
+  ) {
+    const preferences = sharepoint.preferences ?? DEFAULT_SHAREPOINT_PREFERENCES;
+    if (preferences.showSites) visible.push('sharepoint-sites');
+  }
+
   const hubspot = statuses.hubspot;
   if (hubspot?.connected) {
     const preferences = hubspot.preferences ?? DEFAULT_HUBSPOT_PREFERENCES;
@@ -238,6 +252,13 @@ export function getConnectedIntegrationRoutes(
       label: 'OneDrive',
     });
   }
+  if (statuses.sharepoint?.connected) {
+    routes.push({
+      provider: 'SHAREPOINT',
+      route: '/integrations/sharepoint',
+      label: 'SharePoint',
+    });
+  }
   if (statuses.hubspot?.connected) {
     routes.push({ provider: 'HUBSPOT', route: '/integrations/hubspot', label: 'HubSpot' });
   }
@@ -265,6 +286,7 @@ export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'dropbox-files',
   'box-files',
   'onedrive-files',
+  'sharepoint-sites',
   'asana-projects',
   'monday-boards',
   'clickup-lists',

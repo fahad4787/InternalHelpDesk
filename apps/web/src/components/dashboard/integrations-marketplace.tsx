@@ -92,6 +92,8 @@ function isProviderConnected(
       return statuses.box?.connected === true;
     case 'ONEDRIVE':
       return statuses.onedrive?.connected === true;
+    case 'SHAREPOINT':
+      return statuses.sharepoint?.connected === true;
     case 'HUBSPOT':
       return statuses.hubspot?.connected === true;
     case 'WORKDAY':
@@ -137,6 +139,8 @@ function connectedAtForProvider(
       return statuses.box?.lastSyncedAt ?? null;
     case 'ONEDRIVE':
       return statuses.onedrive?.lastSyncedAt ?? null;
+    case 'SHAREPOINT':
+      return statuses.sharepoint?.lastSyncedAt ?? null;
     case 'HUBSPOT':
       return statuses.hubspot?.lastSyncedAt ?? null;
     case 'WORKDAY':

@@ -65,6 +65,7 @@ enum IntegrationProvider {
   BOX
   HUBSPOT
   ONEDRIVE
+  SHAREPOINT
 }
 
 enum IntegrationStatus {
@@ -153,6 +154,7 @@ model User {
   boxConnection             BoxConnection?
   hubspotConnection         HubSpotConnection?
   oneDriveConnection        OneDriveConnection?
+  sharePointConnection      SharePointConnection?
 
   @@unique([email, companyId])
   @@index([companyId])
@@ -457,6 +459,24 @@ model OneDriveConnection {
   onedriveAccountId     String?
   onedriveEmail         String?
   onedriveDisplayName   String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SharePointConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  sharepointAccountId   String?
+  sharepointEmail       String?
+  sharepointDisplayName String?
   encryptedAccessToken  String?
   encryptedRefreshToken String?
   tokenExpiresAt        DateTime?

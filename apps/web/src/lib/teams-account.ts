@@ -15,6 +15,9 @@ const PERSONAL_EMAIL_DOMAINS = new Set([
 export const TEAMS_WORK_ACCOUNT_MESSAGE =
   'Teams and chats require a Microsoft 365 work or school account with a Teams license. Personal Microsoft accounts (for example Gmail, Outlook.com, or teams.live.com) can sign in, but Microsoft Graph cannot return their teams or chats.';
 
+export const SHAREPOINT_WORK_ACCOUNT_MESSAGE =
+  'SharePoint sites require a Microsoft 365 work or school account with SharePoint. Personal Microsoft accounts (for example Gmail or Outlook.com) can sign in, but Microsoft Graph cannot return followed SharePoint sites.';
+
 export function isPersonalMicrosoftAccount(
   email: string | null | undefined,
 ): boolean {

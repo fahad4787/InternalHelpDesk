@@ -33,6 +33,8 @@ import { HubSpotModule } from './hubspot/hubspot.module';
 import { HubSpotController } from './hubspot/hubspot.controller';
 import { OneDriveModule } from './onedrive/onedrive.module';
 import { OneDriveController } from './onedrive/onedrive.controller';
+import { SharePointModule } from './sharepoint/sharepoint.module';
+import { SharePointController } from './sharepoint/sharepoint.controller';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { OneDriveController } from './onedrive/onedrive.controller';
     BoxModule,
     HubSpotModule,
     OneDriveModule,
+    SharePointModule,
   ],
   controllers: [
     WorkdayController,
@@ -70,6 +73,7 @@ import { OneDriveController } from './onedrive/onedrive.controller';
     BoxController,
     HubSpotController,
     OneDriveController,
+    SharePointController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -91,6 +95,7 @@ import { OneDriveController } from './onedrive/onedrive.controller';
     BoxModule,
     HubSpotModule,
     OneDriveModule,
+    SharePointModule,
   ],
 })
 export class IntegrationsModule {}
