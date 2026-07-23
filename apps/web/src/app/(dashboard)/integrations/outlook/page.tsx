@@ -38,7 +38,7 @@ export default function OutlookIntegrationPage() {
     if (connected === 'true') {
       setAuthError(null);
       queryClient.invalidateQueries({ queryKey: ['outlook-status'] });
-      queryClient.invalidateQueries({ queryKey: ['outlook-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['outlook-events'] });
       queryClient.invalidateQueries({ queryKey: ['outlook-messages'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/outlook', { scroll: false });
@@ -64,7 +64,7 @@ export default function OutlookIntegrationPage() {
     mutationFn: () => outlookService.disconnect(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['outlook-status'] });
-      queryClient.removeQueries({ queryKey: ['outlook-profile'] });
+      queryClient.removeQueries({ queryKey: ['outlook-events'] });
       queryClient.removeQueries({ queryKey: ['outlook-messages'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },
@@ -79,7 +79,7 @@ export default function OutlookIntegrationPage() {
   return (
     <PageContainer
       title="Outlook"
-      description="Inbox and email from your linked Microsoft account"
+      description="Calendar and inbox from your linked Microsoft account"
       actions={
         <Link href="/integrations">
           <Button variant="outline" size="sm">

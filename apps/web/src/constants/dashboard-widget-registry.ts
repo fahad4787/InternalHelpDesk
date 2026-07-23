@@ -17,7 +17,7 @@ import {
 } from '@/components/dashboard/widgets/jira-dashboard-widgets';
 import {
   OutlookInboxDashboardWidget,
-  OutlookProfileDashboardWidget,
+  OutlookCalendarDashboardWidget,
 } from '@/components/dashboard/widgets/outlook-dashboard-widgets';
 import {
   TeamsChatsDashboardWidget,
@@ -73,7 +73,7 @@ export const DASHBOARD_WIDGET_IDS = [
   'zoom-profile',
   'zoom-calendar',
   'zoom-meetings',
-  'outlook-profile',
+  'outlook-calendar',
   'outlook-inbox',
   'teams-joined',
   'teams-chats',
@@ -229,9 +229,9 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/zoom',
     order: 42,
   },
-  'outlook-profile': {
-    id: 'outlook-profile',
-    label: 'Outlook profile',
+  'outlook-calendar': {
+    id: 'outlook-calendar',
+    label: 'Outlook Calendar',
     provider: 'OUTLOOK',
     configureRoute: '/integrations/outlook',
     order: 50,
@@ -321,7 +321,7 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'zoom-profile': ZoomProfileDashboardWidget,
   'zoom-calendar': ZoomCalendarDashboardWidget,
   'zoom-meetings': ZoomMeetingsDashboardWidget,
-  'outlook-profile': OutlookProfileDashboardWidget,
+  'outlook-calendar': OutlookCalendarDashboardWidget,
   'outlook-inbox': OutlookInboxDashboardWidget,
   'teams-joined': TeamsJoinedDashboardWidget,
   'teams-chats': TeamsChatsDashboardWidget,

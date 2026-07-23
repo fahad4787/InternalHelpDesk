@@ -17,7 +17,7 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
     'google-chat-messages',
   ],
   ZOOM: ['zoom-status', 'zoom-meetings', 'zoom-profile'],
-  OUTLOOK: ['outlook-status', 'outlook-messages', 'outlook-profile'],
+  OUTLOOK: ['outlook-status', 'outlook-messages', 'outlook-events'],
   MICROSOFT_TEAMS: ['teams-status', 'teams-joined', 'teams-chats'],
   DROPBOX: ['dropbox-status', 'dropbox-files'],
   BOX: ['box-status', 'box-files'],

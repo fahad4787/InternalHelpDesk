@@ -87,10 +87,10 @@ export function OutlookPreferencesCard({
       } else {
         queryClient.invalidateQueries({ queryKey: ['outlook-messages'] });
       }
-      if (!next.showProfile) {
-        queryClient.removeQueries({ queryKey: ['outlook-profile'] });
+      if (!next.showCalendar) {
+        queryClient.removeQueries({ queryKey: ['outlook-events'] });
       } else {
-        queryClient.invalidateQueries({ queryKey: ['outlook-profile'] });
+        queryClient.invalidateQueries({ queryKey: ['outlook-events'] });
       }
     },
     onError: () => {
@@ -116,11 +116,11 @@ export function OutlookPreferencesCard({
       </CardHeader>
       <CardContent className="space-y-3">
         <ToggleRow
-          label="Outlook profile"
-          description="Show connected account name and email"
-          checked={preferences.showProfile}
+          label="Outlook Calendar"
+          description="Show upcoming calendar events"
+          checked={preferences.showCalendar}
           disabled={isPending}
-          onChange={(value) => update('showProfile', value)}
+          onChange={(value) => update('showCalendar', value)}
         />
         <ToggleRow
           label="Inbox"

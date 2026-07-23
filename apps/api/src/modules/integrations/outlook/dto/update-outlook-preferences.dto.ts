@@ -2,7 +2,7 @@ import { IsBoolean } from 'class-validator';
 
 export class UpdateOutlookPreferencesDto {
   @IsBoolean()
-  showProfile: boolean;
+  showCalendar: boolean;
 
   @IsBoolean()
   showInbox: boolean;

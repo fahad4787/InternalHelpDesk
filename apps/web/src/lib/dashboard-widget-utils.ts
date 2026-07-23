@@ -132,7 +132,7 @@ export function resolveVisibleDashboardWidgets(
   const outlook = statuses.outlook;
   if (outlook?.connected) {
     const preferences = outlook.preferences ?? DEFAULT_OUTLOOK_PREFERENCES;
-    if (preferences.showProfile) visible.push('outlook-profile');
+    if (preferences.showCalendar) visible.push('outlook-calendar');
     if (preferences.showInbox) visible.push('outlook-inbox');
   }
 
