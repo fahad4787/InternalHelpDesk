@@ -92,12 +92,6 @@ export class TeamsController {
     return this.teamsService.disconnect(user);
   }
 
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  getProfile(@CurrentUser() user: AuthenticatedUser) {
-    return this.teamsService.getProfile(user);
-  }
-
   @Get('joined-teams')
   @UseGuards(JwtAuthGuard)
   getTeams(@CurrentUser() user: AuthenticatedUser) {

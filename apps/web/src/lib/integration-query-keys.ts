@@ -18,7 +18,7 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   ],
   ZOOM: ['zoom-status', 'zoom-meetings', 'zoom-profile'],
   OUTLOOK: ['outlook-status', 'outlook-messages', 'outlook-profile'],
-  MICROSOFT_TEAMS: ['teams-status', 'teams-profile', 'teams-joined', 'teams-chats'],
+  MICROSOFT_TEAMS: ['teams-status', 'teams-joined', 'teams-chats'],
   DROPBOX: ['dropbox-status', 'dropbox-files'],
   BOX: ['box-status', 'box-files'],
   HUBSPOT: ['hubspot-status', 'hubspot-contacts', 'hubspot-deals', 'hubspot-tickets'],

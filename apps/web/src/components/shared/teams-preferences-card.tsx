@@ -92,11 +92,6 @@ export function TeamsPreferencesCard({
       } else {
         queryClient.invalidateQueries({ queryKey: ['teams-chats'] });
       }
-      if (!next.showProfile) {
-        queryClient.removeQueries({ queryKey: ['teams-profile'] });
-      } else {
-        queryClient.invalidateQueries({ queryKey: ['teams-profile'] });
-      }
     },
     onError: () => {
       setPreferences(serverPreferences);
@@ -120,13 +115,6 @@ export function TeamsPreferencesCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <ToggleRow
-          label="Teams profile"
-          description="Show connected account name and email"
-          checked={preferences.showProfile}
-          disabled={isPending}
-          onChange={(value) => update('showProfile', value)}
-        />
         <ToggleRow
           label="Joined teams"
           description="Show teams you belong to"

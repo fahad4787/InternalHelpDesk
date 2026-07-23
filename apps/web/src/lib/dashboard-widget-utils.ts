@@ -21,6 +21,7 @@ import {
   DEFAULT_TEAMS_PREFERENCES,
   type TeamsStatus,
 } from '@/services/teams.service';
+import { isPersonalMicrosoftAccount } from '@/lib/teams-account';
 import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
 import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
 import { DEFAULT_ZOOM_PREFERENCES, type ZoomStatus } from '@/services/zoom.service';
@@ -136,9 +137,8 @@ export function resolveVisibleDashboardWidgets(
   }
 
   const teams = statuses.teams;
-  if (teams?.connected) {
+  if (teams?.connected && !isPersonalMicrosoftAccount(teams.teamsEmail)) {
     const preferences = teams.preferences ?? DEFAULT_TEAMS_PREFERENCES;
-    if (preferences.showProfile) visible.push('teams-profile');
     if (preferences.showTeams) visible.push('teams-joined');
     if (preferences.showChats) visible.push('teams-chats');
   }

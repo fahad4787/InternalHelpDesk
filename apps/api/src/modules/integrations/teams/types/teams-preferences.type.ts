@@ -1,11 +1,9 @@
 export interface TeamsPreferences {
-  showProfile: boolean;
   showTeams: boolean;
   showChats: boolean;
 }
 
 export const DEFAULT_TEAMS_PREFERENCES: TeamsPreferences = {
-  showProfile: true,
   showTeams: true,
   showChats: true,
 };
