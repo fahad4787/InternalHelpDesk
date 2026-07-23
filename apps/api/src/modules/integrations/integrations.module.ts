@@ -31,6 +31,8 @@ import { BoxModule } from './box/box.module';
 import { BoxController } from './box/box.controller';
 import { HubSpotModule } from './hubspot/hubspot.module';
 import { HubSpotController } from './hubspot/hubspot.controller';
+import { OneDriveModule } from './onedrive/onedrive.module';
+import { OneDriveController } from './onedrive/onedrive.controller';
 
 @Module({
   imports: [
@@ -49,6 +51,7 @@ import { HubSpotController } from './hubspot/hubspot.controller';
     DropboxModule,
     BoxModule,
     HubSpotModule,
+    OneDriveModule,
   ],
   controllers: [
     WorkdayController,
@@ -66,6 +69,7 @@ import { HubSpotController } from './hubspot/hubspot.controller';
     DropboxController,
     BoxController,
     HubSpotController,
+    OneDriveController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -86,6 +90,7 @@ import { HubSpotController } from './hubspot/hubspot.controller';
     DropboxModule,
     BoxModule,
     HubSpotModule,
+    OneDriveModule,
   ],
 })
 export class IntegrationsModule {}

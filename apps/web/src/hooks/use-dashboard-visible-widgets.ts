@@ -16,6 +16,7 @@ import { workdayService } from '@/services/workday.service';
 import { zoomService } from '@/services/zoom.service';
 import { dropboxService } from '@/services/dropbox.service';
 import { boxService } from '@/services/box.service';
+import { oneDriveService } from '@/services/onedrive.service';
 import { hubspotService } from '@/services/hubspot.service';
 import { resolveVisibleDashboardWidgets } from '@/lib/dashboard-widget-utils';
 
@@ -125,6 +126,13 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
     enabled,
   });
 
+  const oneDriveQuery = useQuery({
+    queryKey: ['onedrive-status'],
+    queryFn: () => oneDriveService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
+  });
+
   const hubspotQuery = useQuery({
     queryKey: ['hubspot-status'],
     queryFn: () => hubspotService.getStatus(),
@@ -155,6 +163,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
         teams: teamsQuery.data?.data,
         dropbox: dropboxQuery.data?.data,
         box: boxQuery.data?.data,
+        onedrive: oneDriveQuery.data?.data,
         hubspot: hubspotQuery.data?.data,
         workday: workdayQuery.data?.data,
       }),
@@ -172,6 +181,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       teamsQuery.data?.data,
       dropboxQuery.data?.data,
       boxQuery.data?.data,
+      oneDriveQuery.data?.data,
       hubspotQuery.data?.data,
       workdayQuery.data?.data,
     ],
@@ -192,6 +202,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       isStatusPending(teamsQuery) ||
       isStatusPending(dropboxQuery) ||
       isStatusPending(boxQuery) ||
+      isStatusPending(oneDriveQuery) ||
       isStatusPending(hubspotQuery) ||
       isStatusPending(workdayQuery));
 
@@ -212,6 +223,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       teams: teamsQuery.data?.data,
       dropbox: dropboxQuery.data?.data,
       box: boxQuery.data?.data,
+      onedrive: oneDriveQuery.data?.data,
       hubspot: hubspotQuery.data?.data,
       workday: workdayQuery.data?.data,
     },

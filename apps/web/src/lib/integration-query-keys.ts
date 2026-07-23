@@ -21,6 +21,7 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   MICROSOFT_TEAMS: ['teams-status', 'teams-joined', 'teams-chats'],
   DROPBOX: ['dropbox-status', 'dropbox-files'],
   BOX: ['box-status', 'box-files'],
+  ONEDRIVE: ['onedrive-status', 'onedrive-files'],
   HUBSPOT: ['hubspot-status', 'hubspot-contacts', 'hubspot-deals', 'hubspot-tickets'],
   WORKDAY: ['workday-status', 'workday-sync-logs', 'workday-articles'],
 };

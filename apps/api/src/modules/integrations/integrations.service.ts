@@ -35,6 +35,7 @@ export class IntegrationsService {
       dropboxConnection,
       boxConnection,
       hubspotConnection,
+      oneDriveConnection,
       workdayConnection,
     ] = await Promise.all([
       this.softQuery(
@@ -123,6 +124,12 @@ export class IntegrationsService {
       ),
       this.softQuery(
         this.prisma.hubSpotConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.oneDriveConnection.findUnique({
           where: { userId: user.id },
         }),
         null,
@@ -307,6 +314,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: hubspotConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.ONEDRIVE) {
+        const userConnected =
+          oneDriveConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: oneDriveConnection?.updatedAt ?? null,
         };
       }
 

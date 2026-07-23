@@ -12,6 +12,7 @@ import { workdayService } from '@/services/workday.service';
 import { zoomService } from '@/services/zoom.service';
 import { dropboxService } from '@/services/dropbox.service';
 import { boxService } from '@/services/box.service';
+import { oneDriveService } from '@/services/onedrive.service';
 import { hubspotService } from '@/services/hubspot.service';
 
 export async function disconnectIntegrationProvider(provider: string) {
@@ -42,6 +43,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return dropboxService.disconnect();
     case 'BOX':
       return boxService.disconnect();
+    case 'ONEDRIVE':
+      return oneDriveService.disconnect();
     case 'HUBSPOT':
       return hubspotService.disconnect();
     case 'WORKDAY':

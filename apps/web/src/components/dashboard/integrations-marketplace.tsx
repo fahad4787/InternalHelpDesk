@@ -88,6 +88,12 @@ function isProviderConnected(
       return statuses.teams?.connected === true;
     case 'DROPBOX':
       return statuses.dropbox?.connected === true;
+    case 'BOX':
+      return statuses.box?.connected === true;
+    case 'ONEDRIVE':
+      return statuses.onedrive?.connected === true;
+    case 'HUBSPOT':
+      return statuses.hubspot?.connected === true;
     case 'WORKDAY':
       return statuses.workday?.connected === true;
     default:
@@ -127,6 +133,12 @@ function connectedAtForProvider(
       return statuses.teams?.lastSyncedAt ?? null;
     case 'DROPBOX':
       return statuses.dropbox?.lastSyncedAt ?? null;
+    case 'BOX':
+      return statuses.box?.lastSyncedAt ?? null;
+    case 'ONEDRIVE':
+      return statuses.onedrive?.lastSyncedAt ?? null;
+    case 'HUBSPOT':
+      return statuses.hubspot?.lastSyncedAt ?? null;
     case 'WORKDAY':
       return statuses.workday?.lastSyncedAt ?? null;
     default:

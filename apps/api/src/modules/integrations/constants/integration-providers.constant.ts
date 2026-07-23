@@ -86,6 +86,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'productivity',
   },
   {
+    provider: IntegrationProvider.ONEDRIVE,
+    name: 'OneDrive',
+    description: 'Files and folders from your linked OneDrive account',
+    category: 'productivity',
+  },
+  {
     provider: IntegrationProvider.HUBSPOT,
     name: 'HubSpot',
     description: 'Contacts and deals from your linked HubSpot account',

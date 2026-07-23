@@ -47,6 +47,7 @@ import {
 import { WorkdayDashboardWidget } from '@/components/dashboard/widgets/workday-dashboard-widget';
 import { DropboxFilesDashboardWidget } from '@/components/dashboard/widgets/dropbox-dashboard-widgets';
 import { BoxFilesDashboardWidget } from '@/components/dashboard/widgets/box-dashboard-widgets';
+import { OneDriveFilesDashboardWidget } from '@/components/dashboard/widgets/onedrive-dashboard-widgets';
 import {
   HubSpotContactsDashboardWidget,
   HubSpotDealsDashboardWidget,
@@ -79,6 +80,7 @@ export const DASHBOARD_WIDGET_IDS = [
   'teams-chats',
   'dropbox-files',
   'box-files',
+  'onedrive-files',
   'hubspot-contacts',
   'hubspot-deals',
   'hubspot-tickets',
@@ -271,33 +273,40 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/box',
     order: 56,
   },
+  'onedrive-files': {
+    id: 'onedrive-files',
+    label: 'OneDrive files',
+    provider: 'ONEDRIVE',
+    configureRoute: '/integrations/onedrive',
+    order: 57,
+  },
   'hubspot-contacts': {
     id: 'hubspot-contacts',
     label: 'Contacts',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 57,
+    order: 58,
   },
   'hubspot-deals': {
     id: 'hubspot-deals',
     label: 'Deals',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 58,
+    order: 59,
   },
   'hubspot-tickets': {
     id: 'hubspot-tickets',
     label: 'Tickets',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 59,
+    order: 60,
   },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 60,
+    order: 61,
   },
 };
 
@@ -327,6 +336,7 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'teams-chats': TeamsChatsDashboardWidget,
   'dropbox-files': DropboxFilesDashboardWidget,
   'box-files': BoxFilesDashboardWidget,
+  'onedrive-files': OneDriveFilesDashboardWidget,
   'hubspot-contacts': HubSpotContactsDashboardWidget,
   'hubspot-deals': HubSpotDealsDashboardWidget,
   'hubspot-tickets': HubSpotTicketsDashboardWidget,
@@ -347,6 +357,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   MICROSOFT_TEAMS: '/integrations/teams',
   DROPBOX: '/integrations/dropbox',
   BOX: '/integrations/box',
+  ONEDRIVE: '/integrations/onedrive',
   HUBSPOT: '/integrations/hubspot',
   WORKDAY: '/integrations/workday',
 };

@@ -31,6 +31,10 @@ import {
 } from '@/services/dropbox.service';
 import { DEFAULT_BOX_PREFERENCES, type BoxStatus } from '@/services/box.service';
 import {
+  DEFAULT_ONEDRIVE_PREFERENCES,
+  type OneDriveStatus,
+} from '@/services/onedrive.service';
+import {
   DEFAULT_HUBSPOT_PREFERENCES,
   type HubSpotStatus,
 } from '@/services/hubspot.service';
@@ -55,6 +59,7 @@ export interface DashboardIntegrationStatuses {
   teams?: TeamsStatus | null;
   dropbox?: DropboxStatus | null;
   box?: BoxStatus | null;
+  onedrive?: OneDriveStatus | null;
   hubspot?: HubSpotStatus | null;
   workday?: WorkdayStatus | null;
 }
@@ -155,6 +160,12 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showFiles) visible.push('box-files');
   }
 
+  const onedrive = statuses.onedrive;
+  if (onedrive?.connected) {
+    const preferences = onedrive.preferences ?? DEFAULT_ONEDRIVE_PREFERENCES;
+    if (preferences.showFiles) visible.push('onedrive-files');
+  }
+
   const hubspot = statuses.hubspot;
   if (hubspot?.connected) {
     const preferences = hubspot.preferences ?? DEFAULT_HUBSPOT_PREFERENCES;
@@ -220,6 +231,13 @@ export function getConnectedIntegrationRoutes(
   if (statuses.box?.connected) {
     routes.push({ provider: 'BOX', route: '/integrations/box', label: 'Box' });
   }
+  if (statuses.onedrive?.connected) {
+    routes.push({
+      provider: 'ONEDRIVE',
+      route: '/integrations/onedrive',
+      label: 'OneDrive',
+    });
+  }
   if (statuses.hubspot?.connected) {
     routes.push({ provider: 'HUBSPOT', route: '/integrations/hubspot', label: 'HubSpot' });
   }
@@ -239,7 +257,22 @@ export function filterWidgetsByProvider(
   );
 }
 
+/** Full-width on integration detail pages (and default for shared lists). */
 export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
+  'slack-messenger',
+  'google-chat',
+  'trello-boards',
+  'dropbox-files',
+  'box-files',
+  'onedrive-files',
+  'asana-projects',
+  'monday-boards',
+  'clickup-lists',
+  'hubspot-tickets',
+]);
+
+/** Full-width on the main dashboard only (half-width widgets omitted). */
+export const DASHBOARD_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'slack-messenger',
   'google-chat',
   'trello-boards',
@@ -248,5 +281,4 @@ export const INTEGRATION_FULL_WIDTH_WIDGETS = new Set<DashboardWidgetId>([
   'asana-projects',
   'monday-boards',
   'clickup-lists',
-  'hubspot-tickets',
 ]);
