@@ -43,6 +43,10 @@ import {
   type HubSpotStatus,
 } from '@/services/hubspot.service';
 import {
+  DEFAULT_SALESFORCE_PREFERENCES,
+  type SalesforceStatus,
+} from '@/services/salesforce.service';
+import {
   DEFAULT_DYNAMICS_PREFERENCES,
   type DynamicsStatus,
 } from '@/services/dynamics.service';
@@ -70,6 +74,7 @@ export interface DashboardIntegrationStatuses {
   onedrive?: OneDriveStatus | null;
   sharepoint?: SharePointStatus | null;
   hubspot?: HubSpotStatus | null;
+  salesforce?: SalesforceStatus | null;
   dynamics?: DynamicsStatus | null;
   workday?: WorkdayStatus | null;
 }
@@ -193,6 +198,15 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showTickets) visible.push('hubspot-tickets');
   }
 
+  const salesforce = statuses.salesforce;
+  if (salesforce?.connected) {
+    const preferences =
+      salesforce.preferences ?? DEFAULT_SALESFORCE_PREFERENCES;
+    if (preferences.showContacts) visible.push('salesforce-contacts');
+    if (preferences.showAccounts) visible.push('salesforce-accounts');
+    if (preferences.showOpportunities) visible.push('salesforce-opportunities');
+  }
+
   const dynamics = statuses.dynamics;
   if (dynamics?.connected) {
     const preferences = dynamics.preferences ?? DEFAULT_DYNAMICS_PREFERENCES;
@@ -274,6 +288,13 @@ export function getConnectedIntegrationRoutes(
   }
   if (statuses.hubspot?.connected) {
     routes.push({ provider: 'HUBSPOT', route: '/integrations/hubspot', label: 'HubSpot' });
+  }
+  if (statuses.salesforce?.connected) {
+    routes.push({
+      provider: 'SALESFORCE',
+      route: '/integrations/salesforce',
+      label: 'Salesforce',
+    });
   }
   if (statuses.dynamics?.connected) {
     routes.push({

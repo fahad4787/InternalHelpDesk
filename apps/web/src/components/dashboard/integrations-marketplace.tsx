@@ -96,6 +96,8 @@ function isProviderConnected(
       return statuses.sharepoint?.connected === true;
     case 'HUBSPOT':
       return statuses.hubspot?.connected === true;
+    case 'SALESFORCE':
+      return statuses.salesforce?.connected === true;
     case 'WORKDAY':
       return statuses.workday?.connected === true;
     default:
@@ -143,6 +145,8 @@ function connectedAtForProvider(
       return statuses.sharepoint?.lastSyncedAt ?? null;
     case 'HUBSPOT':
       return statuses.hubspot?.lastSyncedAt ?? null;
+    case 'SALESFORCE':
+      return statuses.salesforce?.lastSyncedAt ?? null;
     case 'WORKDAY':
       return statuses.workday?.lastSyncedAt ?? null;
     default:

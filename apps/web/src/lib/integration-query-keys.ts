@@ -24,6 +24,12 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
   ONEDRIVE: ['onedrive-status', 'onedrive-files'],
   SHAREPOINT: ['sharepoint-status', 'sharepoint-sites'],
   HUBSPOT: ['hubspot-status', 'hubspot-contacts', 'hubspot-deals', 'hubspot-tickets'],
+  SALESFORCE: [
+    'salesforce-status',
+    'salesforce-contacts',
+    'salesforce-accounts',
+    'salesforce-opportunities',
+  ],
   DYNAMICS_365: [
     'dynamics-status',
     'dynamics-contacts',

@@ -15,6 +15,7 @@ import { boxService } from '@/services/box.service';
 import { oneDriveService } from '@/services/onedrive.service';
 import { sharePointService } from '@/services/sharepoint.service';
 import { hubspotService } from '@/services/hubspot.service';
+import { salesforceService } from '@/services/salesforce.service';
 import { dynamicsService } from '@/services/dynamics.service';
 
 export async function disconnectIntegrationProvider(provider: string) {
@@ -51,6 +52,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return sharePointService.disconnect();
     case 'HUBSPOT':
       return hubspotService.disconnect();
+    case 'SALESFORCE':
+      return salesforceService.disconnect();
     case 'DYNAMICS_365':
       return dynamicsService.disconnect();
     case 'WORKDAY':

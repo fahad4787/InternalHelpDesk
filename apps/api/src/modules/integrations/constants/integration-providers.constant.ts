@@ -104,9 +104,9 @@ export const INTEGRATION_PROVIDERS = [
     category: 'crm',
   },
   {
-    provider: IntegrationProvider.DYNAMICS_365,
-    name: 'Microsoft Dynamics 365',
-    description: 'Contacts, accounts, and opportunities from Dynamics 365',
+    provider: IntegrationProvider.SALESFORCE,
+    name: 'Salesforce',
+    description: 'Contacts, accounts, and opportunities from Salesforce',
     category: 'crm',
   },
   {

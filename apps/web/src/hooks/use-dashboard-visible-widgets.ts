@@ -19,6 +19,7 @@ import { boxService } from '@/services/box.service';
 import { oneDriveService } from '@/services/onedrive.service';
 import { sharePointService } from '@/services/sharepoint.service';
 import { hubspotService } from '@/services/hubspot.service';
+import { salesforceService } from '@/services/salesforce.service';
 import { dynamicsService } from '@/services/dynamics.service';
 import { resolveVisibleDashboardWidgets } from '@/lib/dashboard-widget-utils';
 
@@ -149,6 +150,13 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
     enabled,
   });
 
+  const salesforceQuery = useQuery({
+    queryKey: ['salesforce-status'],
+    queryFn: () => salesforceService.getStatus(),
+    ...statusQueryOptions,
+    enabled,
+  });
+
   const dynamicsQuery = useQuery({
     queryKey: ['dynamics-status'],
     queryFn: () => dynamicsService.getStatus(),
@@ -182,6 +190,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
         onedrive: oneDriveQuery.data?.data,
         sharepoint: sharePointQuery.data?.data,
         hubspot: hubspotQuery.data?.data,
+        salesforce: salesforceQuery.data?.data,
         dynamics: dynamicsQuery.data?.data,
         workday: workdayQuery.data?.data,
       }),
@@ -202,6 +211,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       oneDriveQuery.data?.data,
       sharePointQuery.data?.data,
       hubspotQuery.data?.data,
+      salesforceQuery.data?.data,
       dynamicsQuery.data?.data,
       workdayQuery.data?.data,
     ],
@@ -225,6 +235,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       isStatusPending(oneDriveQuery) ||
       isStatusPending(sharePointQuery) ||
       isStatusPending(hubspotQuery) ||
+      isStatusPending(salesforceQuery) ||
       isStatusPending(dynamicsQuery) ||
       isStatusPending(workdayQuery));
 
@@ -248,6 +259,7 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
       onedrive: oneDriveQuery.data?.data,
       sharepoint: sharePointQuery.data?.data,
       hubspot: hubspotQuery.data?.data,
+      salesforce: salesforceQuery.data?.data,
       dynamics: dynamicsQuery.data?.data,
       workday: workdayQuery.data?.data,
     },

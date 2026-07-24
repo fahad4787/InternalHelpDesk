@@ -164,8 +164,9 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     description: 'Accounts, contacts, and opportunities from Salesforce',
     category: 'crm',
     categoryLabel: 'CRM',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/salesforce',
+    available: true,
+    showWidgets: true,
   },
   {
     id: 'hubspot',
