@@ -15,6 +15,7 @@ import {
   verifyOAuthStateWithData,
 } from '../google-calendar/utils/oauth-state.util';
 import { resolveOAuthRedirectUri } from '../utils/resolve-oauth-redirect-uri.util';
+import { ensureSalesforceConnectionTable } from './ensure-salesforce-connection-table';
 import { UpdateSalesforcePreferencesDto } from './dto/update-salesforce-preferences.dto';
 import {
   DEFAULT_SALESFORCE_PREFERENCES,
@@ -64,6 +65,7 @@ export class SalesforceService {
   }
 
   async getStatus(user: AuthenticatedUser) {
+    await ensureSalesforceConnectionTable(this.prisma);
     const connection = await this.prisma.salesforceConnection.findUnique({
       where: { userId: user.id },
     });
@@ -155,6 +157,8 @@ export class SalesforceService {
     if (!verified) {
       throw new UnauthorizedException('Invalid or expired OAuth state');
     }
+
+    await ensureSalesforceConnectionTable(this.prisma);
 
     const tokens = await this.exchangeCodeForTokens(code, verified.data);
     const identity = await this.fetchIdentity(
@@ -377,6 +381,7 @@ export class SalesforceService {
   }
 
   private async requireConnection(user: AuthenticatedUser) {
+    await ensureSalesforceConnectionTable(this.prisma);
     const connection = await this.prisma.salesforceConnection.findUnique({
       where: { userId: user.id },
     });
@@ -395,7 +400,7 @@ export class SalesforceService {
   }
 
   private async touchSync(userId: string) {
-    await this.prisma.salesforceConnection.update({
+    await this.prisma.salesforceConnection.updateMany({
       where: { userId },
       data: { lastSyncedAt: new Date() },
     });

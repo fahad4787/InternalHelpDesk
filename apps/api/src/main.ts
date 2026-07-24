@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { PrismaService } from './database/prisma.service';
+import { ensureSalesforceConnectionTable } from './modules/integrations/salesforce/ensure-salesforce-connection-table';
 import { ensureTeamsConnectionTable } from './modules/integrations/teams/ensure-teams-connection-table';
 
 try {
@@ -20,6 +21,7 @@ async function connectDatabase(prisma: PrismaService) {
       await prisma.$connect();
       console.log('Database connected');
       await ensureTeamsConnectionTable(prisma);
+      await ensureSalesforceConnectionTable(prisma);
       return;
     } catch (error) {
       console.error(`Database connection attempt ${attempt} failed`, error);
