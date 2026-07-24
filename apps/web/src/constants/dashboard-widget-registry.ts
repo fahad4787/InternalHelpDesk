@@ -54,6 +54,11 @@ import {
   HubSpotDealsDashboardWidget,
   HubSpotTicketsDashboardWidget,
 } from '@/components/dashboard/widgets/hubspot-dashboard-widgets';
+import {
+  SalesforceContactsDashboardWidget,
+  SalesforceAccountsDashboardWidget,
+  SalesforceOpportunitiesDashboardWidget,
+} from '@/components/dashboard/widgets/salesforce-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -86,6 +91,9 @@ export const DASHBOARD_WIDGET_IDS = [
   'hubspot-contacts',
   'hubspot-deals',
   'hubspot-tickets',
+  'salesforce-contacts',
+  'salesforce-accounts',
+  'salesforce-opportunities',
   'workday-articles',
 ] as const;
 
@@ -310,12 +318,33 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/hubspot',
     order: 61,
   },
+  'salesforce-contacts': {
+    id: 'salesforce-contacts',
+    label: 'Contacts',
+    provider: 'SALESFORCE',
+    configureRoute: '/integrations/salesforce',
+    order: 62,
+  },
+  'salesforce-accounts': {
+    id: 'salesforce-accounts',
+    label: 'Accounts',
+    provider: 'SALESFORCE',
+    configureRoute: '/integrations/salesforce',
+    order: 63,
+  },
+  'salesforce-opportunities': {
+    id: 'salesforce-opportunities',
+    label: 'Opportunities',
+    provider: 'SALESFORCE',
+    configureRoute: '/integrations/salesforce',
+    order: 64,
+  },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 62,
+    order: 65,
   },
 };
 
@@ -350,6 +379,9 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'hubspot-contacts': HubSpotContactsDashboardWidget,
   'hubspot-deals': HubSpotDealsDashboardWidget,
   'hubspot-tickets': HubSpotTicketsDashboardWidget,
+  'salesforce-contacts': SalesforceContactsDashboardWidget,
+  'salesforce-accounts': SalesforceAccountsDashboardWidget,
+  'salesforce-opportunities': SalesforceOpportunitiesDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -370,6 +402,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   ONEDRIVE: '/integrations/onedrive',
   SHAREPOINT: '/integrations/sharepoint',
   HUBSPOT: '/integrations/hubspot',
+  SALESFORCE: '/integrations/salesforce',
   WORKDAY: '/integrations/workday',
 };
 

@@ -66,7 +66,8 @@ export const outlookService = {
   getMessages: () =>
     apiGet<OutlookMessagesResponse>('/integrations/outlook/messages'),
 
-  getEvents: () => apiGet<OutlookEventsResponse>('/integrations/outlook/events'),
+  getEvents: (range?: { start: string; end: string }) =>
+    apiGet<OutlookEventsResponse>('/integrations/outlook/events', range),
 
   updatePreferences: (preferences: OutlookPreferences) =>
     apiPatch<OutlookPreferences>('/integrations/outlook/preferences', preferences),

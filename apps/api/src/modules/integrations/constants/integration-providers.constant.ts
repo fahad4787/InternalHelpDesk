@@ -104,6 +104,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'crm',
   },
   {
+    provider: IntegrationProvider.SALESFORCE,
+    name: 'Salesforce',
+    description: 'Contacts, accounts, and opportunities from Salesforce',
+    category: 'crm',
+  },
+  {
     provider: IntegrationProvider.SERVICENOW,
     name: 'ServiceNow',
     description: 'Connect with ServiceNow incidents',
