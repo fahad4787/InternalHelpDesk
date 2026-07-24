@@ -120,17 +120,6 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     showWidgets: true,
   },
   {
-    id: 'outlook-calendar',
-    provider: 'OUTLOOK_CALENDAR',
-    iconKey: 'OUTLOOK',
-    name: 'Microsoft Outlook Calendar',
-    description: 'Calendar events from your Microsoft account',
-    category: 'calendar',
-    categoryLabel: 'Calendar & Meetings',
-    configureRoute: null,
-    available: false,
-  },
-  {
     id: 'zoom',
     provider: 'ZOOM',
     iconKey: 'ZOOM',
