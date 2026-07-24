@@ -14,28 +14,28 @@ import type { Request, Response } from 'express';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../../../common/types/api-response.type';
-import { UpdateOutlookPreferencesDto } from './dto/update-outlook-preferences.dto';
-import { OutlookService } from './outlook.service';
+import { UpdateSalesforcePreferencesDto } from './dto/update-salesforce-preferences.dto';
+import { SalesforceService } from './salesforce.service';
 
-@Controller('integrations/outlook')
-export class OutlookController {
-  private readonly logger = new Logger(OutlookController.name);
+@Controller('integrations/salesforce')
+export class SalesforceController {
+  private readonly logger = new Logger(SalesforceController.name);
 
   constructor(
-    private outlookService: OutlookService,
+    private salesforceService: SalesforceService,
     private configService: ConfigService,
   ) {}
 
   @Get('status')
   @UseGuards(JwtAuthGuard)
   getStatus(@CurrentUser() user: AuthenticatedUser) {
-    return this.outlookService.getStatus(user);
+    return this.salesforceService.getStatus(user);
   }
 
   @Get('auth-url')
   @UseGuards(JwtAuthGuard)
   getAuthUrl(@CurrentUser() user: AuthenticatedUser) {
-    return this.outlookService.getAuthUrl(user);
+    return this.salesforceService.getAuthUrl(user);
   }
 
   @Get('callback')
@@ -53,35 +53,37 @@ export class OutlookController {
       typeof req.query.state === 'string' ? req.query.state : undefined;
 
     this.logger.log(
-      `Outlook OAuth callback received (error=${error ?? 'none'}, hasCode=${!!code}, hasState=${!!state})`,
+      `Salesforce OAuth callback received (error=${error ?? 'none'}, hasCode=${!!code}, hasState=${!!state})`,
     );
 
     if (error) {
       return res.redirect(
-        `${frontendUrl}/integrations/outlook?error=${encodeURIComponent(error)}`,
+        `${frontendUrl}/integrations/salesforce?error=${encodeURIComponent(error)}`,
       );
     }
 
     if (!code && !state) {
-      return res.redirect(`${frontendUrl}/integrations/outlook`);
+      return res.redirect(`${frontendUrl}/integrations/salesforce`);
     }
 
     if (!code || !state) {
       const reason = !code ? 'missing_code' : 'missing_state';
       return res.redirect(
-        `${frontendUrl}/integrations/outlook?error=${encodeURIComponent(reason)}`,
+        `${frontendUrl}/integrations/salesforce?error=${encodeURIComponent(reason)}`,
       );
     }
 
     try {
-      await this.outlookService.handleCallback(code, state);
-      return res.redirect(`${frontendUrl}/integrations/outlook?connected=true`);
+      await this.salesforceService.handleCallback(code, state);
+      return res.redirect(
+        `${frontendUrl}/integrations/salesforce?connected=true`,
+      );
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Outlook connection failed';
-      this.logger.error(`Outlook OAuth callback failed: ${message}`);
+        err instanceof Error ? err.message : 'Salesforce connection failed';
+      this.logger.error(`Salesforce OAuth callback failed: ${message}`);
       return res.redirect(
-        `${frontendUrl}/integrations/outlook?error=${encodeURIComponent(message)}`,
+        `${frontendUrl}/integrations/salesforce?error=${encodeURIComponent(message)}`,
       );
     }
   }
@@ -89,39 +91,33 @@ export class OutlookController {
   @Post('disconnect')
   @UseGuards(JwtAuthGuard)
   disconnect(@CurrentUser() user: AuthenticatedUser) {
-    return this.outlookService.disconnect(user);
+    return this.salesforceService.disconnect(user);
   }
 
-  @Get('profile')
+  @Get('contacts')
   @UseGuards(JwtAuthGuard)
-  getProfile(@CurrentUser() user: AuthenticatedUser) {
-    return this.outlookService.getProfile(user);
+  getContacts(@CurrentUser() user: AuthenticatedUser) {
+    return this.salesforceService.getContacts(user);
   }
 
-  @Get('messages')
+  @Get('accounts')
   @UseGuards(JwtAuthGuard)
-  getMessages(@CurrentUser() user: AuthenticatedUser) {
-    return this.outlookService.getMessages(user);
+  getAccounts(@CurrentUser() user: AuthenticatedUser) {
+    return this.salesforceService.getAccounts(user);
   }
 
-  @Get('events')
+  @Get('opportunities')
   @UseGuards(JwtAuthGuard)
-  getEvents(
-    @CurrentUser() user: AuthenticatedUser,
-    @Req() req: Request,
-  ) {
-    const start =
-      typeof req.query.start === 'string' ? req.query.start : undefined;
-    const end = typeof req.query.end === 'string' ? req.query.end : undefined;
-    return this.outlookService.getEvents(user, { start, end });
+  getOpportunities(@CurrentUser() user: AuthenticatedUser) {
+    return this.salesforceService.getOpportunities(user);
   }
 
   @Patch('preferences')
   @UseGuards(JwtAuthGuard)
   updatePreferences(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: UpdateOutlookPreferencesDto,
+    @Body() dto: UpdateSalesforcePreferencesDto,
   ) {
-    return this.outlookService.updatePreferences(user, dto);
+    return this.salesforceService.updatePreferences(user, dto);
   }
 }

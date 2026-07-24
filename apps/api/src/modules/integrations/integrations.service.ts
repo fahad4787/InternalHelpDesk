@@ -37,6 +37,7 @@ export class IntegrationsService {
       hubspotConnection,
       oneDriveConnection,
       sharePointConnection,
+      salesforceConnection,
       workdayConnection,
     ] = await Promise.all([
       this.softQuery(
@@ -137,6 +138,12 @@ export class IntegrationsService {
       ),
       this.softQuery(
         this.prisma.sharePointConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.salesforceConnection.findUnique({
           where: { userId: user.id },
         }),
         null,
@@ -345,6 +352,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: sharePointConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.SALESFORCE) {
+        const userConnected =
+          salesforceConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: salesforceConnection?.updatedAt ?? null,
         };
       }
 
