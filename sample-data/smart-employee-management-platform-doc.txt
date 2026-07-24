@@ -1,0 +1,130 @@
+Smart Employee Management Platform
+
+One Platform. One Team. Smarter Work.
+
+Overview
+
+Employee portal is our all-in-one internal employee management platform designed to simplify daily operations. By bringing essential workplace tools together in one place, employees can access information, manage tasks, and stay connected without switching between multiple applications.
+
+Key Features
+
+• Employee Workspace – Access company resources, policies, announcements, and important documents from one central location.
+• AI Assistant – Get instant answers to work-related questions using verified company information.
+• Task & Team Management – Track tasks, collaborate with teams, and manage daily work efficiently.
+• Integrated Workplace Tools – Connects with the applications employees already use, creating a seamless work experience.
+• Centralized Information – Keeps company knowledge organized, secure, and easy to access whenever it's needed.
+
+Apps We Connected
+
+Our Employee portal links directly to the day-to-day apps our company already runs on, so people get answers right where they work. Below is what each connected app shows in the portal today.
+
+Task Management
+
+Jira — Live
+• Assigned issues
+• Reported issues
+• Projects
+
+Trello — Live
+• Boards
+• Cards on a board
+
+Monday.com — Live
+• Boards
+• Items on a board (with status)
+
+Asana — Live
+• Projects
+• Tasks in a project
+
+ClickUp — Live
+• Lists
+• Tasks in a list
+
+Calendar & Meetings
+
+Google Calendar — Live
+• Calendar view
+
+Microsoft Outlook Calendar — Coming soon
+
+Zoom — Live
+• Profile
+• Calendar
+• Upcoming meetings
+
+Microsoft Teams — Live
+• Joined teams
+• Recent chats
+• Note: Requires a Microsoft 365 work or school account with a Teams license. Personal Microsoft / teams.live.com accounts can connect, but Microsoft Graph cannot return their teams or chats.
+
+Calendly — Live
+• Event types
+• Upcoming events
+
+Google Meet — Live
+• Upcoming Meet meetings
+
+CRM Integration
+
+Salesforce — Coming soon
+
+HubSpot CRM — Live
+• Contacts
+• Deals
+• Tickets
+
+Zoho CRM — Coming soon
+
+Microsoft Dynamics 365 — Coming soon
+
+Communication & Collaboration
+
+Slack — Live
+• Channels and messages
+• Direct messages
+
+Microsoft Teams — Live
+• Joined teams
+• Recent chats
+• Note: Requires a Microsoft 365 work or school account with a Teams license. Personal Microsoft / teams.live.com accounts can connect, but Microsoft Graph cannot return their teams or chats.
+
+Google Chat — Live
+• Chat spaces and messages
+
+Gmail — Live
+• Recent emails
+
+Microsoft Outlook — Live
+• Profile
+• Inbox emails
+
+Cloud Storage & Documents
+
+Google Drive — Live
+• Files
+
+OneDrive — Coming soon
+
+Dropbox — Live
+• Files and folders
+
+SharePoint — Coming soon
+
+Box — Live
+• Files and folders
+• External config required: create a Box app in the Box Developer Console, set the OAuth 2.0 redirect URI to https://internal-helpdesk-api.onrender.com/api/integrations/box/callback, and fill BOX_CLIENT_ID / BOX_CLIENT_SECRET. Once those are set, the connect flow works like Dropbox.
+
+HR & Employee Management
+
+Workday — Live
+• Help articles
+• Sync history
+
+Zoho People — Coming soon
+
+Note
+
+Google Calendar, Google Meet, Google Drive, Gmail, and Google Chat are available through one Google connection, with each shown as its own experience in the portal.
+
+Microsoft Outlook (inbox/profile) and Microsoft Teams (teams/chats) are live today. Outlook Calendar remains Coming soon.

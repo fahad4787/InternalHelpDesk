@@ -31,8 +31,10 @@ import { BoxModule } from './box/box.module';
 import { BoxController } from './box/box.controller';
 import { HubSpotModule } from './hubspot/hubspot.module';
 import { HubSpotController } from './hubspot/hubspot.controller';
-import { DynamicsModule } from './dynamics/dynamics.module';
-import { DynamicsController } from './dynamics/dynamics.controller';
+import { OneDriveModule } from './onedrive/onedrive.module';
+import { OneDriveController } from './onedrive/onedrive.controller';
+import { SharePointModule } from './sharepoint/sharepoint.module';
+import { SharePointController } from './sharepoint/sharepoint.controller';
 
 @Module({
   imports: [
@@ -51,7 +53,8 @@ import { DynamicsController } from './dynamics/dynamics.controller';
     DropboxModule,
     BoxModule,
     HubSpotModule,
-    DynamicsModule,
+    OneDriveModule,
+    SharePointModule,
   ],
   controllers: [
     WorkdayController,
@@ -69,7 +72,8 @@ import { DynamicsController } from './dynamics/dynamics.controller';
     DropboxController,
     BoxController,
     HubSpotController,
-    DynamicsController,
+    OneDriveController,
+    SharePointController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -90,7 +94,8 @@ import { DynamicsController } from './dynamics/dynamics.controller';
     DropboxModule,
     BoxModule,
     HubSpotModule,
-    DynamicsModule,
+    OneDriveModule,
+    SharePointModule,
   ],
 })
 export class IntegrationsModule {}

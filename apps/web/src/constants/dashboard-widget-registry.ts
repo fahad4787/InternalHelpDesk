@@ -47,16 +47,13 @@ import {
 import { WorkdayDashboardWidget } from '@/components/dashboard/widgets/workday-dashboard-widget';
 import { DropboxFilesDashboardWidget } from '@/components/dashboard/widgets/dropbox-dashboard-widgets';
 import { BoxFilesDashboardWidget } from '@/components/dashboard/widgets/box-dashboard-widgets';
+import { OneDriveFilesDashboardWidget } from '@/components/dashboard/widgets/onedrive-dashboard-widgets';
+import { SharePointSitesDashboardWidget } from '@/components/dashboard/widgets/sharepoint-dashboard-widgets';
 import {
   HubSpotContactsDashboardWidget,
   HubSpotDealsDashboardWidget,
   HubSpotTicketsDashboardWidget,
 } from '@/components/dashboard/widgets/hubspot-dashboard-widgets';
-import {
-  DynamicsAccountsDashboardWidget,
-  DynamicsContactsDashboardWidget,
-  DynamicsOpportunitiesDashboardWidget,
-} from '@/components/dashboard/widgets/dynamics-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -84,12 +81,11 @@ export const DASHBOARD_WIDGET_IDS = [
   'teams-chats',
   'dropbox-files',
   'box-files',
+  'onedrive-files',
+  'sharepoint-sites',
   'hubspot-contacts',
   'hubspot-deals',
   'hubspot-tickets',
-  'dynamics-contacts',
-  'dynamics-accounts',
-  'dynamics-opportunities',
   'workday-articles',
 ] as const;
 
@@ -279,54 +275,47 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/box',
     order: 56,
   },
+  'onedrive-files': {
+    id: 'onedrive-files',
+    label: 'OneDrive files',
+    provider: 'ONEDRIVE',
+    configureRoute: '/integrations/onedrive',
+    order: 57,
+  },
+  'sharepoint-sites': {
+    id: 'sharepoint-sites',
+    label: 'SharePoint sites',
+    provider: 'SHAREPOINT',
+    configureRoute: '/integrations/sharepoint',
+    order: 58,
+  },
   'hubspot-contacts': {
     id: 'hubspot-contacts',
     label: 'Contacts',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 57,
+    order: 59,
   },
   'hubspot-deals': {
     id: 'hubspot-deals',
     label: 'Deals',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 58,
+    order: 60,
   },
   'hubspot-tickets': {
     id: 'hubspot-tickets',
     label: 'Tickets',
     provider: 'HUBSPOT',
     configureRoute: '/integrations/hubspot',
-    order: 59,
-  },
-  'dynamics-contacts': {
-    id: 'dynamics-contacts',
-    label: 'Contacts',
-    provider: 'DYNAMICS_365',
-    configureRoute: '/integrations/dynamics',
-    order: 60,
-  },
-  'dynamics-accounts': {
-    id: 'dynamics-accounts',
-    label: 'Accounts',
-    provider: 'DYNAMICS_365',
-    configureRoute: '/integrations/dynamics',
     order: 61,
-  },
-  'dynamics-opportunities': {
-    id: 'dynamics-opportunities',
-    label: 'Opportunities',
-    provider: 'DYNAMICS_365',
-    configureRoute: '/integrations/dynamics',
-    order: 62,
   },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 63,
+    order: 62,
   },
 };
 
@@ -356,12 +345,11 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'teams-chats': TeamsChatsDashboardWidget,
   'dropbox-files': DropboxFilesDashboardWidget,
   'box-files': BoxFilesDashboardWidget,
+  'onedrive-files': OneDriveFilesDashboardWidget,
+  'sharepoint-sites': SharePointSitesDashboardWidget,
   'hubspot-contacts': HubSpotContactsDashboardWidget,
   'hubspot-deals': HubSpotDealsDashboardWidget,
   'hubspot-tickets': HubSpotTicketsDashboardWidget,
-  'dynamics-contacts': DynamicsContactsDashboardWidget,
-  'dynamics-accounts': DynamicsAccountsDashboardWidget,
-  'dynamics-opportunities': DynamicsOpportunitiesDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -379,8 +367,9 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   MICROSOFT_TEAMS: '/integrations/teams',
   DROPBOX: '/integrations/dropbox',
   BOX: '/integrations/box',
+  ONEDRIVE: '/integrations/onedrive',
+  SHAREPOINT: '/integrations/sharepoint',
   HUBSPOT: '/integrations/hubspot',
-  DYNAMICS_365: '/integrations/dynamics',
   WORKDAY: '/integrations/workday',
 };
 

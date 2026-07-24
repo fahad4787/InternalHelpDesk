@@ -35,7 +35,8 @@ export class IntegrationsService {
       dropboxConnection,
       boxConnection,
       hubspotConnection,
-      dynamicsConnection,
+      oneDriveConnection,
+      sharePointConnection,
       workdayConnection,
     ] = await Promise.all([
       this.softQuery(
@@ -129,7 +130,13 @@ export class IntegrationsService {
         null,
       ),
       this.softQuery(
-        this.prisma.dynamicsConnection.findUnique({
+        this.prisma.oneDriveConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.sharePointConnection.findUnique({
           where: { userId: user.id },
         }),
         null,
@@ -317,15 +324,27 @@ export class IntegrationsService {
         };
       }
 
-      if (provider.provider === IntegrationProvider.DYNAMICS_365) {
+      if (provider.provider === IntegrationProvider.ONEDRIVE) {
         const userConnected =
-          dynamicsConnection?.status === IntegrationStatus.CONNECTED;
+          oneDriveConnection?.status === IntegrationStatus.CONNECTED;
         return {
           ...provider,
           status: userConnected
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
-          connectedAt: dynamicsConnection?.updatedAt ?? null,
+          connectedAt: oneDriveConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.SHAREPOINT) {
+        const userConnected =
+          sharePointConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: sharePointConnection?.updatedAt ?? null,
         };
       }
 
