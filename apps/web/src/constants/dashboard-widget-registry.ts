@@ -59,6 +59,11 @@ import {
   SalesforceAccountsDashboardWidget,
   SalesforceOpportunitiesDashboardWidget,
 } from '@/components/dashboard/widgets/salesforce-dashboard-widgets';
+import {
+  DynamicsContactsDashboardWidget,
+  DynamicsAccountsDashboardWidget,
+  DynamicsOpportunitiesDashboardWidget,
+} from '@/components/dashboard/widgets/dynamics-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -94,6 +99,9 @@ export const DASHBOARD_WIDGET_IDS = [
   'salesforce-contacts',
   'salesforce-accounts',
   'salesforce-opportunities',
+  'dynamics-contacts',
+  'dynamics-accounts',
+  'dynamics-opportunities',
   'workday-articles',
 ] as const;
 
@@ -339,12 +347,33 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/salesforce',
     order: 64,
   },
+  'dynamics-contacts': {
+    id: 'dynamics-contacts',
+    label: 'Contacts',
+    provider: 'DYNAMICS_365',
+    configureRoute: '/integrations/dynamics',
+    order: 65,
+  },
+  'dynamics-accounts': {
+    id: 'dynamics-accounts',
+    label: 'Accounts',
+    provider: 'DYNAMICS_365',
+    configureRoute: '/integrations/dynamics',
+    order: 66,
+  },
+  'dynamics-opportunities': {
+    id: 'dynamics-opportunities',
+    label: 'Opportunities',
+    provider: 'DYNAMICS_365',
+    configureRoute: '/integrations/dynamics',
+    order: 67,
+  },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 65,
+    order: 68,
   },
 };
 
@@ -382,6 +411,9 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'salesforce-contacts': SalesforceContactsDashboardWidget,
   'salesforce-accounts': SalesforceAccountsDashboardWidget,
   'salesforce-opportunities': SalesforceOpportunitiesDashboardWidget,
+  'dynamics-contacts': DynamicsContactsDashboardWidget,
+  'dynamics-accounts': DynamicsAccountsDashboardWidget,
+  'dynamics-opportunities': DynamicsOpportunitiesDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -403,6 +435,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   SHAREPOINT: '/integrations/sharepoint',
   HUBSPOT: '/integrations/hubspot',
   SALESFORCE: '/integrations/salesforce',
+  DYNAMICS_365: '/integrations/dynamics',
   WORKDAY: '/integrations/workday',
 };
 
