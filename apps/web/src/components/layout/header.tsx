@@ -22,10 +22,16 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border-warm bg-white px-4 sm:px-6">
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         {onMenuClick && <SidebarMobileToggle onClick={onMenuClick} />}
+        {user?.company?.name && (
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">{user.company.name}</p>
+            <p className="hidden text-xs text-muted sm:block">Workspace</p>
+          </div>
+        )}
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex shrink-0 items-center gap-4">
         {user && (
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border-warm bg-canvas">

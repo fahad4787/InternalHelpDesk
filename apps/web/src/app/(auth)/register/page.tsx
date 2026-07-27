@@ -44,7 +44,10 @@ export default function RegisterPage() {
     try {
       setError('');
       const res = await authService.register(data);
-      login(res.data.token, res.data.user);
+      login(res.data.token, {
+        ...res.data.user,
+        company: res.data.company,
+      });
       router.push('/dashboard');
     } catch (err) {
       setError(getErrorMessage(err));

@@ -23,6 +23,7 @@ export interface User {
   departmentId?: string | null;
   isActive?: boolean;
   department?: { id: string; name: string } | null;
+  company?: Pick<Company, 'id' | 'name' | 'slug'> | null;
 }
 
 export interface Company {

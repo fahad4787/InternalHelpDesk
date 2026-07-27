@@ -41,7 +41,10 @@ export default function LoginPage() {
     try {
       setError('');
       const res = await authService.login(data);
-      login(res.data.token, res.data.user);
+      login(res.data.token, {
+        ...res.data.user,
+        company: res.data.company,
+      });
       router.push('/dashboard');
     } catch (err) {
       setError(getErrorMessage(err));

@@ -192,6 +192,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 {user.lastName.charAt(0)}
               </div>
               <div className="min-w-0">
+                {user.company?.name && (
+                  <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-brand">
+                    {user.company.name}
+                  </p>
+                )}
                 <p className="truncate text-sm font-medium text-white">
                   {user.firstName} {user.lastName}
                 </p>
