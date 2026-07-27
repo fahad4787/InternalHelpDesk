@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  CheckSquare,
   LayoutDashboard,
   MessageSquare,
   Plug,
@@ -21,6 +22,7 @@ export interface NavItem {
 
 export const workhubNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
+  { href: '/my-tasks', label: 'My tasks', icon: CheckSquare },
   { href: '/integrations', label: 'Integrations', icon: Plug, badge: MARKETPLACE_APP_COUNT },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];

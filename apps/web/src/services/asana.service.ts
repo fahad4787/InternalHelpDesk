@@ -60,6 +60,12 @@ export const asanaService = {
       projects: AsanaProject[];
     }>('/integrations/asana/projects'),
 
+  getMyTasks: () =>
+    apiGet<{
+      connected: boolean;
+      tasks: AsanaTask[];
+    }>('/integrations/asana/tasks'),
+
   getProjectDetail: (projectGid: string) =>
     apiGet<{
       connected: boolean;

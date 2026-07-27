@@ -99,6 +99,12 @@ export class AsanaController {
     return this.asanaService.getProjects(user);
   }
 
+  @Get('tasks')
+  @UseGuards(JwtAuthGuard)
+  getMyTasks(@CurrentUser() user: AuthenticatedUser) {
+    return this.asanaService.getMyTasks(user);
+  }
+
   @Get('projects/:projectGid')
   @UseGuards(JwtAuthGuard)
   getProjectDetail(
