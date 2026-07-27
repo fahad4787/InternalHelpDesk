@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'motion/react';
 import { ArrowRight, type LucideIcon } from 'lucide-react';
+import { ButtonShine, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Reveal, type RevealVariant } from './reveal';
 
 export function SoftOrb({
   className,
   color = 'brand',
-  animate = true,
 }: {
   className?: string;
   color?: 'brand' | 'warm' | 'mint';
@@ -24,13 +26,7 @@ export function SoftOrb({
   return (
     <div
       aria-hidden
-      className={cn(
-        'pointer-events-none absolute rounded-full will-change-[transform,opacity]',
-        animate && 'lp-orb',
-        animate && color === 'warm' && 'lp-orb--warm',
-        animate && color === 'mint' && 'lp-orb--mint',
-        className,
-      )}
+      className={cn('pointer-events-none absolute rounded-full', className)}
       style={{ background: bg }}
     />
   );
@@ -38,16 +34,44 @@ export function SoftOrb({
 
 export function Kicker({ children }: { children: React.ReactNode; light?: boolean }) {
   return (
-    <div data-reveal className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+    <Reveal className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
       <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
       {children}
-    </div>
+    </Reveal>
   );
 }
 
 export function BrandText({ text }: { text: string }) {
   return <span className="text-gradient-brand">{text}</span>;
 }
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.07, delayChildren: 0.08 },
+  },
+};
+
+const lineVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.045 },
+  },
+};
+
+const clipVariants = {
+  hidden: {},
+  visible: {},
+};
+
+const wordVariants = {
+  hidden: { y: '105%', opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
+  },
+};
 
 export function AnimatedHeadline({
   lines,
@@ -57,74 +81,67 @@ export function AnimatedHeadline({
   accentLine?: number;
 }) {
   const [play, setPlay] = useState(false);
-  const reducedRef = useRef(false);
 
   useEffect(() => {
-    reducedRef.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedRef.current) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setPlay(true);
       return;
     }
 
-    const start = () => setPlay(true);
+    let seen = false;
     try {
-      if (sessionStorage.getItem('lp-booted') === '1') {
-        start();
-        return;
-      }
+      seen = sessionStorage.getItem('lp-booted') === '1';
     } catch {
       /* ignore */
     }
 
-    window.addEventListener('lp-ready', start, { once: true });
-    if (!document.getElementById('lp-boot-loader')) {
-      start();
-    }
-    return () => window.removeEventListener('lp-ready', start);
+    // Always start — short wait after first boot, near-instant on return visits.
+    const delay = seen ? 40 : 300;
+    const t = window.setTimeout(() => setPlay(true), delay);
+    const onReady = () => {
+      window.clearTimeout(t);
+      setPlay(true);
+    };
+    window.addEventListener('lp-ready', onReady, { once: true });
+    if (!document.getElementById('lp-boot-loader')) setPlay(true);
+
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('lp-ready', onReady);
+    };
   }, []);
 
-  let index = 0;
-
   return (
-    <h1 className="mt-6 text-[clamp(2.5rem,6.5vw,5.25rem)] font-extrabold leading-[1.02] tracking-tight max-sm:text-[clamp(2rem,8vw,5.25rem)]">
+    <motion.h1
+      className="mt-6 text-[clamp(2.5rem,6.5vw,5.25rem)] font-extrabold leading-[1.02] tracking-tight max-sm:text-[clamp(2rem,8vw,5.25rem)]"
+      initial="hidden"
+      animate={play ? 'visible' : 'hidden'}
+      variants={containerVariants}
+    >
       {lines.map((line, lineIdx) => {
         const accent = accentLine === lineIdx;
-
-        if (accent) {
-          const i = index++;
-          return (
-            <span key={lineIdx} className="lp-headline-line block">
-              <span className={cn('lp-word', play && 'is-in')}>
-                <span
-                  className="lp-word-inner text-gradient-brand"
-                  style={{ transitionDelay: play ? `${40 + i * 48}ms` : '0ms' }}
-                >
-                  {line}
-                </span>
-              </span>
-            </span>
-          );
-        }
+        const words = accent ? [line] : line.split(' ');
 
         return (
-          <span key={lineIdx} className="lp-headline-line block">
-            {line.split(' ').map((word) => {
-              const i = index++;
-              return (
-                <span key={`${lineIdx}-${word}-${i}`} className={cn('lp-word', play && 'is-in')}>
-                  <span
-                    className="lp-word-inner"
-                    style={{ transitionDelay: play ? `${40 + i * 48}ms` : '0ms' }}
-                  >
-                    {word}
-                  </span>
-                </span>
-              );
-            })}
-          </span>
+          <motion.span key={lineIdx} className="block" variants={lineVariants}>
+            {words.map((word, wordIdx) => (
+              <motion.span
+                key={`${lineIdx}-${wordIdx}`}
+                className="mr-[0.28em] inline-block max-w-full overflow-hidden align-bottom pb-[0.12em] mb-[-0.12em] last:mr-0"
+                variants={clipVariants}
+              >
+                <motion.span
+                  className={cn('inline-block will-change-transform', accent && 'text-gradient-brand')}
+                  variants={wordVariants}
+                >
+                  {word}
+                </motion.span>
+              </motion.span>
+            ))}
+          </motion.span>
         );
       })}
-    </h1>
+    </motion.h1>
   );
 }
 
@@ -133,6 +150,7 @@ export function FeatureCard({
   description,
   icon: Icon,
   delay,
+  reveal = 'up',
   className,
   children,
 }: {
@@ -140,13 +158,14 @@ export function FeatureCard({
   description: string;
   icon?: LucideIcon;
   delay?: number;
+  reveal?: RevealVariant;
   className?: string;
   children?: React.ReactNode;
 }) {
   return (
-    <div
-      data-reveal
-      data-delay={delay}
+    <Reveal
+      variant={reveal}
+      delay={delay}
       className={cn(
         'lp-card group relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 shadow-card max-sm:p-6',
         className,
@@ -166,7 +185,7 @@ export function FeatureCard({
         <p className="mt-2 text-muted-foreground">{description}</p>
         {children}
       </div>
-    </div>
+    </Reveal>
   );
 }
 
@@ -182,20 +201,28 @@ export function PrimaryCta({
   onClick?: () => void;
 }) {
   return (
-    <Link
-      href={href}
-      onClick={onClick}
-      className={cn(
-        'group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition hover:brightness-110',
-        className,
-      )}
+    <motion.div
+      className="inline-flex max-sm:w-full"
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 28 }}
     >
-      <span className="relative z-10 inline-flex items-center gap-2">
-        {children}
-        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-      </span>
-      <span className="btn-shine" />
-    </Link>
+      <Link
+        href={href}
+        onClick={onClick}
+        className={cn(
+          buttonVariants({ variant: 'default', size: 'lg' }),
+          'h-auto w-full rounded-full px-6 py-3.5',
+          className,
+        )}
+      >
+        <span className="relative z-10 inline-flex items-center gap-2">
+          {children}
+          <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+        </span>
+        <ButtonShine />
+      </Link>
+    </motion.div>
   );
 }
 
@@ -252,7 +279,7 @@ export function Marquee({
           entry.isIntersecting && !document.hidden,
         );
       },
-      { rootMargin: '60px' },
+      { rootMargin: '40px' },
     );
     io.observe(el);
 

@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Plug,
   Settings,
-  Upload,
   Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -35,6 +34,5 @@ export const workhubNavItems: NavItem[] = [
 export const workspaceNavItems: NavItem[] = [
   { href: '/chat', label: 'AI Chat', icon: MessageSquare },
   { href: '/knowledge-base', label: 'Documents', icon: BookOpen },
-  { href: '/knowledge-base/upload', label: 'Upload', icon: Upload },
   { href: '/users', label: 'Users', icon: Users },
 ];

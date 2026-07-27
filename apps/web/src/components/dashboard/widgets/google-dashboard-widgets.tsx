@@ -13,7 +13,7 @@ import { useGoogleWidgets } from '@/hooks/use-google-widgets';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 
 export function GoogleMeetDashboardWidget() {
-  const { events, eventsLoading } = useGoogleWidgets();
+  const { events, eventsLoading } = useGoogleWidgets({ features: ['meet'] });
 
   return (
     <DashboardWidgetCard
@@ -39,7 +39,7 @@ export function GoogleMeetDashboardWidget() {
 }
 
 export function GoogleCalendarEmbedDashboardWidget() {
-  const { status, showCalendarEmbed } = useGoogleWidgets();
+  const { status, showCalendarEmbed } = useGoogleWidgets({ features: ['calendar'] });
   const email = status?.googleEmail;
 
   if (!showCalendarEmbed || !email) return null;
@@ -83,7 +83,7 @@ export function GoogleCalendarEmbedDashboardWidget() {
 }
 
 export function GoogleDriveDashboardWidget() {
-  const { files, driveLoading } = useGoogleWidgets();
+  const { files, driveLoading } = useGoogleWidgets({ features: ['drive'] });
 
   return (
     <DashboardWidgetCard
@@ -109,7 +109,7 @@ export function GoogleDriveDashboardWidget() {
 }
 
 export function GoogleGmailDashboardWidget() {
-  const { messages, gmailLoading } = useGoogleWidgets();
+  const { messages, gmailLoading } = useGoogleWidgets({ features: ['gmail'] });
 
   return (
     <DashboardWidgetCard

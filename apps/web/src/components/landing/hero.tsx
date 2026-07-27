@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { AnimatedHeadline, PrimaryCta, SecondaryCta } from './primitives';
+import { Reveal } from './reveal';
 
 export function LandingHero() {
   const { isAuthenticated } = useAuth();
@@ -29,37 +30,18 @@ export function LandingHero() {
           }}
         />
         <div
-          className="lp-hero-blob lp-hero-blob--alt absolute -right-[8%] -top-[18%] h-[65vmin] w-[65vmin] rounded-full"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(253, 104, 68, 0.38) 0%, rgba(253, 104, 68, 0) 68%)',
-          }}
-        />
-        <div
-          className="lp-hero-blob lp-hero-blob--slow absolute -bottom-[20%] -left-[12%] h-[72vmin] w-[72vmin] rounded-full"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(186, 156, 239, 0.32) 0%, rgba(186, 156, 239, 0) 68%)',
-          }}
-        />
-        <div
-          className="lp-hero-blob lp-hero-blob--alt absolute -bottom-[18%] -right-[10%] h-[75vmin] w-[75vmin] rounded-full"
+          className="lp-hero-blob lp-hero-blob--alt absolute -right-[8%] -bottom-[18%] h-[72vmin] w-[72vmin] rounded-full"
           style={{
             background:
               'radial-gradient(circle, rgba(179, 219, 170, 0.4) 0%, rgba(179, 219, 170, 0) 68%)',
-            animationDelay: '-6s',
           }}
         />
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4">
         <div className="mx-auto max-w-4xl text-center">
-          <div
-            data-reveal
-            className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-medium text-foreground/70"
-          >
+          <Reveal className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-medium text-foreground/70">
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="absolute inset-0 animate-ping rounded-full bg-primary opacity-60" />
               <span className="relative h-2 w-2 rounded-full bg-primary" />
             </span>
             <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -67,19 +49,21 @@ export function LandingHero() {
               <span className="sm:hidden">New · Grounded AI answers</span>
               <span className="hidden sm:inline">New · Grounded AI answers with citations</span>
             </span>
-          </div>
+          </Reveal>
 
           <AnimatedHeadline
             lines={['The command center for', 'how work actually moves.']}
             accentLine={1}
           />
 
-          <p data-reveal data-delay="3" className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            AI answers from your documents. Live widgets from the apps you already pay for. One
-            workspace for employee experience.
-          </p>
+          <Reveal delay={3}>
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+              AI answers from your documents. Live widgets from the apps you already pay for. One
+              workspace for employee experience.
+            </p>
+          </Reveal>
 
-          <div data-reveal data-delay="4" className="mt-9 flex flex-wrap items-center justify-center gap-3 max-sm:flex-col max-sm:items-stretch">
+          <Reveal variant="up" delay={4} className="mt-9 flex flex-wrap items-center justify-center gap-3 max-sm:flex-col max-sm:items-stretch">
             {isAuthenticated ? (
               <PrimaryCta href="/dashboard" className="max-sm:justify-center">
                 <LayoutDashboard className="h-4 w-4" />
@@ -98,13 +82,9 @@ export function LandingHero() {
                 </SecondaryCta>
               </>
             )}
-          </div>
+          </Reveal>
 
-          <div
-            data-reveal
-            data-delay="5"
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground"
-          >
+          <Reveal delay={5} className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Check className="h-3.5 w-3.5 text-primary" /> No credit card
             </span>
@@ -114,10 +94,10 @@ export function LandingHero() {
             <span className="inline-flex items-center gap-1.5">
               <Check className="h-3.5 w-3.5 text-primary" /> SOC-ready workspaces
             </span>
-          </div>
+          </Reveal>
         </div>
 
-        <div data-reveal className="relative mx-auto mt-16 max-w-5xl">
+        <Reveal className="relative mx-auto mt-16 max-w-5xl">
           <div
             aria-hidden
             className="absolute -inset-8 -z-10 rounded-[2rem] opacity-50 max-sm:-inset-4"
@@ -129,7 +109,7 @@ export function LandingHero() {
           <ProductMockup />
 
           <div className="absolute -left-6 top-16 hidden lg:block">
-            <div className="lp-float glass rounded-2xl px-4 py-3 shadow-lift">
+            <div className="glass rounded-2xl px-4 py-3 shadow-lift">
               <div className="flex items-center gap-2">
                 <span
                   className="grid h-8 w-8 place-items-center rounded-lg text-primary-foreground"
@@ -148,7 +128,7 @@ export function LandingHero() {
           </div>
 
           <div className="absolute -right-4 bottom-20 hidden lg:block">
-            <div className="lp-float lp-float--delay glass rounded-2xl p-3 shadow-lift">
+            <div className="glass rounded-2xl p-3 shadow-lift">
               <div className="flex -space-x-2">
                 {[35, 45, 140, 300].map((h, i) => (
                   <span
@@ -165,7 +145,7 @@ export function LandingHero() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

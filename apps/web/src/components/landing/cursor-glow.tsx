@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 
-const SIZE = 360;
+const SIZE = 200;
 const HALF = SIZE / 2;
 
+/** Desktop-only cursor accent — transform/opacity only (no blur / filter). */
 export function CursorGlow({ enabled = true }: { enabled?: boolean }) {
   const glowRef = useRef<HTMLDivElement>(null);
 
@@ -17,50 +18,66 @@ export function CursorGlow({ enabled = true }: { enabled?: boolean }) {
     const glow = glowRef.current;
     if (!glow) return;
 
-    let targetX = -9999;
-    let targetY = -9999;
-    let currentX = targetX;
-    let currentY = targetY;
+    let tx = -9999;
+    let ty = -9999;
+    let x = tx;
+    let y = ty;
     let raf = 0;
     let running = false;
-    let idle = 0;
+    let scrolling = false;
+    let scrollIdle = 0;
+    let hideIdle = 0;
 
     const tick = () => {
-      currentX += (targetX - currentX) * 0.22;
-      currentY += (targetY - currentY) * 0.22;
+      x += (tx - x) * 0.2;
+      y += (ty - y) * 0.2;
+      glow.style.transform = `translate3d(${x - HALF}px, ${y - HALF}px, 0)`;
 
-      glow.style.transform = `translate3d(${(currentX - HALF).toFixed(2)}px, ${(currentY - HALF).toFixed(2)}px, 0)`;
-
-      const dx = targetX - currentX;
-      const dy = targetY - currentY;
-      if (dx * dx + dy * dy > 0.2) {
+      const dx = tx - x;
+      const dy = ty - y;
+      if (dx * dx + dy * dy > 0.4) {
         raf = requestAnimationFrame(tick);
       } else {
         running = false;
-        glow.style.transform = `translate3d(${(targetX - HALF).toFixed(2)}px, ${(targetY - HALF).toFixed(2)}px, 0)`;
+        glow.style.transform = `translate3d(${tx - HALF}px, ${ty - HALF}px, 0)`;
       }
     };
 
+    const onScroll = () => {
+      scrolling = true;
+      glow.style.opacity = '0';
+      running = false;
+      cancelAnimationFrame(raf);
+      raf = 0;
+      window.clearTimeout(scrollIdle);
+      scrollIdle = window.setTimeout(() => {
+        scrolling = false;
+      }, 140);
+    };
+
     const onMove = (e: PointerEvent) => {
-      if (document.documentElement.classList.contains('lp-scrolling')) return;
-      targetX = e.clientX;
-      targetY = e.clientY;
+      if (scrolling) return;
+      tx = e.clientX;
+      ty = e.clientY;
       glow.style.opacity = '1';
-      window.clearTimeout(idle);
-      idle = window.setTimeout(() => {
+      window.clearTimeout(hideIdle);
+      hideIdle = window.setTimeout(() => {
         glow.style.opacity = '0';
-      }, 1600);
+      }, 1200);
       if (!running) {
         running = true;
         raf = requestAnimationFrame(tick);
       }
     };
 
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('pointermove', onMove, { passive: true });
     return () => {
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pointermove', onMove);
       cancelAnimationFrame(raf);
-      window.clearTimeout(idle);
+      window.clearTimeout(scrollIdle);
+      window.clearTimeout(hideIdle);
     };
   }, [enabled]);
 

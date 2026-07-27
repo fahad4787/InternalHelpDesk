@@ -8,7 +8,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-brand text-white shadow-md shadow-brand/25 hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/30',
+          'group relative overflow-hidden bg-primary text-primary-foreground shadow-glow hover:brightness-[1.04]',
         secondary:
           'bg-canvas text-ink border border-border-warm hover:bg-white hover:border-border-warm',
         outline:
@@ -35,13 +35,34 @@ export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
+/** Shine sweep used by the primary (orange) button — keep as direct child of `.group`. */
+export function ButtonShine() {
+  return <span className="btn-shine" aria-hidden />;
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => (
-    <button
-      className={cn(buttonVariants({ variant, size, className }))}
-      ref={ref}
-      {...props}
-    />
-  ),
+  ({ className, variant, size, children, ...props }, ref) => {
+    const resolvedVariant = variant ?? 'default';
+    const isPrimary = resolvedVariant === 'default';
+
+    return (
+      <button
+        className={cn(buttonVariants({ variant: resolvedVariant, size, className }))}
+        ref={ref}
+        {...props}
+      >
+        {isPrimary ? (
+          <>
+            <span className="relative z-10 inline-flex items-center justify-center gap-2">
+              {children}
+            </span>
+            <ButtonShine />
+          </>
+        ) : (
+          children
+        )}
+      </button>
+    );
+  },
 );
 Button.displayName = 'Button';

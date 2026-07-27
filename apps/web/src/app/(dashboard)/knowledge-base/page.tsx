@@ -1,12 +1,12 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
 import { useState } from 'react';
 import { BookOpen, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { PageContainer } from '@/components/shared/page-container';
 import { DocumentPreviewModal } from '@/components/shared/document-preview-modal';
+import { UploadDocumentModal } from '@/components/shared/upload-document-modal';
 import { SearchInput } from '@/components/shared/search-input';
 import { Pagination } from '@/components/shared/pagination';
 import { EmptyState } from '@/components/shared/empty-state';
@@ -21,6 +21,7 @@ export default function DocumentsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['documents', page, search],
@@ -43,11 +44,7 @@ export default function DocumentsPage() {
       <PageContainer
         title="Knowledge Base"
         description="Company documents used by the AI assistant"
-        actions={
-          <Link href="/knowledge-base/upload">
-            <Button>Upload Document</Button>
-          </Link>
-        }
+        actions={<Button onClick={() => setUploadOpen(true)}>Upload Document</Button>}
       >
         <div className="mb-4 max-w-sm">
           <SearchInput value={search} onChange={setSearch} placeholder="Search documents..." />
@@ -61,7 +58,7 @@ export default function DocumentsPage() {
             title="No documents"
             description="Upload company policies, guides, and FAQs"
             actionLabel="Upload Document"
-            onAction={() => window.location.href = '/knowledge-base/upload'}
+            onAction={() => setUploadOpen(true)}
           />
         ) : (
           <>
@@ -110,6 +107,8 @@ export default function DocumentsPage() {
         open={!!previewId}
         onClose={() => setPreviewId(null)}
       />
+
+      <UploadDocumentModal open={uploadOpen} onClose={() => setUploadOpen(false)} />
     </>
   );
 }

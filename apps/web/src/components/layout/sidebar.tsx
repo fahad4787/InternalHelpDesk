@@ -117,7 +117,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         </div>
 
         <nav className="flex-1 space-y-4 overflow-y-auto p-3">
-          <div className="space-y-0.5">
+          <div className="space-y-1.5">
             {workhubNavItems.map((item) => (
               <NavLink
                 key={item.label}
@@ -136,7 +136,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-muted">
               Workspace
             </p>
-            <div className="space-y-0.5">
+            <div className="space-y-1.5">
               {workspaceNavItems.map((item) => (
                 <NavLink
                   key={item.href}

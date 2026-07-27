@@ -36,6 +36,7 @@ import {
   SoftOrb,
 } from './primitives';
 import { scrollLandingTo } from './hooks';
+import { Reveal } from './reveal';
 
 const APPS = MARKETPLACE_APPS.filter((a) => a.available);
 
@@ -48,24 +49,28 @@ export function LogoMarquee() {
   return (
     <section data-tone="surface" className="lp-section relative border-y border-border/60 bg-surface/40 py-8">
       <div className="mx-auto mb-3 max-w-6xl px-4">
-        <p className="text-balance text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Everything your employees need — in one command center
-        </p>
+        <Reveal variant="fade">
+          <p className="text-balance text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Everything your employees need — in one command center
+          </p>
+        </Reveal>
       </div>
-      <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
-        <Marquee speed="slow" className="gap-3">
-          {[...APPS, ...APPS].map((it, i) => (
-            <Link
-              key={`${it.id}-${i}`}
-              href="/register"
-              className="group flex items-center gap-2.5 rounded-full border border-border bg-surface px-3.5 py-2 shadow-card transition hover:border-primary/50 hover:shadow-glow"
-            >
-              <AppBrandIcon iconKey={it.iconKey} size="sm" />
-              <span className="whitespace-nowrap text-sm font-semibold">{it.name}</span>
-            </Link>
-          ))}
-        </Marquee>
-      </div>
+      <Reveal variant="up" delay={1}>
+        <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
+          <Marquee speed="slow" className="gap-3">
+            {[...APPS, ...APPS].map((it, i) => (
+              <Link
+                key={`${it.id}-${i}`}
+                href="/register"
+                className="group flex items-center gap-2.5 rounded-full border border-border bg-surface px-3.5 py-2 shadow-card transition hover:border-primary/50 hover:shadow-glow"
+              >
+                <AppBrandIcon iconKey={it.iconKey} size="sm" />
+                <span className="whitespace-nowrap text-sm font-semibold">{it.name}</span>
+              </Link>
+            ))}
+          </Marquee>
+        </div>
+      </Reveal>
     </section>
   );
 }
@@ -81,17 +86,26 @@ export function Pillars() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Why Workhub</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight md:text-6xl max-md:text-3xl">
-            Stop hunting folders.
-            <br />
-            Stop hopping tabs.
-            <br />
-            <BrandText text="Start knowing." />
-          </h2>
+          <Reveal variant="up">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight md:text-6xl max-md:text-3xl">
+              Stop hunting folders.
+              <br />
+              Stop hopping tabs.
+              <br />
+              <BrandText text="Start knowing." />
+            </h2>
+          </Reveal>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-3">
           {items.map((it, i) => (
-            <FeatureCard key={it.title} title={it.title} description={it.desc} icon={it.icon} delay={i + 1} />
+            <FeatureCard
+              key={it.title}
+              title={it.title}
+              description={it.desc}
+              icon={it.icon}
+              delay={i + 1}
+              reveal={i === 0 ? 'left' : i === 1 ? 'up' : 'right'}
+            />
           ))}
         </div>
       </div>
@@ -135,20 +149,20 @@ export function Platform() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Platform</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight md:text-6xl max-md:text-3xl">
-            Four systems.
-            <br />
-            <BrandText text="One employee experience." />
-          </h2>
+          <Reveal variant="fade">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.02] tracking-tight md:text-6xl max-md:text-3xl">
+              Four systems.
+              <br />
+              <BrandText text="One employee experience." />
+            </h2>
+          </Reveal>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-2">
           {items.map((it, i) => (
+            <Reveal key={it.n} variant={i % 2 === 0 ? 'left' : 'right'} delay={(i % 2) + 1}>
             <a
-              key={it.n}
               href={it.href}
-              data-reveal
-              data-delay={(i % 2) + 1}
-              className="lp-card group relative overflow-hidden rounded-3xl border border-border/60 bg-card p-8 shadow-card md:p-10 max-sm:p-6"
+              className="lp-card group relative block overflow-hidden rounded-3xl border border-border/60 bg-card p-8 shadow-card md:p-10 max-sm:p-6"
               onClick={(e) => {
                 e.preventDefault();
                 scrollLandingTo(it.href);
@@ -172,6 +186,7 @@ export function Platform() {
                 Explore <ArrowRight className="h-4 w-4" />
               </div>
             </a>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -212,20 +227,24 @@ export function AIChatSection() {
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2 md:gap-14">
         <div>
           <Kicker light>AI Chat</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
-            Ask once. Get the policy — <BrandText text="with proof." />
-          </h2>
-          <p data-reveal data-delay="1" className="mt-5 max-w-lg text-lg text-white/70">
-            Employees type a question. Workhub answers from your uploaded documents and shows the
-            citation so nobody digs through folders.
-          </p>
+          <Reveal variant="scale">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+              Ask once. Get the policy — <BrandText text="with proof." />
+            </h2>
+          </Reveal>
+          <Reveal variant="scale" delay={1}>
+            <p className="mt-5 max-w-lg text-lg text-white/70">
+              Employees type a question. Workhub answers from your uploaded documents and shows the
+              citation so nobody digs through folders.
+            </p>
+          </Reveal>
           <ul className="mt-8 space-y-3 text-white/85">
             {[
               'Natural-language Q&A over company docs',
               'Source citations on every reply',
               'Built for handbooks, SOPs and guides',
-            ].map((t, i) => (
-              <li key={t} data-reveal data-delay={i + 1} className="flex items-start gap-3">
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-3">
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground shadow-glow">
                   <Check className="h-3.5 w-3.5" />
                 </span>
@@ -233,11 +252,11 @@ export function AIChatSection() {
               </li>
             ))}
           </ul>
-          <div data-reveal data-delay="4" className="mt-9">
+          <Reveal variant="scale" delay={2} className="mt-9">
             <PrimaryCta href="/register">Try AI Chat</PrimaryCta>
-          </div>
+          </Reveal>
         </div>
-        <div data-reveal className="relative">
+        <Reveal variant="scale" delay={1} className="relative">
           <div
             aria-hidden
             className="absolute -inset-6 rounded-3xl opacity-45"
@@ -267,7 +286,7 @@ export function AIChatSection() {
               </ChatBubble>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -283,7 +302,7 @@ export function KnowledgeSection() {
   return (
     <section id="knowledge" data-tone="page" className="lp-section lp-section-y">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2 md:gap-14">
-        <div data-reveal className="relative order-2 md:order-1">
+        <Reveal variant="right" className="relative order-2 md:order-1">
           <div
             aria-hidden
             className="absolute -inset-4 rounded-3xl opacity-50"
@@ -297,20 +316,15 @@ export function KnowledgeSection() {
                 Documents
               </div>
               <div className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inset-0 animate-ping rounded-full bg-primary opacity-60" />
-                  <span className="relative h-2 w-2 rounded-full bg-primary" />
-                </span>
+                <span className="h-2 w-2 rounded-full bg-primary" />
                 Synced
               </div>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {docs.map((d, i) => (
+              {docs.map((d) => (
                 <Link
                   key={d.title}
                   href="/register"
-                  data-reveal
-                  data-delay={i + 1}
                   className="lp-card group relative overflow-hidden rounded-2xl border border-border/60 bg-surface p-4"
                 >
                   <div aria-hidden className="lp-card-glow" />
@@ -326,19 +340,23 @@ export function KnowledgeSection() {
               ))}
             </div>
           </div>
-        </div>
+        </Reveal>
         <div className="order-1 md:order-2">
           <Kicker>Knowledge base</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
-            Your documents become the <BrandText text="system of record." />
-          </h2>
-          <p data-reveal data-delay="1" className="mt-5 max-w-lg text-lg text-muted-foreground">
-            Upload, preview and manage policies in Documents. The knowledge base feeds AI Chat — so
-            answers stay aligned with what leadership approved.
-          </p>
-          <div data-reveal data-delay="2" className="mt-8">
+          <Reveal variant="left">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+              Your documents become the <BrandText text="system of record." />
+            </h2>
+          </Reveal>
+          <Reveal variant="left" delay={1}>
+            <p className="mt-5 max-w-lg text-lg text-muted-foreground">
+              Upload, preview and manage policies in Documents. The knowledge base feeds AI Chat — so
+              answers stay aligned with what leadership approved.
+            </p>
+          </Reveal>
+          <Reveal variant="left" delay={2} className="mt-8">
             <PrimaryCta href="/register">Upload your first docs</PrimaryCta>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>
@@ -351,41 +369,45 @@ export function Integrations() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Integrations</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
-            Connect the stack. <BrandText text="Surface it on Home." />
-          </h2>
-          <p data-reveal data-delay="1" className="mt-4 text-lg text-muted-foreground">
-            Browse by category, connect with OAuth, set preferences and pin live widgets.
-          </p>
+          <Reveal variant="up">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+              Connect the stack. <BrandText text="Surface it on Home." />
+            </h2>
+          </Reveal>
+          <Reveal variant="up" delay={1}>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Browse by category, connect with OAuth, set preferences and pin live widgets.
+            </p>
+          </Reveal>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
-            {APPS.map((it, i) => (
-              <Link
-                key={it.id}
-                href="/register"
-                className="group relative min-w-0 overflow-hidden border-b border-r border-border/60 p-4 transition-colors hover:bg-surface sm:p-6"
-                data-reveal
-                data-delay={(i % 4) + 1}
-              >
-                <div
-                  aria-hidden
-                  className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
-                  style={{
-                    background:
-                      'radial-gradient(120px 80px at 50% 0%, oklch(0.78 0.16 45 / 0.22), transparent 70%)',
-                  }}
-                />
-                <div className="relative transition-transform group-hover:scale-105">
-                  <AppBrandIcon iconKey={it.iconKey} size="md" />
-                </div>
-                <div className="relative mt-3 truncate text-sm font-semibold">{it.name}</div>
-                <div className="relative truncate text-xs text-muted-foreground">{it.categoryLabel}</div>
-              </Link>
-            ))}
+        <Reveal variant="scale" delay={1} className="mt-10">
+          <div className="overflow-hidden rounded-3xl border border-border/60 bg-card shadow-card">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+              {APPS.map((it) => (
+                <Link
+                  key={it.id}
+                  href="/register"
+                  className="group relative min-w-0 overflow-hidden border-b border-r border-border/60 p-4 transition-colors hover:bg-surface sm:p-6"
+                >
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
+                    style={{
+                      background:
+                        'radial-gradient(120px 80px at 50% 0%, oklch(0.78 0.16 45 / 0.22), transparent 70%)',
+                    }}
+                  />
+                  <div className="relative transition-transform group-hover:scale-105">
+                    <AppBrandIcon iconKey={it.iconKey} size="md" />
+                  </div>
+                  <div className="relative mt-3 truncate text-sm font-semibold">{it.name}</div>
+                  <div className="relative truncate text-xs text-muted-foreground">{it.categoryLabel}</div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        </Reveal>
 
         <div id="home" className="mt-16 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
           {(
@@ -403,23 +425,22 @@ export function Integrations() {
               iconKey: IntegrationIconProvider;
             }>
           ).map((w, i) => (
-            <Link
-              key={w.app}
-              href="/register"
-              data-reveal
-              data-delay={i + 1}
-              className="lp-card group relative min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-card"
-            >
-              <div aria-hidden className="lp-card-glow" />
-              <div className="relative flex items-center justify-between gap-2">
-                <span className="truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {w.app}
-                </span>
-                <AppBrandIcon iconKey={w.iconKey} size="sm" />
-              </div>
-              <div className="relative mt-4 text-xl font-bold">{w.head}</div>
-              <div className="relative text-sm text-muted-foreground">{w.sub}</div>
-            </Link>
+            <Reveal key={w.app} variant={i % 2 === 0 ? 'up' : 'scale'} delay={(i % 3) + 1}>
+              <Link
+                href="/register"
+                className="lp-card group relative block min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-card"
+              >
+                <div aria-hidden className="lp-card-glow" />
+                <div className="relative flex items-center justify-between gap-2">
+                  <span className="truncate text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {w.app}
+                  </span>
+                  <AppBrandIcon iconKey={w.iconKey} size="sm" />
+                </div>
+                <div className="relative mt-4 text-xl font-bold">{w.head}</div>
+                <div className="relative text-sm text-muted-foreground">{w.sub}</div>
+              </Link>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -461,9 +482,11 @@ export function HowItWorks({
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>How it works</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
-            Live in minutes. <BrandText text="Useful by lunch." />
-          </h2>
+          <Reveal variant="up">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+              Live in minutes. <BrandText text="Useful by lunch." />
+            </h2>
+          </Reveal>
         </div>
         <div data-progress-wrap className="relative mt-16 grid gap-6 md:grid-cols-3">
           <div
@@ -477,11 +500,12 @@ export function HowItWorks({
             style={{
               width: '84%',
               transform: 'scaleX(0)',
-              background: 'linear-gradient(90deg, oklch(0.7 0.19 35), oklch(0.78 0.16 45))',
+              background: 'linear-gradient(90deg, #ff6c49, #ff935a)',
             }}
           />
           {steps.map((s, i) => (
-            <Link key={s.n} href={s.href} data-reveal data-delay={i + 1} className="relative block">
+            <Reveal key={s.n} variant={i === 1 ? 'up' : i === 0 ? 'left' : 'right'} delay={i + 1}>
+            <Link href={s.href} className="relative block">
               <div className="relative z-10 mx-auto grid h-24 w-24 place-items-center rounded-full border border-border bg-card shadow-card">
                 <div
                   className="grid h-16 w-16 place-items-center rounded-full text-primary-foreground shadow-glow"
@@ -496,6 +520,7 @@ export function HowItWorks({
                 <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
               </div>
             </Link>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -531,13 +556,15 @@ export function Testimonials() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Loved by operators</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
-            Teams stop searching. <BrandText text="They start shipping." />
-          </h2>
+          <Reveal variant="fade">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+              Teams stop searching. <BrandText text="They start shipping." />
+            </h2>
+          </Reveal>
         </div>
       </div>
 
-      <div className="mt-14">
+      <Reveal variant="up" delay={1} className="mt-14">
         <Marquee speed="slow" pauseOnHover className="gap-5 px-4">
           {[...quotes, ...quotes].map((t, i) => (
             <figure
@@ -561,7 +588,7 @@ export function Testimonials() {
             </figure>
           ))}
         </Marquee>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -589,13 +616,22 @@ export function BuiltFor() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="max-w-3xl">
           <Kicker>Built for</Kicker>
-          <h2 data-reveal className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
-            The teams that <BrandText text="keep the company moving." />
-          </h2>
+          <Reveal variant="up">
+            <h2 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-5xl max-md:text-3xl">
+              The teams that <BrandText text="keep the company moving." />
+            </h2>
+          </Reveal>
         </div>
         <div className="mt-14 grid gap-5 md:grid-cols-3">
           {items.map((it, i) => (
-            <FeatureCard key={it.title} title={it.title} description={it.desc} icon={it.icon} delay={i + 1} />
+            <FeatureCard
+              key={it.title}
+              title={it.title}
+              description={it.desc}
+              icon={it.icon}
+              delay={i + 1}
+              reveal={i === 1 ? 'scale' : i === 0 ? 'left' : 'right'}
+            />
           ))}
         </div>
       </div>
@@ -629,22 +665,19 @@ export function CTA() {
           </div>
           <div className="relative max-w-2xl">
             <Kicker light>Get started</Kicker>
-            <h2
-              data-reveal
-              className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight text-white md:text-6xl max-md:text-3xl"
-            >
-              Put Workhub in front of <BrandText text="your team." />
-            </h2>
-            <p data-reveal data-delay="1" className="mt-5 max-w-lg text-lg text-white/70">
-              {isAuthenticated
-                ? 'Your workspace is ready — jump back in and keep your team moving.'
-                : 'Create a workspace, upload your first docs, connect the apps you already use — and give every employee a clearer workday.'}
-            </p>
-            <div
-              data-reveal
-              data-delay="2"
-              className="mt-9 flex flex-wrap gap-3 max-sm:flex-col max-sm:items-stretch"
-            >
+            <Reveal soft>
+              <h2 className="mt-3 text-4xl font-extrabold leading-[1] tracking-tight text-white md:text-6xl max-md:text-3xl">
+                Put Workhub in front of <BrandText text="your team." />
+              </h2>
+            </Reveal>
+            <Reveal soft delay={1}>
+              <p className="mt-5 max-w-lg text-lg text-white/70">
+                {isAuthenticated
+                  ? 'Your workspace is ready — jump back in and keep your team moving.'
+                  : 'Create a workspace, upload your first docs, connect the apps you already use — and give every employee a clearer workday.'}
+              </p>
+            </Reveal>
+            <Reveal soft delay={2} className="mt-9 flex flex-wrap gap-3 max-sm:flex-col max-sm:items-stretch">
               {isAuthenticated ? (
                 <PrimaryCta href="/dashboard" className="max-sm:justify-center">
                   Go to dashboard
@@ -659,7 +692,7 @@ export function CTA() {
                   </SecondaryCta>
                 </>
               )}
-            </div>
+            </Reveal>
           </div>
         </div>
       </div>

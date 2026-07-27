@@ -4,7 +4,17 @@ import {
   googleCalendarService,
 } from '@/services/google-calendar.service';
 
-export function useGoogleWidgets() {
+type GoogleFeature = 'meet' | 'drive' | 'gmail' | 'calendar';
+
+/**
+ * Shared Google connection + preferences.
+ * Pass `features` so dashboard widgets only enable the data queries they need.
+ */
+export function useGoogleWidgets(options?: { features?: GoogleFeature[] }) {
+  const features = options?.features;
+  const wants = (feature: GoogleFeature) =>
+    !features || features.includes(feature);
+
   const { data: statusData, isLoading: statusLoading } = useQuery({
     queryKey: ['google-calendar-status'],
     queryFn: () => googleCalendarService.getStatus(),
@@ -23,19 +33,19 @@ export function useGoogleWidgets() {
   const eventsQuery = useQuery({
     queryKey: ['google-calendar-events'],
     queryFn: () => googleCalendarService.getEvents(),
-    enabled: showMeet,
+    enabled: wants('meet') && showMeet,
   });
 
   const driveQuery = useQuery({
     queryKey: ['google-drive-files'],
     queryFn: () => googleCalendarService.getDriveFiles(),
-    enabled: showDrive,
+    enabled: wants('drive') && showDrive,
   });
 
   const gmailQuery = useQuery({
     queryKey: ['google-gmail-messages'],
     queryFn: () => googleCalendarService.getGmailMessages(),
-    enabled: showGmail,
+    enabled: wants('gmail') && showGmail,
   });
 
   return {

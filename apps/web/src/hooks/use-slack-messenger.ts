@@ -41,6 +41,7 @@ export function useSlackMessenger() {
     queryFn: () => slackService.getStatus(),
   });
 
+  const isConnected = statusData?.data?.connected === true;
   const preferences = statusData?.data?.preferences ?? DEFAULT_SLACK_PREFERENCES;
   const showChannels = preferences.showChannels === true;
   const showDirectMessages = preferences.showDirectMessages === true;
@@ -48,11 +49,13 @@ export function useSlackMessenger() {
   const { data: profileData } = useQuery({
     queryKey: ['slack-profile'],
     queryFn: () => slackService.getProfile(),
+    enabled: isConnected,
   });
 
   const { data: channelsData, isLoading: channelsLoading } = useQuery({
     queryKey: ['slack-channels'],
     queryFn: () => slackService.getChannels(),
+    enabled: isConnected,
   });
 
   const allChannels = channelsData?.data?.channels ?? [];
@@ -76,7 +79,7 @@ export function useSlackMessenger() {
   } = useQuery({
     queryKey: ['slack-messages', activeChannel?.id],
     queryFn: () => slackService.getChannelMessages(activeChannel!.id),
-    enabled: !!activeChannel,
+    enabled: isConnected && !!activeChannel,
   });
 
   const sendMutation = useMutation({

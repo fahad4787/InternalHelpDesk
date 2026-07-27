@@ -38,6 +38,7 @@ export class IntegrationsService {
       oneDriveConnection,
       sharePointConnection,
       salesforceConnection,
+      dynamicsConnection,
       workdayConnection,
       zohoCrmConnection,
       zohoPeopleConnection,
@@ -146,6 +147,12 @@ export class IntegrationsService {
       ),
       this.softQuery(
         this.prisma.salesforceConnection.findUnique({
+          where: { userId: user.id },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.dynamicsConnection.findUnique({
           where: { userId: user.id },
         }),
         null,
@@ -378,6 +385,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: salesforceConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.DYNAMICS_365) {
+        const userConnected =
+          dynamicsConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: dynamicsConnection?.updatedAt ?? null,
         };
       }
 

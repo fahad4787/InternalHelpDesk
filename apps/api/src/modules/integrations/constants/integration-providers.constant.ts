@@ -110,6 +110,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'crm',
   },
   {
+    provider: IntegrationProvider.DYNAMICS_365,
+    name: 'Dynamics 365',
+    description: 'Contacts, accounts, and opportunities from Dynamics 365',
+    category: 'crm',
+  },
+  {
     provider: IntegrationProvider.ZOHO_CRM,
     name: 'Zoho CRM',
     description: 'Contacts, deals, and leads from Zoho CRM',
