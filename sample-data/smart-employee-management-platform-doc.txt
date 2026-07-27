@@ -46,7 +46,8 @@ Calendar & Meetings
 Google Calendar — Live
 • Calendar view
 
-Microsoft Outlook Calendar — Coming soon
+Microsoft Outlook Calendar — Live
+• Calendar events
 
 Zoom — Live
 • Profile
@@ -67,27 +68,31 @@ Google Meet — Live
 
 CRM Integration
 
-Salesforce — Coming soon
+Salesforce — Live
+• Contacts
+• Accounts
+• Opportunities
 
 HubSpot CRM — Live
 • Contacts
 • Deals
 • Tickets
 
-Zoho CRM — Coming soon
+Zoho CRM — Live
+• Contacts
+• Deals
+• Leads
 
-Microsoft Dynamics 365 — Coming soon
+Microsoft Dynamics 365 — Live
+• Contacts
+• Accounts
+• Opportunities
 
 Communication & Collaboration
 
 Slack — Live
 • Channels and messages
 • Direct messages
-
-Microsoft Teams — Live
-• Joined teams
-• Recent chats
-• Note: Requires a Microsoft 365 work or school account with a Teams license. Personal Microsoft / teams.live.com accounts can connect, but Microsoft Graph cannot return their teams or chats.
 
 Google Chat — Live
 • Chat spaces and messages
@@ -98,22 +103,27 @@ Gmail — Live
 Microsoft Outlook — Live
 • Profile
 • Inbox emails
+• Calendar
 
 Cloud Storage & Documents
 
 Google Drive — Live
 • Files
 
-OneDrive — Coming soon
+OneDrive — Live
+• Files and folders
+• Note: Requires a Microsoft 365 work or school account. Personal Microsoft accounts may connect with limited Graph access.
 
 Dropbox — Live
 • Files and folders
 
-SharePoint — Coming soon
+SharePoint — Live
+• Followed sites
+• Note: Requires a Microsoft 365 work or school account. Personal Microsoft accounts may connect with limited Graph access.
 
 Box — Live
 • Files and folders
-• External config required: create a Box app in the Box Developer Console, set the OAuth 2.0 redirect URI to https://internal-helpdesk-api.onrender.com/api/integrations/box/callback, and fill BOX_CLIENT_ID / BOX_CLIENT_SECRET. Once those are set, the connect flow works like Dropbox.
+• Note: External config required — create a Box app in the Box Developer Console, set the OAuth 2.0 redirect URI to https://internal-helpdesk-api.onrender.com/api/integrations/box/callback, and fill BOX_CLIENT_ID / BOX_CLIENT_SECRET. Once those are set, the connect flow works like Dropbox.
 
 HR & Employee Management
 
@@ -121,10 +131,12 @@ Workday — Live
 • Help articles
 • Sync history
 
-Zoho People — Coming soon
+Zoho People — Live
+• Employees
+• Leave
 
 Note
 
 Google Calendar, Google Meet, Google Drive, Gmail, and Google Chat are available through one Google connection, with each shown as its own experience in the portal.
 
-Microsoft Outlook (inbox/profile) and Microsoft Teams (teams/chats) are live today. Outlook Calendar remains Coming soon.
+Microsoft Outlook (inbox, profile, and calendar) and Microsoft Teams (teams/chats) are live today.
