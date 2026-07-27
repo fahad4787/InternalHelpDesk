@@ -184,7 +184,7 @@ function ChatBubble({ side, children }: { side: 'left' | 'right'; children: Reac
   return (
     <div className={`flex ${right ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
+        className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
           right
             ? 'rounded-tr-md bg-primary font-medium text-primary-foreground shadow-glow'
             : 'rounded-tl-md border border-white/5 bg-white/[0.06] text-white/90'
@@ -257,13 +257,13 @@ export function AIChatSection() {
               <ChatBubble side="left">
                 <div className="mb-1 text-xs font-semibold text-primary">Workhub AI</div>
                 Full-time employees receive <b>20 days</b> of paid vacation per year.
-                <div className="mt-1 text-xs italic text-white/45">Source · Employee Handbook §3</div>
+                <div className="mt-1.5 text-xs italic text-white/45">Source · Employee Handbook §3</div>
               </ChatBubble>
               <ChatBubble side="right">Where do I submit time-off?</ChatBubble>
               <ChatBubble side="left">
                 <div className="mb-1 text-xs font-semibold text-primary">Workhub AI</div>
-                <div>Submit in Workday Time Off, or ask your manager for team-specific flows.</div>
-                <div className="mt-1 text-xs italic text-white/45">Source · Time Off SOP</div>
+                Submit in Workday Time Off, or ask your manager for team-specific flows.
+                <div className="mt-1.5 text-xs italic text-white/45">Source · Time Off SOP</div>
               </ChatBubble>
             </div>
           </div>

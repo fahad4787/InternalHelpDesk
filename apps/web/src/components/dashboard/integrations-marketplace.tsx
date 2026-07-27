@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -98,6 +98,8 @@ function isProviderConnected(
       return statuses.hubspot?.connected === true;
     case 'SALESFORCE':
       return statuses.salesforce?.connected === true;
+    case 'ZOHO_CRM':
+      return statuses.zohoCrm?.connected === true;
     case 'WORKDAY':
       return statuses.workday?.connected === true;
     default:
@@ -147,6 +149,8 @@ function connectedAtForProvider(
       return statuses.hubspot?.lastSyncedAt ?? null;
     case 'SALESFORCE':
       return statuses.salesforce?.lastSyncedAt ?? null;
+    case 'ZOHO_CRM':
+      return statuses.zohoCrm?.lastSyncedAt ?? null;
     case 'WORKDAY':
       return statuses.workday?.lastSyncedAt ?? null;
     default:
@@ -239,6 +243,8 @@ function buildConnectedEntries(
 function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
   const { meta, isConnected, dashboardWidgetCount, widgetLabels } = entry;
   const iconKey = meta.iconKey;
+  const [widgetsOpen, setWidgetsOpen] = useState(false);
+  const widgetsId = `widgets-${entry.id}`;
 
   return (
     <article className="flex h-full flex-col rounded-2xl border border-border-warm bg-white p-5 shadow-sm transition-colors hover:border-positive-muted hover:shadow-md">
@@ -256,9 +262,7 @@ function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
             {isConnected && meta.available && <Badge variant="success">Connected</Badge>}
             {!meta.available && <Badge variant="secondary">Coming soon</Badge>}
             {dashboardWidgetCount > 0 && (
-              <Badge variant="default">
-                {dashboardWidgetCount} on dashboard
-              </Badge>
+              <Badge variant="default">Active</Badge>
             )}
           </div>
           <p className="mt-2 text-sm text-muted">{entry.description}</p>
@@ -266,20 +270,38 @@ function IntegrationMarketplaceCard({ entry }: { entry: MarketplaceEntry }) {
       </div>
 
       {widgetLabels.length > 0 && (
-        <div className="mt-4 rounded-lg border border-border-warm bg-canvas p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-            Dashboard widgets
-          </p>
-          <ul className="mt-2 space-y-1" role="list">
-            {widgetLabels.map((label) => (
-              <li key={label} className="text-sm text-ink">
-                • {label}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-xs text-muted">
-            Toggle each widget on the integration page after connecting.
-          </p>
+        <div className="mt-4 overflow-hidden rounded-lg border border-border-warm bg-canvas">
+          <button
+            type="button"
+            aria-expanded={widgetsOpen}
+            aria-controls={widgetsId}
+            onClick={() => setWidgetsOpen((open) => !open)}
+            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition-colors hover:bg-border-warm/40"
+          >
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Dashboard widgets
+            </span>
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 shrink-0 text-muted transition-transform duration-200',
+                widgetsOpen && 'rotate-180',
+              )}
+            />
+          </button>
+          {widgetsOpen && (
+            <div id={widgetsId} className="border-t border-border-warm px-3 pb-3 pt-2">
+              <ul className="space-y-1" role="list">
+                {widgetLabels.map((label) => (
+                  <li key={label} className="text-sm text-ink">
+                    • {label}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-muted">
+                Toggle each widget on the integration page after connecting.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

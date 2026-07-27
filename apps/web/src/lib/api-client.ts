@@ -40,9 +40,9 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('helpdesk_user');
         window.dispatchEvent(new Event(AUTH_CLEARED_EVENT));
         const { pathname } = window.location;
-        // Stay on landing/auth pages; only force login when leaving a protected screen.
+        // Stay on landing/auth pages; only leave protected screens for the landing page.
         if (!isPublicAuthPath(pathname) && !pathname.startsWith('/login')) {
-          window.location.href = '/login';
+          window.location.href = '/';
         }
       }
     }

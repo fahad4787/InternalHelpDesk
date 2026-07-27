@@ -68,6 +68,7 @@ enum IntegrationProvider {
   SHAREPOINT
   SALESFORCE
   DYNAMICS_365
+  ZOHO_CRM
 }
 
 enum IntegrationStatus {
@@ -159,6 +160,7 @@ model User {
   sharePointConnection      SharePointConnection?
   salesforceConnection      SalesforceConnection?
   dynamicsConnection        DynamicsConnection?
+  zohoCrmConnection         ZohoCrmConnection?
 
   @@unique([email, companyId])
   @@index([companyId])
@@ -517,6 +519,25 @@ model HubSpotConnection {
   hubspotPortalId       String?
   hubspotEmail          String?
   hubDomain             String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ZohoCrmConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  zohoUserId            String?
+  zohoEmail             String?
+  apiDomain             String?
+  accountsUrl           String?
   encryptedAccessToken  String?
   encryptedRefreshToken String?
   tokenExpiresAt        DateTime?

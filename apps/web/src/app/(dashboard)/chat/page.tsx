@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bot, Send, Sparkles, Trash2 } from 'lucide-react';
+import { Send, Sparkles, Trash2 } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,13 @@ import { chatService } from '@/services/chat.service';
 import { ChatMessage } from '@/types/api.types';
 import { getErrorMessage } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
+
+type ChatSource = { documentTitle: string; section?: string; excerpt: string };
+
+function formatSourceLine(source: ChatSource) {
+  const section = source.section ? ` ${source.section.replace(/^\d+\.\s+/, '')}` : '';
+  return `Source · ${source.documentTitle}${section}`;
+}
 
 export default function ChatPage() {
   const queryClient = useQueryClient();
@@ -156,24 +163,24 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-border-warm bg-white shadow-sm">
-          <div className="flex items-center gap-3 border-b border-border-warm px-5 py-3.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand-accent">
-              <Bot className="h-4 w-4 text-white" />
+        <div
+          className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-white/10 shadow-lg"
+          style={{ background: 'oklch(0.22 0.03 250)' }}
+        >
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">
+              AI Chat
             </div>
-            <div>
-              <p className="text-sm font-semibold text-ink">AI Assistant</p>
-              <p className="text-xs text-muted">Powered by your knowledge base</p>
+            <div className="flex items-center gap-1.5 text-[10px] text-white/50">
+              <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.7_0.15_150)]" />
+              Live
             </div>
           </div>
 
           <div className="flex-1 space-y-4 overflow-y-auto p-5">
-            {messages.length === 0 && (
+            {messages.length === 0 && !sendMutation.isPending && (
               <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-                <div className="rounded-full border border-brand-muted bg-brand-light p-5">
-                  <Bot className="h-10 w-10 text-brand" />
-                </div>
-                <p className="text-sm text-muted">
+                <p className="text-sm text-white/55">
                   Ask about HR policies, IT guides, or company procedures
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
@@ -181,7 +188,7 @@ export default function ChatPage() {
                     <button
                       key={q}
                       onClick={() => setInput(q)}
-                      className="rounded-full border border-border-warm bg-white px-4 py-1.5 text-xs text-muted shadow-sm transition-colors hover:border-brand hover:bg-brand-light hover:text-brand"
+                      className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-1.5 text-xs text-white/70 transition-colors hover:border-brand hover:bg-brand/20 hover:text-white"
                     >
                       {q}
                     </button>
@@ -189,57 +196,56 @@ export default function ChatPage() {
                 </div>
               </div>
             )}
-            {sendMutation.isPending && (
-              <div className="max-w-[80%] rounded-2xl rounded-bl-sm border border-border-warm bg-canvas px-4 py-3 text-sm text-ink">
-                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-brand-accent">
-                  <Bot className="h-3 w-3" />
-                  AI Assistant
+            {messages.map((msg) => {
+              const isUser = msg.role === 'user';
+              const sources = Array.isArray(msg.sources) ? (msg.sources as ChatSource[]) : [];
+              return (
+                <div key={msg.id} className={cn('flex', isUser ? 'justify-end' : 'justify-start')}>
+                  <div
+                    className={cn(
+                      'max-w-[80%] rounded-2xl px-4 py-3 text-sm',
+                      isUser
+                        ? 'rounded-tr-md bg-brand font-medium text-white shadow-md shadow-brand/25'
+                        : 'rounded-tl-md border border-white/5 bg-white/[0.06] text-white/90',
+                    )}
+                  >
+                    {!isUser && (
+                      <div className="mb-1 text-xs font-semibold text-brand">Workhub AI</div>
+                    )}
+                    <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    {!isUser && sources.length > 0 && (
+                      <div className="mt-2 space-y-0.5">
+                        {sources.map((s, i) => (
+                          <p key={i} className="text-xs italic text-white/45">
+                            {formatSourceLine(s)}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 py-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-brand/60 [animation-delay:0ms]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-brand/60 [animation-delay:150ms]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-brand/60 [animation-delay:300ms]" />
+              );
+            })}
+            {sendMutation.isPending && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-2xl rounded-tl-md border border-white/5 bg-white/[0.06] px-4 py-3 text-sm text-white/90">
+                  <div className="mb-1 text-xs font-semibold text-brand">Workhub AI</div>
+                  <div className="flex items-center gap-1 py-1">
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-brand/70 [animation-delay:0ms]" />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-brand/70 [animation-delay:150ms]" />
+                    <span className="h-2 w-2 animate-bounce rounded-full bg-brand/70 [animation-delay:300ms]" />
+                  </div>
                 </div>
               </div>
             )}
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={cn(
-                  'max-w-[80%] rounded-2xl px-4 py-3 text-sm',
-                  msg.role === 'user'
-                    ? 'ml-auto rounded-br-sm bg-brand text-white shadow-md shadow-brand/20'
-                    : 'rounded-bl-sm border border-border-warm bg-canvas text-ink',
-                )}
-              >
-                {msg.role === 'assistant' && (
-                  <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-brand-accent">
-                    <Bot className="h-3 w-3" />
-                    AI Assistant
-                  </div>
-                )}
-                <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                {msg.sources && Array.isArray(msg.sources) && msg.sources.length > 0 && (
-                  <div className="mt-3 border-t border-border-warm pt-2">
-                    <p className="text-xs font-medium text-muted">Sources</p>
-                    {(msg.sources as { documentTitle: string; section?: string; excerpt: string }[]).map((s, i) => (
-                      <p key={i} className="mt-1 text-xs text-muted">
-                        {s.documentTitle}
-                        {s.section ? ` · ${s.section.replace(/^\d+\.\s+/, '')}` : ''}: {s.excerpt}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="border-t border-border-warm p-4">
+          <div className="border-t border-white/10 p-4">
             {sendError && (
-              <p className="mb-2 text-sm text-red-600">{sendError}</p>
+              <p className="mb-2 text-sm text-red-400">{sendError}</p>
             )}
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Textarea
                 value={input}
                 onChange={(e) => {
@@ -247,7 +253,7 @@ export default function ChatPage() {
                   if (sendError) setSendError('');
                 }}
                 placeholder="Ask a question about your company docs..."
-                className="min-h-[48px] resize-none"
+                className="min-h-12 h-12 resize-none border-white/10 bg-white/[0.06] text-white placeholder:text-white/40 focus-visible:ring-brand"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -257,6 +263,7 @@ export default function ChatPage() {
               />
               <Button
                 size="icon"
+                className="h-12 w-12 shrink-0"
                 disabled={!input.trim() || sendMutation.isPending}
                 onClick={handleSend}
               >

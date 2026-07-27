@@ -103,7 +103,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         aria-label="Main navigation"
       >
         <div className="flex h-16 items-center justify-between border-b border-sidebar-hover px-5">
-          <WorkhubLogo variant="sidebar" size="md" />
+          <Link href="/" onClick={onMobileClose} aria-label="Go to Workhub home">
+            <WorkhubLogo variant="sidebar" size="md" />
+          </Link>
           <button
             type="button"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-sidebar-muted hover:bg-sidebar-hover hover:text-white lg:hidden"

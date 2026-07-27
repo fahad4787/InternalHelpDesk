@@ -36,6 +36,12 @@ const PROVIDER_QUERY_PREFIXES: Record<string, string[]> = {
     'dynamics-accounts',
     'dynamics-opportunities',
   ],
+  ZOHO_CRM: [
+    'zoho-crm-status',
+    'zoho-crm-contacts',
+    'zoho-crm-deals',
+    'zoho-crm-leads',
+  ],
   WORKDAY: ['workday-status', 'workday-sync-logs', 'workday-articles'],
 };
 

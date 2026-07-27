@@ -64,6 +64,11 @@ import {
   DynamicsAccountsDashboardWidget,
   DynamicsOpportunitiesDashboardWidget,
 } from '@/components/dashboard/widgets/dynamics-dashboard-widgets';
+import {
+  ZohoCrmContactsDashboardWidget,
+  ZohoCrmDealsDashboardWidget,
+  ZohoCrmLeadsDashboardWidget,
+} from '@/components/dashboard/widgets/zoho-crm-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -102,6 +107,9 @@ export const DASHBOARD_WIDGET_IDS = [
   'dynamics-contacts',
   'dynamics-accounts',
   'dynamics-opportunities',
+  'zoho-crm-contacts',
+  'zoho-crm-deals',
+  'zoho-crm-leads',
   'workday-articles',
 ] as const;
 
@@ -368,12 +376,33 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/dynamics',
     order: 67,
   },
+  'zoho-crm-contacts': {
+    id: 'zoho-crm-contacts',
+    label: 'Contacts',
+    provider: 'ZOHO_CRM',
+    configureRoute: '/integrations/zoho-crm',
+    order: 68,
+  },
+  'zoho-crm-deals': {
+    id: 'zoho-crm-deals',
+    label: 'Deals',
+    provider: 'ZOHO_CRM',
+    configureRoute: '/integrations/zoho-crm',
+    order: 69,
+  },
+  'zoho-crm-leads': {
+    id: 'zoho-crm-leads',
+    label: 'Leads',
+    provider: 'ZOHO_CRM',
+    configureRoute: '/integrations/zoho-crm',
+    order: 70,
+  },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 68,
+    order: 71,
   },
 };
 
@@ -414,6 +443,9 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'dynamics-contacts': DynamicsContactsDashboardWidget,
   'dynamics-accounts': DynamicsAccountsDashboardWidget,
   'dynamics-opportunities': DynamicsOpportunitiesDashboardWidget,
+  'zoho-crm-contacts': ZohoCrmContactsDashboardWidget,
+  'zoho-crm-deals': ZohoCrmDealsDashboardWidget,
+  'zoho-crm-leads': ZohoCrmLeadsDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -436,6 +468,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   HUBSPOT: '/integrations/hubspot',
   SALESFORCE: '/integrations/salesforce',
   DYNAMICS_365: '/integrations/dynamics',
+  ZOHO_CRM: '/integrations/zoho-crm',
   WORKDAY: '/integrations/workday',
 };
 

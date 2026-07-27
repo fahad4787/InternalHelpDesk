@@ -39,6 +39,7 @@ export class IntegrationsService {
       sharePointConnection,
       salesforceConnection,
       workdayConnection,
+      zohoCrmConnection,
     ] = await Promise.all([
       this.softQuery(
         this.prisma.integration.findMany({
@@ -151,6 +152,12 @@ export class IntegrationsService {
       this.softQuery(
         this.prisma.workdayConnection.findUnique({
           where: { companyId: user.companyId },
+        }),
+        null,
+      ),
+      this.softQuery(
+        this.prisma.zohoCrmConnection.findUnique({
+          where: { userId: user.id },
         }),
         null,
       ),
@@ -364,6 +371,18 @@ export class IntegrationsService {
             ? IntegrationStatus.CONNECTED
             : IntegrationStatus.NOT_CONNECTED,
           connectedAt: salesforceConnection?.updatedAt ?? null,
+        };
+      }
+
+      if (provider.provider === IntegrationProvider.ZOHO_CRM) {
+        const userConnected =
+          zohoCrmConnection?.status === IntegrationStatus.CONNECTED;
+        return {
+          ...provider,
+          status: userConnected
+            ? IntegrationStatus.CONNECTED
+            : IntegrationStatus.NOT_CONNECTED,
+          connectedAt: zohoCrmConnection?.updatedAt ?? null,
         };
       }
 

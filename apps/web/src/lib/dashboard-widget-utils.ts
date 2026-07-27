@@ -50,6 +50,10 @@ import {
   DEFAULT_DYNAMICS_PREFERENCES,
   type DynamicsStatus,
 } from '@/services/dynamics.service';
+import {
+  DEFAULT_ZOHO_CRM_PREFERENCES,
+  type ZohoCrmStatus,
+} from '@/services/zoho-crm.service';
 import type { WorkdayStatus } from '@/services/workday.service';
 import {
   DASHBOARD_WIDGET_DEFINITIONS,
@@ -76,6 +80,7 @@ export interface DashboardIntegrationStatuses {
   hubspot?: HubSpotStatus | null;
   salesforce?: SalesforceStatus | null;
   dynamics?: DynamicsStatus | null;
+  zohoCrm?: ZohoCrmStatus | null;
   workday?: WorkdayStatus | null;
 }
 
@@ -215,6 +220,14 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showOpportunities) visible.push('dynamics-opportunities');
   }
 
+  const zohoCrm = statuses.zohoCrm;
+  if (zohoCrm?.connected) {
+    const preferences = zohoCrm.preferences ?? DEFAULT_ZOHO_CRM_PREFERENCES;
+    if (preferences.showContacts) visible.push('zoho-crm-contacts');
+    if (preferences.showDeals) visible.push('zoho-crm-deals');
+    if (preferences.showLeads) visible.push('zoho-crm-leads');
+  }
+
   if (statuses.workday?.connected) {
     visible.push('workday-articles');
   }
@@ -301,6 +314,13 @@ export function getConnectedIntegrationRoutes(
       provider: 'DYNAMICS_365',
       route: '/integrations/dynamics',
       label: 'Dynamics 365',
+    });
+  }
+  if (statuses.zohoCrm?.connected) {
+    routes.push({
+      provider: 'ZOHO_CRM',
+      route: '/integrations/zoho-crm',
+      label: 'Zoho CRM',
     });
   }
   if (statuses.workday?.connected) {

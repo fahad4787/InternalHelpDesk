@@ -50,6 +50,16 @@ services:
         sync: false
       - key: HUBSPOT_CLIENT_SECRET
         sync: false
+      - key: ZOHO_CRM_REDIRECT_URI
+        value: https://internal-helpdesk-api.onrender.com/api/integrations/zoho-crm/callback
+      - key: ZOHO_CRM_ACCOUNTS_URL
+        value: https://accounts.zoho.com
+      - key: ZOHO_CRM_SCOPES
+        value: ZohoCRM.modules.contacts.READ,ZohoCRM.modules.deals.READ,ZohoCRM.modules.leads.READ,ZohoCRM.users.READ
+      - key: ZOHO_CRM_CLIENT_ID
+        sync: false
+      - key: ZOHO_CRM_CLIENT_SECRET
+        sync: false
       - key: SALESFORCE_REDIRECT_URI
         value: https://internal-helpdesk-api.onrender.com/api/integrations/salesforce/callback
       - key: SALESFORCE_LOGIN_URL

@@ -39,6 +39,8 @@ import { SalesforceModule } from './salesforce/salesforce.module';
 import { SalesforceController } from './salesforce/salesforce.controller';
 import { DynamicsModule } from './dynamics/dynamics.module';
 import { DynamicsController } from './dynamics/dynamics.controller';
+import { ZohoCrmModule } from './zoho-crm/zoho-crm.module';
+import { ZohoCrmController } from './zoho-crm/zoho-crm.controller';
 
 @Module({
   imports: [
@@ -61,6 +63,7 @@ import { DynamicsController } from './dynamics/dynamics.controller';
     SharePointModule,
     SalesforceModule,
     DynamicsModule,
+    ZohoCrmModule,
   ],
   controllers: [
     WorkdayController,
@@ -82,6 +85,7 @@ import { DynamicsController } from './dynamics/dynamics.controller';
     SharePointController,
     SalesforceController,
     DynamicsController,
+    ZohoCrmController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -106,6 +110,7 @@ import { DynamicsController } from './dynamics/dynamics.controller';
     SharePointModule,
     SalesforceModule,
     DynamicsModule,
+    ZohoCrmModule,
   ],
 })
 export class IntegrationsModule {}
