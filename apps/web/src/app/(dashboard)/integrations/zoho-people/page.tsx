@@ -11,6 +11,7 @@ import { ZohoPeoplePreferencesCard } from '@/components/integrations/zoho-people
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_ZOHO_PEOPLE_PREFERENCES,
   zohoPeopleService,
@@ -37,7 +38,7 @@ export default function ZohoPeopleIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['zoho-people-status'] });
+      invalidateProviderStatus(queryClient, 'zoho-people-status');
       queryClient.invalidateQueries({ queryKey: ['zoho-people-employees'] });
       queryClient.invalidateQueries({ queryKey: ['zoho-people-leave'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -63,7 +64,7 @@ export default function ZohoPeopleIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => zohoPeopleService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['zoho-people-status'] });
+      invalidateProviderStatus(queryClient, 'zoho-people-status');
       queryClient.removeQueries({ queryKey: ['zoho-people-employees'] });
       queryClient.removeQueries({ queryKey: ['zoho-people-leave'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

@@ -11,6 +11,7 @@ import { SlackConnectionCard } from '@/components/integrations/slack/slack-conne
 import { SlackPreferencesCard } from '@/components/integrations/slack/slack-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_SLACK_PREFERENCES,
   slackService,
@@ -37,7 +38,7 @@ export default function SlackIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['slack-status'] });
+      invalidateProviderStatus(queryClient, 'slack-status');
       queryClient.invalidateQueries({ queryKey: ['slack-profile'] });
       queryClient.invalidateQueries({ queryKey: ['slack-channels'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -63,7 +64,7 @@ export default function SlackIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => slackService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['slack-status'] });
+      invalidateProviderStatus(queryClient, 'slack-status');
       queryClient.removeQueries({ queryKey: ['slack-profile'] });
       queryClient.removeQueries({ queryKey: ['slack-channels'] });
       queryClient.removeQueries({ queryKey: ['slack-messages'] });

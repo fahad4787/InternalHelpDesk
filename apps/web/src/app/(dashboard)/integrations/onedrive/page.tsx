@@ -11,6 +11,7 @@ import { OneDrivePreferencesCard } from '@/components/integrations/onedrive/oned
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_ONEDRIVE_PREFERENCES,
   oneDriveService,
@@ -37,7 +38,7 @@ export default function OneDriveIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['onedrive-status'] });
+      invalidateProviderStatus(queryClient, 'onedrive-status');
       queryClient.invalidateQueries({ queryKey: ['onedrive-files'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/onedrive', { scroll: false });
@@ -62,7 +63,7 @@ export default function OneDriveIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => oneDriveService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['onedrive-status'] });
+      invalidateProviderStatus(queryClient, 'onedrive-status');
       queryClient.removeQueries({ queryKey: ['onedrive-files'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },

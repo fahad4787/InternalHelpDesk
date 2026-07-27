@@ -12,6 +12,7 @@ import { ScheduleZoomMeetingModal } from '@/components/integrations/zoom/schedul
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_ZOOM_PREFERENCES,
   zoomService,
@@ -39,7 +40,7 @@ export default function ZoomIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['zoom-status'] });
+      invalidateProviderStatus(queryClient, 'zoom-status');
       queryClient.invalidateQueries({ queryKey: ['zoom-meetings'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/zoom', { scroll: false });
@@ -64,7 +65,7 @@ export default function ZoomIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => zoomService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['zoom-status'] });
+      invalidateProviderStatus(queryClient, 'zoom-status');
       queryClient.invalidateQueries({ queryKey: ['zoom-meetings'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },

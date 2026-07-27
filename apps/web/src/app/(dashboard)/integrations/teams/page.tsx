@@ -12,6 +12,7 @@ import { TeamsUnsupportedAccountCard } from '@/components/integrations/teams/tea
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   isPersonalMicrosoftAccount,
   isTeamsGraphUnsupportedError,
@@ -64,7 +65,7 @@ export default function TeamsIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['teams-status'] });
+      invalidateProviderStatus(queryClient, 'teams-status');
       queryClient.invalidateQueries({ queryKey: ['teams-joined'] });
       queryClient.invalidateQueries({ queryKey: ['teams-chats'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -90,7 +91,7 @@ export default function TeamsIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => teamsService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams-status'] });
+      invalidateProviderStatus(queryClient, 'teams-status');
       queryClient.removeQueries({ queryKey: ['teams-joined'] });
       queryClient.removeQueries({ queryKey: ['teams-chats'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

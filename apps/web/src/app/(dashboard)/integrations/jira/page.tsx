@@ -11,6 +11,7 @@ import { JiraPreferencesCard } from '@/components/integrations/jira/jira-prefere
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_JIRA_PREFERENCES,
   jiraService,
@@ -37,7 +38,7 @@ export default function JiraIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['jira-status'] });
+      invalidateProviderStatus(queryClient, 'jira-status');
       queryClient.invalidateQueries({ queryKey: ['jira-issues'] });
       queryClient.invalidateQueries({ queryKey: ['jira-projects'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -63,7 +64,7 @@ export default function JiraIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => jiraService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jira-status'] });
+      invalidateProviderStatus(queryClient, 'jira-status');
       queryClient.invalidateQueries({ queryKey: ['jira-issues'] });
       queryClient.invalidateQueries({ queryKey: ['jira-projects'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

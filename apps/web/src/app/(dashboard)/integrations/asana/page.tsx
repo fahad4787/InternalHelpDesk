@@ -11,6 +11,7 @@ import { AsanaConnectionCard } from '@/components/integrations/asana/asana-conne
 import { AsanaPreferencesCard } from '@/components/integrations/asana/asana-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_ASANA_PREFERENCES,
   asanaService,
@@ -43,7 +44,7 @@ export default function AsanaIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['asana-status'] });
+      invalidateProviderStatus(queryClient, 'asana-status');
       queryClient.invalidateQueries({ queryKey: ['asana-projects'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/asana', { scroll: false });
@@ -69,7 +70,7 @@ export default function AsanaIntegrationPage() {
     mutationFn: () => asanaService.disconnect(),
     onSuccess: () => {
       setSelectedProjectGid(null);
-      queryClient.invalidateQueries({ queryKey: ['asana-status'] });
+      invalidateProviderStatus(queryClient, 'asana-status');
       queryClient.removeQueries({ queryKey: ['asana-projects'] });
       queryClient.removeQueries({ queryKey: ['asana-project'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

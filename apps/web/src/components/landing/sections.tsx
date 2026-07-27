@@ -25,7 +25,7 @@ import {
   IntegrationIcon,
   type IntegrationIconProvider,
   isIntegrationIconProvider,
-} from '@/components/shared/integration-icon';
+} from '@/components/integrations/common/integration-icon';
 import {
   BrandText,
   FeatureCard,

@@ -12,6 +12,7 @@ import { IntegrationWidgetsSection } from '@/components/integrations/common/inte
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import { DEFAULT_BOX_PREFERENCES, boxService } from '@/services/box.service';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 
 export default function BoxIntegrationPage() {
   const queryClient = useQueryClient();
@@ -34,7 +35,7 @@ export default function BoxIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['box-status'] });
+      invalidateProviderStatus(queryClient, 'box-status');
       queryClient.invalidateQueries({ queryKey: ['box-files'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/box', { scroll: false });
@@ -59,7 +60,7 @@ export default function BoxIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => boxService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['box-status'] });
+      invalidateProviderStatus(queryClient, 'box-status');
       queryClient.removeQueries({ queryKey: ['box-files'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },

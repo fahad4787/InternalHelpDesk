@@ -11,6 +11,7 @@ import { OutlookPreferencesCard } from '@/components/integrations/outlook/outloo
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_OUTLOOK_PREFERENCES,
   outlookService,
@@ -37,7 +38,7 @@ export default function OutlookIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['outlook-status'] });
+      invalidateProviderStatus(queryClient, 'outlook-status');
       queryClient.invalidateQueries({ queryKey: ['outlook-events'] });
       queryClient.invalidateQueries({ queryKey: ['outlook-messages'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -63,7 +64,7 @@ export default function OutlookIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => outlookService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['outlook-status'] });
+      invalidateProviderStatus(queryClient, 'outlook-status');
       queryClient.removeQueries({ queryKey: ['outlook-events'] });
       queryClient.removeQueries({ queryKey: ['outlook-messages'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

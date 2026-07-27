@@ -24,6 +24,7 @@ import {
   WORKDAY_ENVIRONMENTS,
 } from '@/constants/workday';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   WorkdayConnectPayload,
   WorkdaySyncLog,
@@ -108,7 +109,7 @@ export default function WorkdayIntegrationPage() {
   const connectMutation = useMutation({
     mutationFn: () => workdayService.connect(form),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workday-status'] });
+      invalidateProviderStatus(queryClient, 'workday-status');
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       showToast('Workday connection saved', 'success');
     },
@@ -118,7 +119,7 @@ export default function WorkdayIntegrationPage() {
   const testMutation = useMutation({
     mutationFn: () => workdayService.testConnection(form),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workday-status'] });
+      invalidateProviderStatus(queryClient, 'workday-status');
       showToast('Connection test successful', 'success');
     },
     onError: (err) => showToast(getErrorMessage(err), 'error'),
@@ -127,7 +128,7 @@ export default function WorkdayIntegrationPage() {
   const syncMutation = useMutation({
     mutationFn: () => workdayService.sync(),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['workday-status'] });
+      invalidateProviderStatus(queryClient, 'workday-status');
       queryClient.invalidateQueries({ queryKey: ['workday-sync-logs'] });
       queryClient.invalidateQueries({ queryKey: ['workday-articles'] });
       queryClient.invalidateQueries({ queryKey: ['documents'] });
@@ -150,7 +151,7 @@ export default function WorkdayIntegrationPage() {
         clientSecret: '',
         environment: 'SANDBOX',
       });
-      queryClient.invalidateQueries({ queryKey: ['workday-status'] });
+      invalidateProviderStatus(queryClient, 'workday-status');
       queryClient.invalidateQueries({ queryKey: ['workday-sync-logs'] });
       queryClient.invalidateQueries({ queryKey: ['workday-articles'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

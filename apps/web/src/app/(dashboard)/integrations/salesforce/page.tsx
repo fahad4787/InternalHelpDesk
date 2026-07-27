@@ -11,6 +11,7 @@ import { SalesforcePreferencesCard } from '@/components/integrations/salesforce/
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_SALESFORCE_PREFERENCES,
   salesforceService,
@@ -37,7 +38,7 @@ export default function SalesforceIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['salesforce-status'] });
+      invalidateProviderStatus(queryClient, 'salesforce-status');
       queryClient.invalidateQueries({ queryKey: ['salesforce-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['salesforce-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['salesforce-opportunities'] });
@@ -64,7 +65,7 @@ export default function SalesforceIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => salesforceService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['salesforce-status'] });
+      invalidateProviderStatus(queryClient, 'salesforce-status');
       queryClient.removeQueries({ queryKey: ['salesforce-contacts'] });
       queryClient.removeQueries({ queryKey: ['salesforce-accounts'] });
       queryClient.removeQueries({ queryKey: ['salesforce-opportunities'] });

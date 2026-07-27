@@ -11,6 +11,7 @@ import { DropboxPreferencesCard } from '@/components/integrations/dropbox/dropbo
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_DROPBOX_PREFERENCES,
   dropboxService,
@@ -37,7 +38,7 @@ export default function DropboxIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['dropbox-status'] });
+      invalidateProviderStatus(queryClient, 'dropbox-status');
       queryClient.invalidateQueries({ queryKey: ['dropbox-files'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/dropbox', { scroll: false });
@@ -62,7 +63,7 @@ export default function DropboxIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => dropboxService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dropbox-status'] });
+      invalidateProviderStatus(queryClient, 'dropbox-status');
       queryClient.removeQueries({ queryKey: ['dropbox-files'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },

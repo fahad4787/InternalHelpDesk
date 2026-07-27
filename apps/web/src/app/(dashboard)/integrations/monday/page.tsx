@@ -11,6 +11,7 @@ import { MondayConnectionCard } from '@/components/integrations/monday/monday-co
 import { MondayPreferencesCard } from '@/components/integrations/monday/monday-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_MONDAY_PREFERENCES,
   mondayService,
@@ -43,7 +44,7 @@ export default function MondayIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['monday-status'] });
+      invalidateProviderStatus(queryClient, 'monday-status');
       queryClient.invalidateQueries({ queryKey: ['monday-boards'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/monday', { scroll: false });
@@ -69,7 +70,7 @@ export default function MondayIntegrationPage() {
     mutationFn: () => mondayService.disconnect(),
     onSuccess: () => {
       setSelectedBoardId(null);
-      queryClient.invalidateQueries({ queryKey: ['monday-status'] });
+      invalidateProviderStatus(queryClient, 'monday-status');
       queryClient.removeQueries({ queryKey: ['monday-boards'] });
       queryClient.removeQueries({ queryKey: ['monday-board'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

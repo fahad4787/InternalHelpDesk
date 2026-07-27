@@ -423,8 +423,7 @@ export function IntegrationsMarketplace() {
   const { category, setCategory, searchQuery, setSearchQuery, integrationsTab, setIntegrationsTab } =
     useDashboardUi();
   const { visibleWidgetIds, statuses } = useDashboardVisibleWidgets({
-    // Marketplace only needs these for widget counts; integrations list drives Connect state.
-    // Defer heavy status fan-out until My connected apps (or when list already loaded).
+    // Connected-tab widget counts; list endpoint still drives Connect state.
     enabled: integrationsTab === 'connected',
   });
 

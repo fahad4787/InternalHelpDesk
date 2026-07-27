@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import { googleCalendarService } from '@/services/google-calendar.service';
 import { useGoogleWidgets } from '@/hooks/use-google-widgets';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 
 export default function GoogleIntegrationPage() {
   const queryClient = useQueryClient();
@@ -28,7 +29,7 @@ export default function GoogleIntegrationPage() {
     const error = searchParams.get('error');
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['google-calendar-status'] });
+      invalidateProviderStatus(queryClient, 'google-calendar-status');
       queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
       queryClient.invalidateQueries({ queryKey: ['google-drive-files'] });
       queryClient.invalidateQueries({ queryKey: ['google-gmail-messages'] });
@@ -51,7 +52,7 @@ export default function GoogleIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => googleCalendarService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['google-calendar-status'] });
+      invalidateProviderStatus(queryClient, 'google-calendar-status');
       queryClient.invalidateQueries({ queryKey: ['google-calendar-events'] });
       queryClient.invalidateQueries({ queryKey: ['google-drive-files'] });
       queryClient.invalidateQueries({ queryKey: ['google-gmail-messages'] });

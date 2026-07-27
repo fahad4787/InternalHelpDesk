@@ -12,6 +12,7 @@ import { SharePointUnsupportedAccountCard } from '@/components/integrations/shar
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import { isPersonalMicrosoftAccount } from '@/lib/teams-account';
 import {
   DEFAULT_SHAREPOINT_PREFERENCES,
@@ -40,7 +41,7 @@ export default function SharePointIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['sharepoint-status'] });
+      invalidateProviderStatus(queryClient, 'sharepoint-status');
       queryClient.invalidateQueries({ queryKey: ['sharepoint-sites'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/sharepoint', { scroll: false });
@@ -65,7 +66,7 @@ export default function SharePointIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => sharePointService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sharepoint-status'] });
+      invalidateProviderStatus(queryClient, 'sharepoint-status');
       queryClient.removeQueries({ queryKey: ['sharepoint-sites'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
     },

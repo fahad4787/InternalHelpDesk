@@ -11,6 +11,7 @@ import { ClickUpConnectionCard } from '@/components/integrations/clickup/clickup
 import { ClickUpPreferencesCard } from '@/components/integrations/clickup/clickup-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_CLICKUP_PREFERENCES,
   clickupService,
@@ -43,7 +44,7 @@ export default function ClickUpIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['clickup-status'] });
+      invalidateProviderStatus(queryClient, 'clickup-status');
       queryClient.invalidateQueries({ queryKey: ['clickup-lists'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/clickup', { scroll: false });
@@ -69,7 +70,7 @@ export default function ClickUpIntegrationPage() {
     mutationFn: () => clickupService.disconnect(),
     onSuccess: () => {
       setSelectedListId(null);
-      queryClient.invalidateQueries({ queryKey: ['clickup-status'] });
+      invalidateProviderStatus(queryClient, 'clickup-status');
       queryClient.removeQueries({ queryKey: ['clickup-lists'] });
       queryClient.removeQueries({ queryKey: ['clickup-list'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

@@ -17,6 +17,11 @@ export class IntegrationsController {
     return this.integrationsService.findAll(user);
   }
 
+  @Get('dashboard-status')
+  getDashboardStatus(@CurrentUser() user: AuthenticatedUser) {
+    return this.integrationsService.getDashboardStatus(user);
+  }
+
   @Post(':provider/connect')
   @UseGuards(RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.COMPANY_ADMIN)

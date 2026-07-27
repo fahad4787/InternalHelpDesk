@@ -11,6 +11,7 @@ import { TrelloConnectionCard } from '@/components/integrations/trello/trello-co
 import { TrelloPreferencesCard } from '@/components/integrations/trello/trello-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_TRELLO_PREFERENCES,
   trelloService,
@@ -46,7 +47,7 @@ export default function TrelloIntegrationPage() {
       trelloService.connect(payload),
     onSuccess: () => {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['trello-status'] });
+      invalidateProviderStatus(queryClient, 'trello-status');
       queryClient.invalidateQueries({ queryKey: ['trello-boards'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
       router.replace('/integrations/trello', { scroll: false });
@@ -71,7 +72,7 @@ export default function TrelloIntegrationPage() {
     mutationFn: () => trelloService.disconnect(),
     onSuccess: () => {
       setSelectedBoardId(null);
-      queryClient.invalidateQueries({ queryKey: ['trello-status'] });
+      invalidateProviderStatus(queryClient, 'trello-status');
       queryClient.removeQueries({ queryKey: ['trello-boards'] });
       queryClient.removeQueries({ queryKey: ['trello-board'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

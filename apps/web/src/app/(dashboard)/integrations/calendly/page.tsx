@@ -11,6 +11,7 @@ import { CalendlyPreferencesCard } from '@/components/integrations/calendly/cale
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_CALENDLY_PREFERENCES,
   calendlyService,
@@ -37,7 +38,7 @@ export default function CalendlyIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['calendly-status'] });
+      invalidateProviderStatus(queryClient, 'calendly-status');
       queryClient.invalidateQueries({ queryKey: ['calendly-event-types'] });
       queryClient.invalidateQueries({ queryKey: ['calendly-events'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });
@@ -63,7 +64,7 @@ export default function CalendlyIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => calendlyService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calendly-status'] });
+      invalidateProviderStatus(queryClient, 'calendly-status');
       queryClient.removeQueries({ queryKey: ['calendly-event-types'] });
       queryClient.removeQueries({ queryKey: ['calendly-events'] });
       queryClient.invalidateQueries({ queryKey: ['integrations'] });

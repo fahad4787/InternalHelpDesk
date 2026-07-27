@@ -11,6 +11,7 @@ import { DynamicsPreferencesCard } from '@/components/integrations/dynamics/dyna
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_DYNAMICS_PREFERENCES,
   dynamicsService,
@@ -37,7 +38,7 @@ export default function DynamicsIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['dynamics-status'] });
+      invalidateProviderStatus(queryClient, 'dynamics-status');
       queryClient.invalidateQueries({ queryKey: ['dynamics-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['dynamics-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['dynamics-opportunities'] });
@@ -64,7 +65,7 @@ export default function DynamicsIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => dynamicsService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dynamics-status'] });
+      invalidateProviderStatus(queryClient, 'dynamics-status');
       queryClient.removeQueries({ queryKey: ['dynamics-contacts'] });
       queryClient.removeQueries({ queryKey: ['dynamics-accounts'] });
       queryClient.removeQueries({ queryKey: ['dynamics-opportunities'] });

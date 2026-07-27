@@ -11,6 +11,7 @@ import { ZohoCrmPreferencesCard } from '@/components/integrations/zoho-crm/zoho-
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_ZOHO_CRM_PREFERENCES,
   zohoCrmService,
@@ -37,7 +38,7 @@ export default function ZohoCrmIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['zoho-crm-status'] });
+      invalidateProviderStatus(queryClient, 'zoho-crm-status');
       queryClient.invalidateQueries({ queryKey: ['zoho-crm-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['zoho-crm-deals'] });
       queryClient.invalidateQueries({ queryKey: ['zoho-crm-leads'] });
@@ -64,7 +65,7 @@ export default function ZohoCrmIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => zohoCrmService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['zoho-crm-status'] });
+      invalidateProviderStatus(queryClient, 'zoho-crm-status');
       queryClient.removeQueries({ queryKey: ['zoho-crm-contacts'] });
       queryClient.removeQueries({ queryKey: ['zoho-crm-deals'] });
       queryClient.removeQueries({ queryKey: ['zoho-crm-leads'] });

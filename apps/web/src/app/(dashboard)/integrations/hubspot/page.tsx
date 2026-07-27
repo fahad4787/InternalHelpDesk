@@ -11,6 +11,7 @@ import { HubSpotPreferencesCard } from '@/components/integrations/hubspot/hubspo
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
+import { invalidateProviderStatus } from '@/lib/integration-query-keys';
 import {
   DEFAULT_HUBSPOT_PREFERENCES,
   hubspotService,
@@ -37,7 +38,7 @@ export default function HubSpotIntegrationPage() {
 
     if (connected === 'true') {
       setAuthError(null);
-      queryClient.invalidateQueries({ queryKey: ['hubspot-status'] });
+      invalidateProviderStatus(queryClient, 'hubspot-status');
       queryClient.invalidateQueries({ queryKey: ['hubspot-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['hubspot-deals'] });
       queryClient.invalidateQueries({ queryKey: ['hubspot-tickets'] });
@@ -64,7 +65,7 @@ export default function HubSpotIntegrationPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => hubspotService.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hubspot-status'] });
+      invalidateProviderStatus(queryClient, 'hubspot-status');
       queryClient.removeQueries({ queryKey: ['hubspot-contacts'] });
       queryClient.removeQueries({ queryKey: ['hubspot-deals'] });
       queryClient.removeQueries({ queryKey: ['hubspot-tickets'] });

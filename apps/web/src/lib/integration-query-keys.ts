@@ -55,9 +55,19 @@ export function invalidateIntegrationQueries(
   provider: string,
 ) {
   queryClient.invalidateQueries({ queryKey: ['integrations'] });
+  queryClient.invalidateQueries({ queryKey: ['dashboard-status'] });
 
   const prefixes = PROVIDER_QUERY_PREFIXES[provider] ?? [];
   for (const prefix of prefixes) {
     queryClient.invalidateQueries({ queryKey: [prefix] });
   }
+}
+
+/** Invalidate a provider status key and the batched Home dashboard status. */
+export function invalidateProviderStatus(
+  queryClient: QueryClient,
+  statusKey: string,
+) {
+  queryClient.invalidateQueries({ queryKey: [statusKey] });
+  queryClient.invalidateQueries({ queryKey: ['dashboard-status'] });
 }
