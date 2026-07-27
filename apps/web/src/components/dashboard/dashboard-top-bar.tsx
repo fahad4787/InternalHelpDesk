@@ -17,9 +17,11 @@ export function DashboardTopBar({ showSearch = true, showAttention = false }: Da
   const { visibleWidgetIds } = useDashboardVisibleWidgets();
   const firstName = user?.firstName ?? 'there';
   const attentionCount = visibleWidgetIds.length;
+  const query = searchQuery.trim();
 
-  const subtitle =
-    showAttention && attentionCount > 0
+  const subtitle = query
+    ? `${formatDashboardDate()} · Filtering widgets for “${query}”`
+    : showAttention && attentionCount > 0
       ? `${formatDashboardDate()} · ${attentionCount} live ${attentionCount === 1 ? 'widget' : 'widgets'} on your board`
       : formatDashboardDate();
 
@@ -37,7 +39,7 @@ export function DashboardTopBar({ showSearch = true, showAttention = false }: Da
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Search work, people, apps…"
+              placeholder="Search widgets & apps…"
             />
           </div>
         )}

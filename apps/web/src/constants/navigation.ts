@@ -1,8 +1,5 @@
 import {
-  Award,
   BookOpen,
-  CalendarDays,
-  CheckSquare,
   LayoutDashboard,
   MessageSquare,
   Plug,
@@ -25,9 +22,6 @@ export interface NavItem {
 export const workhubNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/integrations', label: 'Integrations', icon: Plug, badge: MARKETPLACE_APP_COUNT },
-  { href: null, label: 'My tasks', icon: CheckSquare, disabled: true },
-  { href: null, label: 'Time off', icon: CalendarDays, disabled: true },
-  { href: null, label: 'Recognition', icon: Award, disabled: true },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
