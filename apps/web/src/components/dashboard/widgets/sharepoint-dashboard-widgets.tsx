@@ -3,12 +3,12 @@
 import { Globe } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import {
   SharePointSiteList,
   SHAREPOINT_HOME_URL,
-} from '@/components/shared/sharepoint-site-list';
+} from '@/components/integrations/sharepoint/sharepoint-site-list';
 import { sharePointService } from '@/services/sharepoint.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 

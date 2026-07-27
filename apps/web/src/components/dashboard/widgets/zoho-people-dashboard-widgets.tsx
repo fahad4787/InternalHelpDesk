@@ -3,10 +3,10 @@
 import { CalendarOff, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { ZohoPeopleEmployeeList } from '@/components/shared/zoho-people-employee-list';
-import { ZohoPeopleLeaveList } from '@/components/shared/zoho-people-leave-list';
+import { ZohoPeopleEmployeeList } from '@/components/integrations/zoho-people/zoho-people-employee-list';
+import { ZohoPeopleLeaveList } from '@/components/integrations/zoho-people/zoho-people-leave-list';
 import { zohoPeopleService } from '@/services/zoho-people.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 

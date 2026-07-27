@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { BookOpen } from 'lucide-react';
 import { DocumentPreviewModal } from '@/components/shared/document-preview-modal';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { workdayService } from '@/services/workday.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';

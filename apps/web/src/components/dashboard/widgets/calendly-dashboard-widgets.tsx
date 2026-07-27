@@ -3,9 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { CalendarClock, Link2 } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
-import { CalendlyEventList } from '@/components/shared/calendly-event-list';
-import { CalendlyEventTypeList } from '@/components/shared/calendly-event-type-list';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
+import { CalendlyEventList } from '@/components/integrations/calendly/calendly-event-list';
+import { CalendlyEventTypeList } from '@/components/integrations/calendly/calendly-event-type-list';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { calendlyService } from '@/services/calendly.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';

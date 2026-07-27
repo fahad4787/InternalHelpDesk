@@ -3,9 +3,9 @@
 import { FolderOpen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { BoxFileList, BOX_HOME_URL } from '@/components/shared/box-file-list';
+import { BoxFileList, BOX_HOME_URL } from '@/components/integrations/box/box-file-list';
 import { boxService } from '@/services/box.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 

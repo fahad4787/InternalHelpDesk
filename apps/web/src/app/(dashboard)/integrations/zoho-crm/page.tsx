@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { ZohoCrmConnectionCard } from '@/components/shared/zoho-crm-connection-card';
-import { ZohoCrmPreferencesCard } from '@/components/shared/zoho-crm-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { ZohoCrmConnectionCard } from '@/components/integrations/zoho-crm/zoho-crm-connection-card';
+import { ZohoCrmPreferencesCard } from '@/components/integrations/zoho-crm/zoho-crm-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

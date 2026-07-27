@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { MondayBoardsSection } from '@/components/shared/monday-boards-section';
-import { MondayConnectionCard } from '@/components/shared/monday-connection-card';
-import { MondayPreferencesCard } from '@/components/shared/monday-preferences-card';
+import { MondayBoardsSection } from '@/components/integrations/monday/monday-boards-section';
+import { MondayConnectionCard } from '@/components/integrations/monday/monday-connection-card';
+import { MondayPreferencesCard } from '@/components/integrations/monday/monday-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

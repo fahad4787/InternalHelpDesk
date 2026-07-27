@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { TrelloBoardsSection } from '@/components/shared/trello-boards-section';
-import { TrelloConnectionCard } from '@/components/shared/trello-connection-card';
-import { TrelloPreferencesCard } from '@/components/shared/trello-preferences-card';
+import { TrelloBoardsSection } from '@/components/integrations/trello/trello-boards-section';
+import { TrelloConnectionCard } from '@/components/integrations/trello/trello-connection-card';
+import { TrelloPreferencesCard } from '@/components/integrations/trello/trello-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

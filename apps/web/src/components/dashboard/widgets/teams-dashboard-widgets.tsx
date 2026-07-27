@@ -3,8 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { MessagesSquare, Users } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
-import { TeamsChatList, TeamsTeamList } from '@/components/shared/teams-lists';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { TeamsChatList, TeamsTeamList } from '@/components/integrations/teams/teams-lists';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { getErrorMessage } from '@/lib/api-client';
 import {
   isTeamsGraphUnsupportedError,

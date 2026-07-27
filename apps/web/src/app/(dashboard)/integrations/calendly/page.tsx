@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { CalendlyConnectionCard } from '@/components/shared/calendly-connection-card';
-import { CalendlyPreferencesCard } from '@/components/shared/calendly-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { CalendlyConnectionCard } from '@/components/integrations/calendly/calendly-connection-card';
+import { CalendlyPreferencesCard } from '@/components/integrations/calendly/calendly-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

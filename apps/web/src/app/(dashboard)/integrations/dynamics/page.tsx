@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { DynamicsConnectionCard } from '@/components/shared/dynamics-connection-card';
-import { DynamicsPreferencesCard } from '@/components/shared/dynamics-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { DynamicsConnectionCard } from '@/components/integrations/dynamics/dynamics-connection-card';
+import { DynamicsPreferencesCard } from '@/components/integrations/dynamics/dynamics-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

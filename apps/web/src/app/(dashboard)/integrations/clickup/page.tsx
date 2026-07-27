@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { ClickUpListsSection } from '@/components/shared/clickup-lists-section';
-import { ClickUpConnectionCard } from '@/components/shared/clickup-connection-card';
-import { ClickUpPreferencesCard } from '@/components/shared/clickup-preferences-card';
+import { ClickUpListsSection } from '@/components/integrations/clickup/clickup-lists-section';
+import { ClickUpConnectionCard } from '@/components/integrations/clickup/clickup-connection-card';
+import { ClickUpPreferencesCard } from '@/components/integrations/clickup/clickup-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

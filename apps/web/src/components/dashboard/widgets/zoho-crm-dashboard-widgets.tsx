@@ -3,11 +3,11 @@
 import { Handshake, Target, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { ZohoCrmContactList } from '@/components/shared/zoho-crm-contact-list';
-import { ZohoCrmDealList } from '@/components/shared/zoho-crm-deal-list';
-import { ZohoCrmLeadList } from '@/components/shared/zoho-crm-lead-list';
+import { ZohoCrmContactList } from '@/components/integrations/zoho-crm/zoho-crm-contact-list';
+import { ZohoCrmDealList } from '@/components/integrations/zoho-crm/zoho-crm-deal-list';
+import { ZohoCrmLeadList } from '@/components/integrations/zoho-crm/zoho-crm-lead-list';
 import { zohoCrmService } from '@/services/zoho-crm.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 

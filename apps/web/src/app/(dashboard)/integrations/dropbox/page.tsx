@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { DropboxConnectionCard } from '@/components/shared/dropbox-connection-card';
-import { DropboxPreferencesCard } from '@/components/shared/dropbox-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { DropboxConnectionCard } from '@/components/integrations/dropbox/dropbox-connection-card';
+import { DropboxPreferencesCard } from '@/components/integrations/dropbox/dropbox-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

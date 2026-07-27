@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { TeamsConnectionCard } from '@/components/shared/teams-connection-card';
-import { TeamsPreferencesCard } from '@/components/shared/teams-preferences-card';
-import { TeamsUnsupportedAccountCard } from '@/components/shared/teams-unsupported-account-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { TeamsConnectionCard } from '@/components/integrations/teams/teams-connection-card';
+import { TeamsPreferencesCard } from '@/components/integrations/teams/teams-preferences-card';
+import { TeamsUnsupportedAccountCard } from '@/components/integrations/teams/teams-unsupported-account-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

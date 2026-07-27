@@ -14,7 +14,7 @@ import { IntegrationMarketplaceSkeleton } from '@/components/shared/loading-stat
 import {
   IntegrationIcon,
   isIntegrationIconProvider,
-} from '@/components/shared/integration-icon';
+} from '@/components/integrations/common/integration-icon';
 import { SearchInput } from '@/components/shared/search-input';
 import { integrationsService } from '@/services/integrations.service';
 import { Integration } from '@/types/api.types';

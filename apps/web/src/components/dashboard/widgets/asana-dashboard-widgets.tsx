@@ -5,7 +5,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { FolderKanban } from 'lucide-react';
 import Link from 'next/link';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { Badge } from '@/components/ui/badge';
 import { asanaService } from '@/services/asana.service';

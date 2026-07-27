@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { SlackChannelsMessagesSection } from '@/components/shared/slack-channels-messages-section';
-import { SlackConnectionCard } from '@/components/shared/slack-connection-card';
-import { SlackPreferencesCard } from '@/components/shared/slack-preferences-card';
+import { SlackChannelsMessagesSection } from '@/components/integrations/slack/slack-channels-messages-section';
+import { SlackConnectionCard } from '@/components/integrations/slack/slack-connection-card';
+import { SlackPreferencesCard } from '@/components/integrations/slack/slack-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

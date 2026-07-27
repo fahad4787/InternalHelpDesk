@@ -3,9 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { FolderKanban, Ticket } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
-import { JiraIssueList } from '@/components/shared/jira-issue-list';
-import { JiraProjectList } from '@/components/shared/jira-project-list';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { JiraIssueList } from '@/components/integrations/jira/jira-issue-list';
+import { JiraProjectList } from '@/components/integrations/jira/jira-project-list';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { jiraService } from '@/services/jira.service';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { DashboardWidgetCard } from '../dashboard-widget-card';

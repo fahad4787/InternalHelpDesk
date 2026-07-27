@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { ZoomConnectionCard } from '@/components/shared/zoom-connection-card';
-import { ZoomPreferencesCard } from '@/components/shared/zoom-preferences-card';
-import { ScheduleZoomMeetingModal } from '@/components/shared/schedule-zoom-meeting-modal';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { ZoomConnectionCard } from '@/components/integrations/zoom/zoom-connection-card';
+import { ZoomPreferencesCard } from '@/components/integrations/zoom/zoom-preferences-card';
+import { ScheduleZoomMeetingModal } from '@/components/integrations/zoom/schedule-zoom-meeting-modal';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

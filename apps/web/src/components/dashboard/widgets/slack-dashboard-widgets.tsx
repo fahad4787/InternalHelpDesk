@@ -1,8 +1,8 @@
 'use client';
 
-import { SlackMessenger } from '@/components/shared/slack-messenger';
-import { SlackProfileCard } from '@/components/shared/slack-profile-card';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { SlackMessenger } from '@/components/integrations/slack/slack-messenger';
+import { SlackProfileCard } from '@/components/integrations/slack/slack-profile-card';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { useSlackMessenger } from '@/hooks/use-slack-messenger';
 import { slackService } from '@/services/slack.service';

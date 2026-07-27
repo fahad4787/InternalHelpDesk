@@ -3,11 +3,11 @@
 import { Building2, Handshake, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { DynamicsAccountList } from '@/components/shared/dynamics-account-list';
-import { DynamicsContactList } from '@/components/shared/dynamics-contact-list';
-import { DynamicsOpportunityList } from '@/components/shared/dynamics-opportunity-list';
+import { DynamicsAccountList } from '@/components/integrations/dynamics/dynamics-account-list';
+import { DynamicsContactList } from '@/components/integrations/dynamics/dynamics-contact-list';
+import { DynamicsOpportunityList } from '@/components/integrations/dynamics/dynamics-opportunity-list';
 import { dynamicsService } from '@/services/dynamics.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 

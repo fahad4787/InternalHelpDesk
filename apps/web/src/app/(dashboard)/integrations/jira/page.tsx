@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { JiraConnectionCard } from '@/components/shared/jira-connection-card';
-import { JiraPreferencesCard } from '@/components/shared/jira-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { JiraConnectionCard } from '@/components/integrations/jira/jira-connection-card';
+import { JiraPreferencesCard } from '@/components/integrations/jira/jira-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

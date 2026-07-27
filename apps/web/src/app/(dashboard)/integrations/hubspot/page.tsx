@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { HubSpotConnectionCard } from '@/components/shared/hubspot-connection-card';
-import { HubSpotPreferencesCard } from '@/components/shared/hubspot-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { HubSpotConnectionCard } from '@/components/integrations/hubspot/hubspot-connection-card';
+import { HubSpotPreferencesCard } from '@/components/integrations/hubspot/hubspot-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

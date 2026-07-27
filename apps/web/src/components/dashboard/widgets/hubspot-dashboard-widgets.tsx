@@ -3,11 +3,11 @@
 import { Handshake, LifeBuoy, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { HubSpotContactList } from '@/components/shared/hubspot-contact-list';
-import { HubSpotDealList } from '@/components/shared/hubspot-deal-list';
-import { HubSpotTicketList } from '@/components/shared/hubspot-ticket-list';
+import { HubSpotContactList } from '@/components/integrations/hubspot/hubspot-contact-list';
+import { HubSpotDealList } from '@/components/integrations/hubspot/hubspot-deal-list';
+import { HubSpotTicketList } from '@/components/integrations/hubspot/hubspot-ticket-list';
 import { hubspotService } from '@/services/hubspot.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 

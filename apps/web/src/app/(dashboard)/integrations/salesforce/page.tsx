@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { SalesforceConnectionCard } from '@/components/shared/salesforce-connection-card';
-import { SalesforcePreferencesCard } from '@/components/shared/salesforce-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { SalesforceConnectionCard } from '@/components/integrations/salesforce/salesforce-connection-card';
+import { SalesforcePreferencesCard } from '@/components/integrations/salesforce/salesforce-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

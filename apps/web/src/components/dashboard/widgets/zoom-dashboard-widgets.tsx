@@ -3,10 +3,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { Video } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
-import { ZoomMeetingList } from '@/components/shared/zoom-meeting-list';
-import { ZoomMonthCalendar } from '@/components/shared/zoom-month-calendar';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
-import { ZoomProfileCard } from '@/components/shared/zoom-profile-card';
+import { ZoomMeetingList } from '@/components/integrations/zoom/zoom-meeting-list';
+import { ZoomMonthCalendar } from '@/components/integrations/zoom/zoom-month-calendar';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
+import { ZoomProfileCard } from '@/components/integrations/zoom/zoom-profile-card';
 import { zoomService } from '@/services/zoom.service';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import { DashboardWidgetCard } from '../dashboard-widget-card';

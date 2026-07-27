@@ -3,12 +3,12 @@
 import { FolderOpen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
 import {
   OneDriveFileList,
   ONEDRIVE_HOME_URL,
-} from '@/components/shared/onedrive-file-list';
+} from '@/components/integrations/onedrive/onedrive-file-list';
 import { oneDriveService } from '@/services/onedrive.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 

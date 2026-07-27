@@ -8,9 +8,9 @@ import { EmptyState } from '@/components/shared/empty-state';
 import {
   getOutlookWeekRange,
   OutlookWeekCalendar,
-} from '@/components/shared/outlook-week-calendar';
-import { OutlookMessageList } from '@/components/shared/outlook-message-list';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+} from '@/components/integrations/outlook/outlook-week-calendar';
+import { OutlookMessageList } from '@/components/integrations/outlook/outlook-message-list';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { getErrorMessage } from '@/lib/api-client';
 import { outlookService } from '@/services/outlook.service';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';

@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { AsanaProjectsSection } from '@/components/shared/asana-projects-section';
-import { AsanaConnectionCard } from '@/components/shared/asana-connection-card';
-import { AsanaPreferencesCard } from '@/components/shared/asana-preferences-card';
+import { AsanaProjectsSection } from '@/components/integrations/asana/asana-projects-section';
+import { AsanaConnectionCard } from '@/components/integrations/asana/asana-connection-card';
+import { AsanaPreferencesCard } from '@/components/integrations/asana/asana-preferences-card';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

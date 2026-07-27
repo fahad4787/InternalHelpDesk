@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { OutlookConnectionCard } from '@/components/shared/outlook-connection-card';
-import { OutlookPreferencesCard } from '@/components/shared/outlook-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { OutlookConnectionCard } from '@/components/integrations/outlook/outlook-connection-card';
+import { OutlookPreferencesCard } from '@/components/integrations/outlook/outlook-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

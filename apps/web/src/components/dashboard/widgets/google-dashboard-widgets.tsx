@@ -2,12 +2,12 @@
 
 import { FolderOpen, Mail, Video } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { MeetEventList } from '@/components/shared/meet-event-list';
-import { GoogleChatMessenger } from '@/components/shared/google-chat-messenger';
-import { GoogleDriveList } from '@/components/shared/google-drive-list';
-import { GoogleGmailList } from '@/components/shared/google-gmail-list';
+import { MeetEventList } from '@/components/integrations/google/meet-event-list';
+import { GoogleChatMessenger } from '@/components/integrations/google/google-chat-messenger';
+import { GoogleDriveList } from '@/components/integrations/google/google-drive-list';
+import { GoogleGmailList } from '@/components/integrations/google/google-gmail-list';
 import { useGoogleChatMessenger } from '@/hooks/use-google-chat-messenger';
 import { useGoogleWidgets } from '@/hooks/use-google-widgets';
 import { DashboardWidgetCard } from '../dashboard-widget-card';

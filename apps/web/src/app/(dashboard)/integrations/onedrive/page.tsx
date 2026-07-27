@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
-import { OneDriveConnectionCard } from '@/components/shared/onedrive-connection-card';
-import { OneDrivePreferencesCard } from '@/components/shared/onedrive-preferences-card';
-import { IntegrationWidgetsSection } from '@/components/shared/integration-widget-panel';
+import { OneDriveConnectionCard } from '@/components/integrations/onedrive/onedrive-connection-card';
+import { OneDrivePreferencesCard } from '@/components/integrations/onedrive/onedrive-preferences-card';
+import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import {

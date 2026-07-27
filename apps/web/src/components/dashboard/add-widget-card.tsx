@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import {
   IntegrationIcon,
   isIntegrationIconProvider,
-} from '@/components/shared/integration-icon';
+} from '@/components/integrations/common/integration-icon';
 import { useDashboardVisibleWidgets } from '@/hooks/use-dashboard-visible-widgets';
 import { getConnectedIntegrationRoutes } from '@/lib/dashboard-widget-utils';
 

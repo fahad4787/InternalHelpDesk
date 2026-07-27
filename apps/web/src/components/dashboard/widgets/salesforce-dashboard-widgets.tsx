@@ -3,11 +3,11 @@
 import { Building2, Handshake, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { EmptyState } from '@/components/shared/empty-state';
-import { IntegrationIcon } from '@/components/shared/integration-icon';
+import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { SalesforceAccountList } from '@/components/shared/salesforce-account-list';
-import { SalesforceContactList } from '@/components/shared/salesforce-contact-list';
-import { SalesforceOpportunityList } from '@/components/shared/salesforce-opportunity-list';
+import { SalesforceAccountList } from '@/components/integrations/salesforce/salesforce-account-list';
+import { SalesforceContactList } from '@/components/integrations/salesforce/salesforce-contact-list';
+import { SalesforceOpportunityList } from '@/components/integrations/salesforce/salesforce-opportunity-list';
 import { salesforceService } from '@/services/salesforce.service';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
 
