@@ -302,8 +302,9 @@ export const MARKETPLACE_APPS: MarketplaceAppMeta[] = [
     description: 'Employees & leave',
     category: 'hr',
     categoryLabel: 'HR & Employee',
-    configureRoute: null,
-    available: false,
+    configureRoute: '/integrations/zoho-people',
+    available: true,
+    showWidgets: true,
   },
 ];
 

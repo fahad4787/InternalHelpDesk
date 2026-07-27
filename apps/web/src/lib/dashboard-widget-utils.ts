@@ -54,6 +54,10 @@ import {
   DEFAULT_ZOHO_CRM_PREFERENCES,
   type ZohoCrmStatus,
 } from '@/services/zoho-crm.service';
+import {
+  DEFAULT_ZOHO_PEOPLE_PREFERENCES,
+  type ZohoPeopleStatus,
+} from '@/services/zoho-people.service';
 import type { WorkdayStatus } from '@/services/workday.service';
 import {
   DASHBOARD_WIDGET_DEFINITIONS,
@@ -81,6 +85,7 @@ export interface DashboardIntegrationStatuses {
   salesforce?: SalesforceStatus | null;
   dynamics?: DynamicsStatus | null;
   zohoCrm?: ZohoCrmStatus | null;
+  zohoPeople?: ZohoPeopleStatus | null;
   workday?: WorkdayStatus | null;
 }
 
@@ -228,6 +233,14 @@ export function resolveVisibleDashboardWidgets(
     if (preferences.showLeads) visible.push('zoho-crm-leads');
   }
 
+  const zohoPeople = statuses.zohoPeople;
+  if (zohoPeople?.connected) {
+    const preferences =
+      zohoPeople.preferences ?? DEFAULT_ZOHO_PEOPLE_PREFERENCES;
+    if (preferences.showEmployees) visible.push('zoho-people-employees');
+    if (preferences.showLeave) visible.push('zoho-people-leave');
+  }
+
   if (statuses.workday?.connected) {
     visible.push('workday-articles');
   }
@@ -321,6 +334,13 @@ export function getConnectedIntegrationRoutes(
       provider: 'ZOHO_CRM',
       route: '/integrations/zoho-crm',
       label: 'Zoho CRM',
+    });
+  }
+  if (statuses.zohoPeople?.connected) {
+    routes.push({
+      provider: 'ZOHO_PEOPLE',
+      route: '/integrations/zoho-people',
+      label: 'Zoho People',
     });
   }
   if (statuses.workday?.connected) {

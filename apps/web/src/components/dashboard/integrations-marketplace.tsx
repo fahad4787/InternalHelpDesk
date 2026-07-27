@@ -100,6 +100,8 @@ function isProviderConnected(
       return statuses.salesforce?.connected === true;
     case 'ZOHO_CRM':
       return statuses.zohoCrm?.connected === true;
+    case 'ZOHO_PEOPLE':
+      return statuses.zohoPeople?.connected === true;
     case 'WORKDAY':
       return statuses.workday?.connected === true;
     default:
@@ -151,6 +153,8 @@ function connectedAtForProvider(
       return statuses.salesforce?.lastSyncedAt ?? null;
     case 'ZOHO_CRM':
       return statuses.zohoCrm?.lastSyncedAt ?? null;
+    case 'ZOHO_PEOPLE':
+      return statuses.zohoPeople?.lastSyncedAt ?? null;
     case 'WORKDAY':
       return statuses.workday?.lastSyncedAt ?? null;
     default:

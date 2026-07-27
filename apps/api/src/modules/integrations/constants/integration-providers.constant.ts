@@ -116,6 +116,12 @@ export const INTEGRATION_PROVIDERS = [
     category: 'crm',
   },
   {
+    provider: IntegrationProvider.ZOHO_PEOPLE,
+    name: 'Zoho People',
+    description: 'Employees and leave from Zoho People',
+    category: 'hr',
+  },
+  {
     provider: IntegrationProvider.SERVICENOW,
     name: 'ServiceNow',
     description: 'Connect with ServiceNow incidents',

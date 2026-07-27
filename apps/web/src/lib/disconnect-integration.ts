@@ -18,6 +18,7 @@ import { hubspotService } from '@/services/hubspot.service';
 import { salesforceService } from '@/services/salesforce.service';
 import { dynamicsService } from '@/services/dynamics.service';
 import { zohoCrmService } from '@/services/zoho-crm.service';
+import { zohoPeopleService } from '@/services/zoho-people.service';
 
 export async function disconnectIntegrationProvider(provider: string) {
   switch (provider) {
@@ -59,6 +60,8 @@ export async function disconnectIntegrationProvider(provider: string) {
       return dynamicsService.disconnect();
     case 'ZOHO_CRM':
       return zohoCrmService.disconnect();
+    case 'ZOHO_PEOPLE':
+      return zohoPeopleService.disconnect();
     case 'WORKDAY':
       return workdayService.reset();
     default:

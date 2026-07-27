@@ -69,6 +69,7 @@ enum IntegrationProvider {
   SALESFORCE
   DYNAMICS_365
   ZOHO_CRM
+  ZOHO_PEOPLE
 }
 
 enum IntegrationStatus {
@@ -161,6 +162,7 @@ model User {
   salesforceConnection      SalesforceConnection?
   dynamicsConnection        DynamicsConnection?
   zohoCrmConnection         ZohoCrmConnection?
+  zohoPeopleConnection      ZohoPeopleConnection?
 
   @@unique([email, companyId])
   @@index([companyId])
@@ -532,6 +534,25 @@ model HubSpotConnection {
 }
 
 model ZohoCrmConnection {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  zohoUserId            String?
+  zohoEmail             String?
+  apiDomain             String?
+  accountsUrl           String?
+  encryptedAccessToken  String?
+  encryptedRefreshToken String?
+  tokenExpiresAt        DateTime?
+  status                IntegrationStatus @default(NOT_CONNECTED)
+  preferences           Json?
+  lastSyncedAt          DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ZohoPeopleConnection {
   id                    String            @id @default(uuid())
   userId                String            @unique
   zohoUserId            String?

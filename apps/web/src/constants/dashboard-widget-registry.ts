@@ -69,6 +69,10 @@ import {
   ZohoCrmDealsDashboardWidget,
   ZohoCrmLeadsDashboardWidget,
 } from '@/components/dashboard/widgets/zoho-crm-dashboard-widgets';
+import {
+  ZohoPeopleEmployeesDashboardWidget,
+  ZohoPeopleLeaveDashboardWidget,
+} from '@/components/dashboard/widgets/zoho-people-dashboard-widgets';
 
 export const DASHBOARD_WIDGET_IDS = [
   'google-meet',
@@ -110,6 +114,8 @@ export const DASHBOARD_WIDGET_IDS = [
   'zoho-crm-contacts',
   'zoho-crm-deals',
   'zoho-crm-leads',
+  'zoho-people-employees',
+  'zoho-people-leave',
   'workday-articles',
 ] as const;
 
@@ -397,12 +403,26 @@ export const DASHBOARD_WIDGET_DEFINITIONS: Record<DashboardWidgetId, DashboardWi
     configureRoute: '/integrations/zoho-crm',
     order: 70,
   },
+  'zoho-people-employees': {
+    id: 'zoho-people-employees',
+    label: 'Employees',
+    provider: 'ZOHO_PEOPLE',
+    configureRoute: '/integrations/zoho-people',
+    order: 71,
+  },
+  'zoho-people-leave': {
+    id: 'zoho-people-leave',
+    label: 'Leave',
+    provider: 'ZOHO_PEOPLE',
+    configureRoute: '/integrations/zoho-people',
+    order: 72,
+  },
   'workday-articles': {
     id: 'workday-articles',
     label: 'Help articles',
     provider: 'WORKDAY',
     configureRoute: '/integrations/workday',
-    order: 71,
+    order: 73,
   },
 };
 
@@ -446,6 +466,8 @@ export const DASHBOARD_WIDGET_COMPONENTS: Record<DashboardWidgetId, ComponentTyp
   'zoho-crm-contacts': ZohoCrmContactsDashboardWidget,
   'zoho-crm-deals': ZohoCrmDealsDashboardWidget,
   'zoho-crm-leads': ZohoCrmLeadsDashboardWidget,
+  'zoho-people-employees': ZohoPeopleEmployeesDashboardWidget,
+  'zoho-people-leave': ZohoPeopleLeaveDashboardWidget,
   'workday-articles': WorkdayDashboardWidget,
 };
 
@@ -469,6 +491,7 @@ export const INTEGRATION_CONFIGURE_ROUTES: Record<string, string> = {
   SALESFORCE: '/integrations/salesforce',
   DYNAMICS_365: '/integrations/dynamics',
   ZOHO_CRM: '/integrations/zoho-crm',
+  ZOHO_PEOPLE: '/integrations/zoho-people',
   WORKDAY: '/integrations/workday',
 };
 

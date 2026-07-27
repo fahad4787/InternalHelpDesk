@@ -41,6 +41,8 @@ import { DynamicsModule } from './dynamics/dynamics.module';
 import { DynamicsController } from './dynamics/dynamics.controller';
 import { ZohoCrmModule } from './zoho-crm/zoho-crm.module';
 import { ZohoCrmController } from './zoho-crm/zoho-crm.controller';
+import { ZohoPeopleModule } from './zoho-people/zoho-people.module';
+import { ZohoPeopleController } from './zoho-people/zoho-people.controller';
 
 @Module({
   imports: [
@@ -64,6 +66,7 @@ import { ZohoCrmController } from './zoho-crm/zoho-crm.controller';
     SalesforceModule,
     DynamicsModule,
     ZohoCrmModule,
+    ZohoPeopleModule,
   ],
   controllers: [
     WorkdayController,
@@ -86,6 +89,7 @@ import { ZohoCrmController } from './zoho-crm/zoho-crm.controller';
     SalesforceController,
     DynamicsController,
     ZohoCrmController,
+    ZohoPeopleController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -111,6 +115,7 @@ import { ZohoCrmController } from './zoho-crm/zoho-crm.controller';
     SalesforceModule,
     DynamicsModule,
     ZohoCrmModule,
+    ZohoPeopleModule,
   ],
 })
 export class IntegrationsModule {}
