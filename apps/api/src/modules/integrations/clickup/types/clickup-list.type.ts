@@ -3,8 +3,12 @@ export interface ClickUpTask {
   name: string;
   status: string | null;
   dueDate: string | null;
+  updatedAt: string | null;
   url: string | null;
   assignees: string[];
+  listName: string | null;
+  spaceName: string | null;
+  folderName: string | null;
 }
 
 export interface ClickUpList {

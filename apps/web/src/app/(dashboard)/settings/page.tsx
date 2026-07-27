@@ -49,7 +49,7 @@ export default function SettingsPage() {
     onError: (err) => setError(getErrorMessage(err)),
   });
 
-  if (isLoading) {
+  if (isLoading && !data) {
     return (
       <PageContainer title="Settings" description="Manage your company profile">
         <div className="mx-auto max-w-xl">

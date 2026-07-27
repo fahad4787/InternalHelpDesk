@@ -26,10 +26,25 @@ const nextConfig: NextConfig = {
       { key: "Cloudflare-CDN-Cache-Control", value: "no-store" },
     ];
 
-    return [
-      { source: "/:path*", headers: noStore },
-      { source: "/", headers: noStore },
+    // Document routes only — never put no-store on /_next/static (that made every nav re-download JS).
+    const documentRoutes = [
+      "/",
+      "/dashboard",
+      "/dashboard/:path*",
+      "/my-tasks",
+      "/integrations",
+      "/integrations/:path*",
+      "/settings",
+      "/chat",
+      "/knowledge-base",
+      "/knowledge-base/:path*",
+      "/users",
+      "/users/:path*",
+      "/login",
+      "/register",
     ];
+
+    return documentRoutes.map((source) => ({ source, headers: noStore }));
   },
   async rewrites() {
     return [

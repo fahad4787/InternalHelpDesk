@@ -1,12 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { PanelLeft, X, type LucideIcon } from 'lucide-react';
 import { workhubNavItems, workspaceNavItems } from '@/constants/navigation';
 import { WorkhubLogo } from '@/components/shared/workhub-logo';
 import { useAuth } from '@/hooks/use-auth';
+import { useDashboardVisibleWidgets } from '@/hooks/use-dashboard-visible-widgets';
 import { cn } from '@/lib/utils';
+
+const PREFETCH_ROUTES = [
+  '/dashboard',
+  '/my-tasks',
+  '/integrations',
+  '/settings',
+  '/chat',
+  '/knowledge-base',
+];
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -73,7 +84,25 @@ function NavLink({
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
+  const { connectedCount } = useDashboardVisibleWidgets();
+
+  useEffect(() => {
+    const run = () => {
+      for (const route of PREFETCH_ROUTES) {
+        router.prefetch(route);
+      }
+    };
+
+    const idle = window.requestIdleCallback?.(run, { timeout: 1500 });
+    if (idle != null) {
+      return () => window.cancelIdleCallback?.(idle);
+    }
+
+    const timer = window.setTimeout(run, 300);
+    return () => window.clearTimeout(timer);
+  }, [router]);
 
   const isItemActive = (href: string | null) => {
     if (!href) return false;
@@ -125,7 +154,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 label={item.label}
                 icon={item.icon}
                 disabled={item.disabled}
-                badge={item.badge}
+                badge={
+                  item.href === '/integrations'
+                    ? connectedCount
+                    : item.badge
+                }
                 isActive={isItemActive(item.href)}
                 onNavigate={onMobileClose}
               />

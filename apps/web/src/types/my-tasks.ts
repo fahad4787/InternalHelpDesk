@@ -1,4 +1,4 @@
-export type MyTaskProvider = 'JIRA' | 'ASANA';
+export type MyTaskProvider = 'JIRA' | 'ASANA' | 'CLICKUP' | 'TRELLO';
 
 export interface MyTaskItem {
   id: string;

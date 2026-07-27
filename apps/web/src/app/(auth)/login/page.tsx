@@ -48,7 +48,7 @@ export default function LoginPage() {
     }
   };
 
-  if (isLoading || isAuthenticated) {
+  if (isAuthenticated) {
     return <FullPageLoader />;
   }
 

@@ -18,8 +18,12 @@ export interface ClickUpTask {
   name: string;
   status: string | null;
   dueDate: string | null;
+  updatedAt: string | null;
   url: string | null;
   assignees: string[];
+  listName: string | null;
+  spaceName: string | null;
+  folderName: string | null;
 }
 
 export interface ClickUpList {
@@ -48,6 +52,12 @@ export const clickupService = {
       connected: boolean;
       lists: ClickUpList[];
     }>('/integrations/clickup/lists'),
+
+  getMyTasks: () =>
+    apiGet<{
+      connected: boolean;
+      tasks: ClickUpTask[];
+    }>('/integrations/clickup/tasks'),
 
   getListDetail: (listId: string) =>
     apiGet<{

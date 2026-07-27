@@ -51,7 +51,7 @@ export default function RegisterPage() {
     }
   };
 
-  if (isLoading || isAuthenticated) {
+  if (isAuthenticated) {
     return <FullPageLoader />;
   }
 

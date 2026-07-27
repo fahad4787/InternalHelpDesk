@@ -10,6 +10,8 @@ import type { MyTaskItem, MyTaskProvider } from '@/types/my-tasks';
 const PROVIDER_LABEL: Record<MyTaskProvider, string> = {
   JIRA: 'Jira',
   ASANA: 'Asana',
+  CLICKUP: 'ClickUp',
+  TRELLO: 'Trello',
 };
 
 function formatDue(dueOn: string | null): string | null {
@@ -50,10 +52,7 @@ export function MyTaskList({ tasks }: { tasks: MyTaskItem[] }) {
                 <div className="min-w-0 flex-1">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 rounded-lg border border-border-warm bg-canvas px-2 py-1 text-[11px] font-semibold text-ink">
-                      <IntegrationIcon
-                        provider={task.provider === 'JIRA' ? 'JIRA' : 'ASANA'}
-                        size="sm"
-                      />
+                      <IntegrationIcon provider={task.provider} size="sm" />
                       {PROVIDER_LABEL[task.provider]}
                     </span>
                     {task.badge && <Badge variant="info">{task.badge}</Badge>}

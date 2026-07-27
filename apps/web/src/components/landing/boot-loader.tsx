@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useState } from 'react';
 
-const MIN_MS = 280;
+const MIN_MS = 180;
 const BOOT_KEY = 'lp-booted';
 
 declare global {

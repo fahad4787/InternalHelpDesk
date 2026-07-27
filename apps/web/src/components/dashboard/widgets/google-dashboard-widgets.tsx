@@ -1,6 +1,6 @@
 'use client';
 
-import { FolderOpen, Mail, Video } from 'lucide-react';
+import { CalendarDays, FolderOpen, Mail, Video } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 import { IntegrationIcon } from '@/components/integrations/common/integration-icon';
 import { WidgetContentSkeleton } from '@/components/shared/loading-state';
@@ -8,9 +8,27 @@ import { MeetEventList } from '@/components/integrations/google/meet-event-list'
 import { GoogleChatMessenger } from '@/components/integrations/google/google-chat-messenger';
 import { GoogleDriveList } from '@/components/integrations/google/google-drive-list';
 import { GoogleGmailList } from '@/components/integrations/google/google-gmail-list';
+import { useDashboardVisibleWidgets } from '@/hooks/use-dashboard-visible-widgets';
 import { useGoogleChatMessenger } from '@/hooks/use-google-chat-messenger';
 import { useGoogleWidgets } from '@/hooks/use-google-widgets';
 import { DashboardWidgetCard } from '../dashboard-widget-card';
+
+function buildGoogleCalendarEmbedUrl(email: string): string {
+  const params = new URLSearchParams({
+    src: email,
+    ctz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    mode: 'WEEK',
+    showTitle: '0',
+    showNav: '1',
+    showDate: '1',
+    showPrint: '0',
+    showTabs: '1',
+    showCalendars: '0',
+    bgcolor: '#ffffff',
+    color: '#006600',
+  });
+  return `https://calendar.google.com/calendar/embed?${params.toString()}`;
+}
 
 export function GoogleMeetDashboardWidget() {
   const { events, eventsLoading } = useGoogleWidgets({ features: ['meet'] });
@@ -39,27 +57,10 @@ export function GoogleMeetDashboardWidget() {
 }
 
 export function GoogleCalendarEmbedDashboardWidget() {
-  const { status, showCalendarEmbed } = useGoogleWidgets({ features: ['calendar'] });
-  const email = status?.googleEmail;
-
-  if (!showCalendarEmbed || !email) return null;
-
-  const embedUrl = (() => {
-    const params = new URLSearchParams({
-      src: email,
-      ctz: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      mode: 'WEEK',
-      showTitle: '0',
-      showNav: '1',
-      showDate: '1',
-      showPrint: '0',
-      showTabs: '1',
-      showCalendars: '0',
-      bgcolor: '#ffffff',
-      color: '#006600',
-    });
-    return `https://calendar.google.com/calendar/embed?${params.toString()}`;
-  })();
+  // Prefer dashboard-status email so we never blank the card waiting on a second status fetch.
+  const { statuses } = useDashboardVisibleWidgets();
+  const email = statuses.google?.googleEmail?.trim() || null;
+  const embedUrl = email ? buildGoogleCalendarEmbedUrl(email) : null;
 
   return (
     <DashboardWidgetCard
@@ -70,14 +71,22 @@ export function GoogleCalendarEmbedDashboardWidget() {
       deepLinkLabel="Open Calendar"
       fillContent
     >
-      <div className="h-full overflow-hidden rounded-xl border border-border-warm bg-white">
-        <iframe
-          title={`Google Calendar for ${email}`}
-          src={embedUrl}
-          className="h-full min-h-[240px] w-full border-0"
-          loading="lazy"
+      {embedUrl && email ? (
+        <div className="h-[22rem] overflow-hidden rounded-xl border border-border-warm bg-white">
+          <iframe
+            title={`Google Calendar for ${email}`}
+            src={embedUrl}
+            className="h-full w-full border-0"
+            loading="lazy"
+          />
+        </div>
+      ) : (
+        <EmptyState
+          icon={CalendarDays}
+          title="Calendar unavailable"
+          description="Reconnect Google so we can load your calendar email."
         />
-      </div>
+      )}
     </DashboardWidgetCard>
   );
 }

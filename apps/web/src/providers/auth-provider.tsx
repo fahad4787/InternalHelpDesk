@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -53,18 +54,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
   }, []);
 
+  // Restore session before paint so AuthGuard / login don't flash a full-page loader.
+  useLayoutEffect(() => {
+    const storedUser = readStoredUser();
+    setUser(storedUser);
+    setIsLoading(false);
+  }, []);
+
   useEffect(() => {
-    const restore = async () => {
-      const storedUser = readStoredUser();
-      if (!storedUser) {
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
+    if (!getAuthToken()) {
+      const onCleared = () => setUser(null);
+      window.addEventListener(AUTH_CLEARED_EVENT, onCleared);
+      return () => window.removeEventListener(AUTH_CLEARED_EVENT, onCleared);
+    }
 
-      // Restore immediately so landing/login can honor the session without a flash.
-      setUser(storedUser);
-
+    const refreshProfile = async () => {
       try {
         const res = await authService.getProfile();
         if (res.data) {
@@ -74,12 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         // 401 interceptor clears storage + emits AUTH_CLEARED_EVENT.
         // Other failures keep the optimistic local session.
-      } finally {
-        setIsLoading(false);
       }
     };
 
-    void restore();
+    void refreshProfile();
 
     const onCleared = () => setUser(null);
     window.addEventListener(AUTH_CLEARED_EVENT, onCleared);

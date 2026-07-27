@@ -35,6 +35,17 @@ export interface TrelloCardSummary {
   lastActivityAt: string | null;
 }
 
+export interface TrelloMyCard {
+  id: string;
+  name: string;
+  url: string | null;
+  dueAt: string | null;
+  lastActivityAt: string | null;
+  boardName: string | null;
+  listName: string | null;
+  label: string | null;
+}
+
 export interface TrelloListWithCards {
   id: string;
   name: string;
@@ -65,6 +76,11 @@ export const trelloService = {
   getBoards: () =>
     apiGet<{ connected: boolean; boards: TrelloBoard[] }>(
       '/integrations/trello/boards',
+    ),
+
+  getMyCards: () =>
+    apiGet<{ connected: boolean; cards: TrelloMyCard[] }>(
+      '/integrations/trello/cards',
     ),
 
   getBoardDetail: (boardId: string) =>

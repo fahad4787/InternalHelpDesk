@@ -9,6 +9,12 @@ import { Button } from '@/components/ui/button';
 import { MyTaskList } from '@/components/tasks/my-task-list';
 import { useMyTasks } from '@/hooks/use-my-tasks';
 
+function formatProviderList(providers: string[]): string {
+  if (providers.length <= 1) return providers[0] ?? '';
+  if (providers.length === 2) return `${providers[0]} and ${providers[1]}`;
+  return `${providers.slice(0, -1).join(', ')}, and ${providers[providers.length - 1]}`;
+}
+
 export default function MyTasksPage() {
   const { tasks, connectedProviders, hasConnections, isLoading, isError } = useMyTasks();
 
@@ -17,7 +23,7 @@ export default function MyTasksPage() {
       title="My tasks"
       description={
         hasConnections
-          ? `Assigned work from ${connectedProviders.join(' and ')}`
+          ? `Assigned work from ${formatProviderList(connectedProviders)}`
           : 'Assigned work from your connected project tools'
       }
       actions={
@@ -35,7 +41,7 @@ export default function MyTasksPage() {
         <EmptyState
           icon={Plug}
           title="Connect a project tool"
-          description="Link Jira or Asana to see issues and tasks assigned to you here."
+          description="Link Jira, Asana, ClickUp, or Trello to see work assigned to you here."
           actionLabel="Browse integrations"
           onAction={() => {
             window.location.href = '/integrations';

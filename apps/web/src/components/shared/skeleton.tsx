@@ -31,7 +31,3 @@ export function SkeletonText({
     </div>
   );
 }
-
-export function SkeletonCircle({ className }: SkeletonProps) {
-  return <Skeleton className={cn('rounded-full', className)} />;
-}

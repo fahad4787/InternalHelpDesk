@@ -317,10 +317,6 @@ export const PRIMARY_MARKETPLACE_BY_PROVIDER: Record<string, MarketplaceAppMeta>
     ]),
   );
 
-/** @deprecated Prefer MARKETPLACE_APPS */
-export const REAL_INTEGRATION_META: Record<string, MarketplaceAppMeta> =
-  PRIMARY_MARKETPLACE_BY_PROVIDER;
-
 export const PROVIDER_CATEGORY_MAP: Record<string, MarketplaceCategory> = {
   'project-management': 'task',
   google: 'calendar',

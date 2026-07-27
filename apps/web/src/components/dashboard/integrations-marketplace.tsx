@@ -433,6 +433,7 @@ export function IntegrationsMarketplace() {
   });
 
   const integrations = data?.data ?? [];
+  const showSkeleton = isLoading && !data;
 
   const entries = useMemo(
     () => buildEntries(integrations, visibleWidgetIds, statuses),
@@ -502,7 +503,7 @@ export function IntegrationsMarketplace() {
         ))}
       </div>
 
-      {isLoading ? (
+      {showSkeleton ? (
         <IntegrationMarketplaceSkeleton count={6} />
       ) : integrationsTab === 'browse' ? (
         <>

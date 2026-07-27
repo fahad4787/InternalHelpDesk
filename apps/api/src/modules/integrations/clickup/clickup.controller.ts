@@ -99,6 +99,12 @@ export class ClickUpController {
     return this.clickUpService.getLists(user);
   }
 
+  @Get('tasks')
+  @UseGuards(JwtAuthGuard)
+  getMyTasks(@CurrentUser() user: AuthenticatedUser) {
+    return this.clickUpService.getMyTasks(user);
+  }
+
   @Get('lists/:listId')
   @UseGuards(JwtAuthGuard)
   getListDetail(

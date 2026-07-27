@@ -42,7 +42,6 @@ export function useDashboardVisibleWidgets(options?: { enabled?: boolean }) {
   return {
     visibleWidgetIds,
     isBootstrapping,
-    isResolvingWidgets: false,
     isLoading: isBootstrapping,
     connectedCount,
     statuses,

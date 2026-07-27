@@ -246,6 +246,47 @@ export class ClickUpService {
     });
   }
 
+  async getMyTasks(user: AuthenticatedUser) {
+    const connection = await this.prisma.clickUpConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        tasks: [] as ClickUpTask[],
+      });
+    }
+
+    const accessToken = this.getAccessToken(connection);
+    let clickupUserId = connection.clickupUserId;
+
+    if (!clickupUserId) {
+      const profile = await this.fetchProfile(accessToken);
+      clickupUserId = profile.id;
+      if (clickupUserId) {
+        await this.prisma.clickUpConnection.update({
+          where: { userId: user.id },
+          data: { clickupUserId },
+        });
+      }
+    }
+
+    if (!clickupUserId) {
+      throw new BadRequestException(
+        'Unable to resolve your ClickUp user id. Please reconnect ClickUp.',
+      );
+    }
+
+    const tasks = await this.fetchMyTasks(accessToken, clickupUserId);
+    await this.touchLastSynced(user.id);
+
+    return successResponse({
+      connected: true,
+      tasks,
+    });
+  }
+
   private resolvePreferences(value: unknown): ClickUpPreferences {
     if (!value || typeof value !== 'object') {
       return { ...DEFAULT_CLICKUP_PREFERENCES };
@@ -452,6 +493,7 @@ export class ClickUpService {
         name?: string;
         status?: { status?: string };
         due_date?: string | null;
+        date_updated?: string | null;
         url?: string;
         assignees?: Array<{ username?: string; email?: string }>;
       }>;
@@ -467,19 +509,101 @@ export class ClickUpService {
       teamName: null,
     };
 
-    const tasks: ClickUpTask[] = (tasksData.tasks ?? []).map((task) => ({
+    const tasks: ClickUpTask[] = (tasksData.tasks ?? []).map((task) =>
+      this.mapTask(task, {
+        listName: list.name,
+        spaceName: list.spaceName,
+        folderName: list.folderName,
+      }),
+    );
+
+    return { list, tasks };
+  }
+
+  private async fetchMyTasks(
+    accessToken: string,
+    clickupUserId: string,
+  ): Promise<ClickUpTask[]> {
+    const teamsData = await this.apiGet<{
+      teams?: Array<{ id?: string; name?: string }>;
+    }>(accessToken, '/team');
+
+    const tasksById = new Map<string, ClickUpTask>();
+
+    for (const team of teamsData.teams ?? []) {
+      if (!team.id) continue;
+
+      try {
+        const tasksData = await this.apiGet<{
+          tasks?: Array<{
+            id?: string;
+            name?: string;
+            status?: { status?: string };
+            due_date?: string | null;
+            date_updated?: string | null;
+            url?: string;
+            assignees?: Array<{ username?: string; email?: string }>;
+            list?: { name?: string };
+            folder?: { name?: string; hidden?: boolean };
+            space?: { name?: string };
+          }>;
+        }>(
+          accessToken,
+          `/team/${team.id}/task?assignees[]=${encodeURIComponent(clickupUserId)}&include_closed=false&subtasks=true`,
+        );
+
+        for (const task of tasksData.tasks ?? []) {
+          const mapped = this.mapTask(task, {
+            listName: task.list?.name ?? null,
+            spaceName: task.space?.name ?? null,
+            folderName: task.folder?.hidden
+              ? null
+              : (task.folder?.name ?? null),
+          });
+          if (!mapped.id || tasksById.has(mapped.id)) continue;
+          tasksById.set(mapped.id, mapped);
+        }
+      } catch {
+        // Skip teams the token cannot query and continue with others.
+      }
+    }
+
+    return Array.from(tasksById.values()).slice(0, 150);
+  }
+
+  private mapTask(
+    task: {
+      id?: string;
+      name?: string;
+      status?: { status?: string };
+      due_date?: string | null;
+      date_updated?: string | null;
+      url?: string;
+      assignees?: Array<{ username?: string; email?: string }>;
+    },
+    context: {
+      listName: string | null;
+      spaceName: string | null;
+      folderName: string | null;
+    },
+  ): ClickUpTask {
+    return {
       id: String(task.id ?? ''),
       name: task.name ?? 'Untitled task',
       status: task.status?.status ?? null,
       dueDate: task.due_date
         ? new Date(Number(task.due_date)).toISOString()
         : null,
+      updatedAt: task.date_updated
+        ? new Date(Number(task.date_updated)).toISOString()
+        : null,
       url: task.url ?? null,
       assignees: (task.assignees ?? [])
         .map((a) => a.username || a.email)
         .filter((v): v is string => Boolean(v)),
-    }));
-
-    return { list, tasks };
+      listName: context.listName,
+      spaceName: context.spaceName,
+      folderName: context.folderName,
+    };
   }
 }

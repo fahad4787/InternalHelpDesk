@@ -27,6 +27,7 @@ export default function DocumentsPage() {
     queryKey: ['documents', page, search],
     queryFn: () =>
       knowledgeBaseService.getAll({ page, limit: 10, search: search || undefined }),
+    placeholderData: (previous) => previous,
   });
 
   const deleteMutation = useMutation({
@@ -38,6 +39,7 @@ export default function DocumentsPage() {
   });
 
   const documents = data?.data ?? [];
+  const showSkeleton = isLoading && !data;
 
   return (
     <>
@@ -50,7 +52,7 @@ export default function DocumentsPage() {
           <SearchInput value={search} onChange={setSearch} placeholder="Search documents..." />
         </div>
 
-        {isLoading ? (
+        {showSkeleton ? (
           <ListSkeleton count={6} />
         ) : documents.length === 0 ? (
           <EmptyState

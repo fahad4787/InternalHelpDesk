@@ -54,6 +54,12 @@ export class TrelloController {
     return this.trelloService.getBoards(user);
   }
 
+  @Get('cards')
+  @UseGuards(JwtAuthGuard)
+  getMyCards(@CurrentUser() user: AuthenticatedUser) {
+    return this.trelloService.getMyCards(user);
+  }
+
   @Get('boards/:boardId')
   @UseGuards(JwtAuthGuard)
   getBoardDetail(

@@ -71,23 +71,6 @@ export function ProfileCardSkeleton() {
   );
 }
 
-export function WidgetPanelSkeleton() {
-  return (
-    <Card>
-      <CardContent className="space-y-4 p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-40" />
-            <Skeleton className="h-3 w-56" />
-          </div>
-          <Skeleton className="h-6 w-16 rounded-full" />
-        </div>
-        <SkeletonText lines={4} />
-      </CardContent>
-    </Card>
-  );
-}
-
 export function FocusBannerSkeleton() {
   return (
     <div className="dashboard-focus-banner mb-6 rounded-2xl p-5 sm:p-6" aria-hidden>

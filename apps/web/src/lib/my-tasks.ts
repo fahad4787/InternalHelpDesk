@@ -1,5 +1,7 @@
 import type { AsanaTask } from '@/services/asana.service';
+import type { ClickUpTask } from '@/services/clickup.service';
 import type { JiraIssue } from '@/services/jira.service';
+import type { TrelloMyCard } from '@/services/trello.service';
 import type { MyTaskItem } from '@/types/my-tasks';
 
 export function mapJiraIssueToMyTask(issue: JiraIssue): MyTaskItem {
@@ -27,6 +29,38 @@ export function mapAsanaTaskToMyTask(task: AsanaTask): MyTaskItem {
     updatedAt: task.modifiedAt,
     url: task.permalinkUrl,
     badge: null,
+  };
+}
+
+export function mapClickUpTaskToMyTask(task: ClickUpTask): MyTaskItem {
+  const subtitle =
+    [task.listName, task.folderName ?? task.spaceName].filter(Boolean).join(' · ') ||
+    null;
+
+  return {
+    id: `clickup:${task.id}`,
+    provider: 'CLICKUP',
+    title: task.name,
+    status: task.status,
+    subtitle,
+    dueOn: task.dueDate,
+    updatedAt: task.updatedAt,
+    url: task.url,
+    badge: null,
+  };
+}
+
+export function mapTrelloCardToMyTask(card: TrelloMyCard): MyTaskItem {
+  return {
+    id: `trello:${card.id}`,
+    provider: 'TRELLO',
+    title: card.name,
+    status: card.listName,
+    subtitle: card.boardName,
+    dueOn: card.dueAt,
+    updatedAt: card.lastActivityAt,
+    url: card.url,
+    badge: card.label,
   };
 }
 

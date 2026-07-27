@@ -1,18 +1,23 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useRef } from 'react';
 import { useLandingEngine } from './hooks';
 import { BootLoader } from './boot-loader';
 import { LandingNav } from './nav';
 import { LandingHero } from './hero';
 import { LogoMarquee } from './sections';
-import { BelowFold } from './below-fold';
 import { CursorGlow } from './cursor-glow';
 import { ScrollToTop } from './scroll-to-top';
 
+const BelowFold = dynamic(
+  () => import('./below-fold').then((mod) => mod.BelowFold),
+  { ssr: false },
+);
+
 export function LandingPage() {
   const barRef = useRef<HTMLDivElement>(null);
-  const progressLineRef = useRef<HTMLDivElement>(null);
+  const progressLineRef = useRef<HTMLDivElement | null>(null);
   const ready = useLandingEngine({ barRef, progressLineRef });
 
   return (

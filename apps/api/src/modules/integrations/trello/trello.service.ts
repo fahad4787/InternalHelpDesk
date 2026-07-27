@@ -23,6 +23,7 @@ import {
   TrelloBoardDetail,
   TrelloCardSummary,
   TrelloListWithCards,
+  TrelloMyCard,
 } from './types/trello-board.type';
 
 const TRELLO_API_BASE = 'https://api.trello.com/1';
@@ -71,6 +72,9 @@ interface TrelloCardResponse {
   cover?: {
     scaled?: TrelloScaledCover[];
   } | null;
+  labels?: Array<{ name?: string | null; color?: string | null }>;
+  board?: { name?: string | null } | null;
+  list?: { name?: string | null } | null;
 }
 
 @Injectable()
@@ -307,6 +311,58 @@ export class TrelloService {
     return successResponse({
       connected: true,
       boards: mapped,
+    });
+  }
+
+  async getMyCards(user: AuthenticatedUser) {
+    const connection = await this.prisma.trelloConnection.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!connection || connection.status !== IntegrationStatus.CONNECTED) {
+      return successResponse({
+        connected: false,
+        cards: [] as TrelloMyCard[],
+      });
+    }
+
+    if (!connection.encryptedAccessToken) {
+      throw new BadRequestException(
+        'Trello token is missing. Please reconnect your account.',
+      );
+    }
+
+    const { apiKey, token } = this.getCredentials(connection);
+    const cards = await this.trelloFetch<TrelloCardResponse[]>(
+      `/members/me/cards?filter=open&fields=id,name,url,due,dateLastActivity,labels&board=true&board_fields=name&list=true&list_fields=name`,
+      apiKey,
+      token,
+    );
+
+    const mapped: TrelloMyCard[] = (cards ?? [])
+      .filter((card) => !card.closed)
+      .slice(0, 150)
+      .map((card) => ({
+        id: card.id,
+        name: card.name,
+        url: card.url ?? null,
+        dueAt: card.due ?? null,
+        lastActivityAt: card.dateLastActivity ?? null,
+        boardName: card.board?.name ?? null,
+        listName: card.list?.name ?? null,
+        label:
+          card.labels?.find((label) => label.name?.trim())?.name?.trim() ??
+          null,
+      }));
+
+    await this.prisma.trelloConnection.update({
+      where: { userId: user.id },
+      data: { lastSyncedAt: new Date() },
+    });
+
+    return successResponse({
+      connected: true,
+      cards: mapped,
     });
   }
 

@@ -19,6 +19,17 @@ export interface TrelloCardSummary {
   lastActivityAt: string | null;
 }
 
+export interface TrelloMyCard {
+  id: string;
+  name: string;
+  url: string | null;
+  dueAt: string | null;
+  lastActivityAt: string | null;
+  boardName: string | null;
+  listName: string | null;
+  label: string | null;
+}
+
 export interface TrelloListWithCards {
   id: string;
   name: string;

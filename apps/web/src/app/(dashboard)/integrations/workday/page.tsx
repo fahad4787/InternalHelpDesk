@@ -172,7 +172,7 @@ export default function WorkdayIntegrationPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  if (statusLoading) {
+  if (statusLoading && !statusData) {
     return (
       <PageContainer
         title="Workday Integration"

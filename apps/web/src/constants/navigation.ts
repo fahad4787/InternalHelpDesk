@@ -23,7 +23,7 @@ export interface NavItem {
 export const workhubNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/my-tasks', label: 'My tasks', icon: CheckSquare },
-  { href: '/integrations', label: 'Integrations', icon: Plug, badge: MARKETPLACE_APP_COUNT },
+  { href: '/integrations', label: 'Integrations', icon: Plug },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
