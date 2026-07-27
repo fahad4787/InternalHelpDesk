@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { WorkhubLogo } from '@/components/shared/workhub-logo';
+import { useAuth } from '@/hooks/use-auth';
 import { scrollLandingTo } from './hooks';
 import { PrimaryCta } from './primitives';
 
@@ -16,6 +17,7 @@ const NAV_LINKS = [
 
 export function LandingNav() {
   const [open, setOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (!open) return;
@@ -80,15 +82,23 @@ export function LandingNav() {
           </ul>
 
           <div className="flex items-center justify-end gap-1.5 sm:gap-2">
-            <Link
-              href="/login"
-              className="hidden px-3 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground lg:inline-flex"
-            >
-              Sign in
-            </Link>
-            <PrimaryCta href="/register" className="hidden px-4 py-2 text-sm md:inline-flex">
-              Get started
-            </PrimaryCta>
+            {isAuthenticated ? (
+              <PrimaryCta href="/dashboard" className="hidden px-4 py-2 text-sm md:inline-flex">
+                Go to dashboard
+              </PrimaryCta>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden px-3 py-2 text-sm font-medium text-foreground/80 transition hover:text-foreground lg:inline-flex"
+                >
+                  Sign in
+                </Link>
+                <PrimaryCta href="/register" className="hidden px-4 py-2 text-sm md:inline-flex">
+                  Get started
+                </PrimaryCta>
+              </>
+            )}
             <button
               type="button"
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border text-foreground transition hover:bg-surface lg:hidden"
@@ -117,16 +127,32 @@ export function LandingNav() {
               ))}
             </ul>
             <div className="mt-2 grid gap-2 border-t border-border/60 pt-3">
-              <Link
-                href="/login"
-                className="rounded-xl px-3 py-2.5 text-center text-sm font-medium text-foreground transition hover:bg-surface"
-                onClick={() => setOpen(false)}
-              >
-                Sign in
-              </Link>
-              <PrimaryCta href="/register" className="w-full justify-center px-4 py-2.5" onClick={() => setOpen(false)}>
-                Get started
-              </PrimaryCta>
+              {isAuthenticated ? (
+                <PrimaryCta
+                  href="/dashboard"
+                  className="w-full justify-center px-4 py-2.5"
+                  onClick={() => setOpen(false)}
+                >
+                  Go to dashboard
+                </PrimaryCta>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="rounded-xl px-3 py-2.5 text-center text-sm font-medium text-foreground transition hover:bg-surface"
+                    onClick={() => setOpen(false)}
+                  >
+                    Sign in
+                  </Link>
+                  <PrimaryCta
+                    href="/register"
+                    className="w-full justify-center px-4 py-2.5"
+                    onClick={() => setOpen(false)}
+                  >
+                    Get started
+                  </PrimaryCta>
+                </>
+              )}
             </div>
           </div>
         )}

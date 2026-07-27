@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,10 +10,10 @@ import { AuthLayout } from '@/components/layout/auth-layout';
 import { FormField } from '@/components/forms/form-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { FullPageLoader } from '@/components/shared/loading-state';
 import { useAuth } from '@/hooks/use-auth';
 import { authService } from '@/services/auth.service';
 import { getErrorMessage } from '@/lib/api-client';
-import { useState } from 'react';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -23,12 +24,18 @@ type FormData = z.infer<typeof schema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const [error, setError] = useState('');
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -40,6 +47,10 @@ export default function LoginPage() {
       setError(getErrorMessage(err));
     }
   };
+
+  if (isLoading || isAuthenticated) {
+    return <FullPageLoader />;
+  }
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to your company workspace">

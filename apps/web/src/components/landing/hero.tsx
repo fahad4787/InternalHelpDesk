@@ -9,9 +9,12 @@ import {
   Video,
   Zap,
 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { AnimatedHeadline, PrimaryCta, SecondaryCta } from './primitives';
 
 export function LandingHero() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <section
       data-tone="page"
@@ -77,15 +80,24 @@ export function LandingHero() {
           </p>
 
           <div data-reveal data-delay="4" className="mt-9 flex flex-wrap items-center justify-center gap-3 max-sm:flex-col max-sm:items-stretch">
-            <PrimaryCta href="/register" className="max-sm:justify-center">
-              Start free
-            </PrimaryCta>
-            <SecondaryCta href="/login" className="max-sm:justify-center">
-              <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/15 text-primary">
-                <Video className="h-3 w-3" />
-              </span>
-              Sign in
-            </SecondaryCta>
+            {isAuthenticated ? (
+              <PrimaryCta href="/dashboard" className="max-sm:justify-center">
+                <LayoutDashboard className="h-4 w-4" />
+                Go to dashboard
+              </PrimaryCta>
+            ) : (
+              <>
+                <PrimaryCta href="/register" className="max-sm:justify-center">
+                  Start free
+                </PrimaryCta>
+                <SecondaryCta href="/login" className="max-sm:justify-center">
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/15 text-primary">
+                    <Video className="h-3 w-3" />
+                  </span>
+                  Sign in
+                </SecondaryCta>
+              </>
+            )}
           </div>
 
           <div

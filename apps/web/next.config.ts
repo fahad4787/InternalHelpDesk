@@ -9,6 +9,10 @@ const apiOrigin =
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: monorepoRoot,
+  // Keep the terminal clean — don't forward browser/HMR console noise.
+  logging: {
+    browserToTerminal: false,
+  },
   turbopack: {
     root: monorepoRoot,
   },

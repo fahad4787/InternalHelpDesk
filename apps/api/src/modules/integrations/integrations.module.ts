@@ -37,6 +37,8 @@ import { SharePointModule } from './sharepoint/sharepoint.module';
 import { SharePointController } from './sharepoint/sharepoint.controller';
 import { SalesforceModule } from './salesforce/salesforce.module';
 import { SalesforceController } from './salesforce/salesforce.controller';
+import { DynamicsModule } from './dynamics/dynamics.module';
+import { DynamicsController } from './dynamics/dynamics.controller';
 
 @Module({
   imports: [
@@ -58,6 +60,7 @@ import { SalesforceController } from './salesforce/salesforce.controller';
     OneDriveModule,
     SharePointModule,
     SalesforceModule,
+    DynamicsModule,
   ],
   controllers: [
     WorkdayController,
@@ -78,6 +81,7 @@ import { SalesforceController } from './salesforce/salesforce.controller';
     OneDriveController,
     SharePointController,
     SalesforceController,
+    DynamicsController,
     IntegrationsController,
   ],
   providers: [IntegrationsService],
@@ -101,6 +105,7 @@ import { SalesforceController } from './salesforce/salesforce.controller';
     OneDriveModule,
     SharePointModule,
     SalesforceModule,
+    DynamicsModule,
   ],
 })
 export class IntegrationsModule {}

@@ -20,6 +20,7 @@ import {
 import { appConfig } from '@/config/app.config';
 import { MARKETPLACE_APPS } from '@/constants/dashboard-integrations';
 import { WorkhubLogo } from '@/components/shared/workhub-logo';
+import { useAuth } from '@/hooks/use-auth';
 import {
   IntegrationIcon,
   type IntegrationIconProvider,
@@ -603,6 +604,8 @@ export function BuiltFor() {
 }
 
 export function CTA() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <section id="cta" data-tone="page" className="lp-section lp-section-y pb-24 md:pb-32">
       <div className="mx-auto max-w-6xl px-4">
@@ -633,20 +636,29 @@ export function CTA() {
               Put Workhub in front of <BrandText text="your team." />
             </h2>
             <p data-reveal data-delay="1" className="mt-5 max-w-lg text-lg text-white/70">
-              Create a workspace, upload your first docs, connect the apps you already use — and
-              give every employee a clearer workday.
+              {isAuthenticated
+                ? 'Your workspace is ready — jump back in and keep your team moving.'
+                : 'Create a workspace, upload your first docs, connect the apps you already use — and give every employee a clearer workday.'}
             </p>
             <div
               data-reveal
               data-delay="2"
               className="mt-9 flex flex-wrap gap-3 max-sm:flex-col max-sm:items-stretch"
             >
-              <PrimaryCta href="/register" className="max-sm:justify-center">
-                Create your workspace
-              </PrimaryCta>
-              <SecondaryCta href="/login" dark className="max-sm:justify-center">
-                Sign in
-              </SecondaryCta>
+              {isAuthenticated ? (
+                <PrimaryCta href="/dashboard" className="max-sm:justify-center">
+                  Go to dashboard
+                </PrimaryCta>
+              ) : (
+                <>
+                  <PrimaryCta href="/register" className="max-sm:justify-center">
+                    Create your workspace
+                  </PrimaryCta>
+                  <SecondaryCta href="/login" dark className="max-sm:justify-center">
+                    Sign in
+                  </SecondaryCta>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -656,6 +668,8 @@ export function CTA() {
 }
 
 export function LandingFooter() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <footer className="border-t border-border/60 py-10">
       <div className="mx-auto grid max-w-6xl items-center gap-4 px-4 md:grid-cols-[1fr_auto] max-md:flex max-md:flex-col max-md:items-start">
@@ -685,12 +699,20 @@ export function LandingFooter() {
               {label}
             </a>
           ))}
-          <Link href="/login" className="transition hover:text-foreground">
-            Sign in
-          </Link>
-          <Link href="/register" className="transition hover:text-foreground">
-            Get started
-          </Link>
+          {isAuthenticated ? (
+            <Link href="/dashboard" className="transition hover:text-foreground">
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="transition hover:text-foreground">
+                Sign in
+              </Link>
+              <Link href="/register" className="transition hover:text-foreground">
+                Get started
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </footer>

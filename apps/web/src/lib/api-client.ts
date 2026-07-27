@@ -3,6 +3,15 @@ import { appConfig } from '@/config/app.config';
 import { ApiResponse } from '@/types/api.types';
 
 const TOKEN_KEY = 'helpdesk_token';
+export const AUTH_CLEARED_EVENT = 'helpdesk:auth-cleared';
+
+const PUBLIC_AUTH_PATHS = ['/', '/login', '/register', '/forgot-password'];
+
+function isPublicAuthPath(pathname: string) {
+  return PUBLIC_AUTH_PATHS.some(
+    (path) => pathname === path || (path !== '/' && pathname.startsWith(`${path}/`)),
+  );
+}
 
 export const apiClient = axios.create({
   baseURL: appConfig.apiUrl,
@@ -25,12 +34,14 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       const requestUrl = error.config?.url ?? '';
       // Integration provider session failures must not wipe the HelpDesk login.
-      // Only clear auth for app auth endpoints or generic authenticated routes.
       const isIntegrationRequest = requestUrl.includes('/integrations/');
       if (!isIntegrationRequest) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem('helpdesk_user');
-        if (!window.location.pathname.startsWith('/login')) {
+        window.dispatchEvent(new Event(AUTH_CLEARED_EVENT));
+        const { pathname } = window.location;
+        // Stay on landing/auth pages; only force login when leaving a protected screen.
+        if (!isPublicAuthPath(pathname) && !pathname.startsWith('/login')) {
           window.location.href = '/login';
         }
       }
