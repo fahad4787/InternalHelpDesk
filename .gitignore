@@ -12,5 +12,5 @@ uploads/
 coverage/
 .turbo/
 bin/
-.zoom-tunnel.log
-.zoom-tunnel.url
+.*-tunnel.url
+.*-tunnel.log

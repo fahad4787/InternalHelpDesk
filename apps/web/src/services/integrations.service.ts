@@ -8,8 +8,5 @@ export const integrationsService = {
   getDashboardStatus: () =>
     apiGet<DashboardIntegrationStatuses>('/integrations/dashboard-status'),
 
-  connect: (provider: string, config?: Record<string, unknown>) =>
-    apiPost(`/integrations/${provider}/connect`, config ?? {}),
-
   disconnect: (provider: string) => apiPost(`/integrations/${provider}/disconnect`),
 };

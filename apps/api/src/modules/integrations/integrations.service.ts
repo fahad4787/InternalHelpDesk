@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { IntegrationProvider, IntegrationStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { AuthenticatedUser } from '../../common/types/api-response.type';
 import { successResponse } from '../../common/utils/api-response.util';
@@ -776,30 +776,13 @@ export class IntegrationsService {
   async connect(
     user: AuthenticatedUser,
     provider: IntegrationProvider,
-    config: Record<string, unknown> = {},
+    _config: Record<string, unknown> = {},
   ) {
     const meta = INTEGRATION_PROVIDERS.find((p) => p.provider === provider);
     if (!meta) throw new NotFoundException('Integration provider not found');
 
-    const integration = await this.prisma.integration.upsert({
-      where: {
-        companyId_provider: { companyId: user.companyId, provider },
-      },
-      create: {
-        companyId: user.companyId,
-        provider,
-        status: IntegrationStatus.NOT_CONNECTED,
-        config: config as Prisma.InputJsonValue,
-      },
-      update: { config: config as Prisma.InputJsonValue },
-    });
-
-    return successResponse(
-      {
-        ...integration,
-        message: `${meta.name} integration placeholder — connect flow not yet implemented`,
-      },
-      'Integration configuration saved',
+    throw new BadRequestException(
+      `${meta.name} must be connected from its integration page using the provider’s own connect flow.`,
     );
   }
 
