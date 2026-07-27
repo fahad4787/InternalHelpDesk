@@ -116,27 +116,27 @@ export function useMyTasks() {
     asanaConnected ? asanaQuery : null,
     clickupConnected ? clickupQuery : null,
     trelloConnected ? trelloQuery : null,
-  ].filter(Boolean) as Array<{ isPending: boolean; data: unknown }>;
+  ].filter(Boolean) as Array<{ isPending: boolean; data: unknown; isError: boolean }>;
 
-  // Don't block the whole page waiting for every provider — show as soon as any data arrives.
+  const awaitingProviders = connectedQueries.some((query) => isCold(query));
+
+  // Stay loading until every connected provider has answered — avoids false "all caught up".
   const isLoading =
-    isBootstrapping ||
-    (hasConnections &&
-      tasks.length === 0 &&
-      connectedQueries.every((query) => isCold(query)));
+    isBootstrapping || (hasConnections && awaitingProviders && tasks.length === 0);
 
-  const isError =
-    (jiraConnected && jiraQuery.isError) ||
-    (asanaConnected && asanaQuery.isError) ||
-    (clickupConnected && clickupQuery.isError) ||
-    (trelloConnected && trelloQuery.isError);
+  const isRefreshing = hasConnections && awaitingProviders && tasks.length > 0;
+
+  const isError = connectedQueries.some((query) => query.isError);
+  const hasPartialError = isError && tasks.length > 0;
 
   return {
     tasks,
     connectedProviders,
     hasConnections,
     isLoading,
+    isRefreshing,
     isError,
+    hasPartialError,
     jiraConnected,
     asanaConnected,
     clickupConnected,

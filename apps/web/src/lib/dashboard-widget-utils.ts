@@ -1,92 +1,134 @@
 import {
   DEFAULT_GOOGLE_PREFERENCES,
-  type GoogleCalendarStatus,
+  type GooglePreferences,
 } from '@/services/google-calendar.service';
 import {
   DEFAULT_CALENDLY_PREFERENCES,
-  type CalendlyStatus,
+  type CalendlyPreferences,
 } from '@/services/calendly.service';
-import { DEFAULT_JIRA_PREFERENCES, type JiraStatus } from '@/services/jira.service';
-import { DEFAULT_ASANA_PREFERENCES, type AsanaStatus } from '@/services/asana.service';
+import {
+  DEFAULT_JIRA_PREFERENCES,
+  type JiraPreferences,
+} from '@/services/jira.service';
+import {
+  DEFAULT_ASANA_PREFERENCES,
+  type AsanaPreferences,
+} from '@/services/asana.service';
 import {
   DEFAULT_MONDAY_PREFERENCES,
-  type MondayStatus,
+  type MondayPreferences,
 } from '@/services/monday.service';
 import {
   DEFAULT_CLICKUP_PREFERENCES,
-  type ClickUpStatus,
+  type ClickUpPreferences,
 } from '@/services/clickup.service';
-import { DEFAULT_OUTLOOK_PREFERENCES, type OutlookStatus } from '@/services/outlook.service';
+import {
+  DEFAULT_OUTLOOK_PREFERENCES,
+  type OutlookPreferences,
+} from '@/services/outlook.service';
 import {
   DEFAULT_TEAMS_PREFERENCES,
-  type TeamsStatus,
+  type TeamsPreferences,
 } from '@/services/teams.service';
 import { isPersonalMicrosoftAccount } from '@/lib/teams-account';
-import { DEFAULT_SLACK_PREFERENCES, type SlackStatus } from '@/services/slack.service';
-import { DEFAULT_TRELLO_PREFERENCES, type TrelloStatus } from '@/services/trello.service';
-import { DEFAULT_ZOOM_PREFERENCES, type ZoomStatus } from '@/services/zoom.service';
+import {
+  DEFAULT_SLACK_PREFERENCES,
+  type SlackPreferences,
+} from '@/services/slack.service';
+import {
+  DEFAULT_TRELLO_PREFERENCES,
+  type TrelloPreferences,
+} from '@/services/trello.service';
+import {
+  DEFAULT_ZOOM_PREFERENCES,
+  type ZoomPreferences,
+} from '@/services/zoom.service';
 import {
   DEFAULT_DROPBOX_PREFERENCES,
-  type DropboxStatus,
+  type DropboxPreferences,
 } from '@/services/dropbox.service';
-import { DEFAULT_BOX_PREFERENCES, type BoxStatus } from '@/services/box.service';
+import {
+  DEFAULT_BOX_PREFERENCES,
+  type BoxPreferences,
+} from '@/services/box.service';
 import {
   DEFAULT_ONEDRIVE_PREFERENCES,
-  type OneDriveStatus,
+  type OneDrivePreferences,
 } from '@/services/onedrive.service';
 import {
   DEFAULT_SHAREPOINT_PREFERENCES,
-  type SharePointStatus,
+  type SharePointPreferences,
 } from '@/services/sharepoint.service';
 import {
   DEFAULT_HUBSPOT_PREFERENCES,
-  type HubSpotStatus,
+  type HubSpotPreferences,
 } from '@/services/hubspot.service';
 import {
   DEFAULT_SALESFORCE_PREFERENCES,
-  type SalesforceStatus,
+  type SalesforcePreferences,
 } from '@/services/salesforce.service';
 import {
   DEFAULT_DYNAMICS_PREFERENCES,
-  type DynamicsStatus,
+  type DynamicsPreferences,
 } from '@/services/dynamics.service';
 import {
   DEFAULT_ZOHO_CRM_PREFERENCES,
-  type ZohoCrmStatus,
+  type ZohoCrmPreferences,
 } from '@/services/zoho-crm.service';
 import {
   DEFAULT_ZOHO_PEOPLE_PREFERENCES,
-  type ZohoPeopleStatus,
+  type ZohoPeoplePreferences,
 } from '@/services/zoho-people.service';
-import type { WorkdayStatus } from '@/services/workday.service';
 import {
   DASHBOARD_WIDGET_DEFINITIONS,
   DASHBOARD_WIDGET_IDS,
   type DashboardWidgetId,
 } from '@/constants/dashboard-widget-registry';
 
+/** Slim connection snapshot from GET /integrations/dashboard-status (not full provider status). */
+export interface DashboardConnectionStatus<TPreferences = unknown> {
+  connected: boolean;
+  lastSyncedAt: string | null;
+  preferences?: TPreferences | null;
+}
+
+export interface DashboardGoogleStatus
+  extends DashboardConnectionStatus<GooglePreferences> {
+  googleEmail: string | null;
+}
+
+export interface DashboardTeamsStatus
+  extends DashboardConnectionStatus<TeamsPreferences> {
+  teamsEmail?: string | null;
+}
+
+export interface DashboardSharePointStatus
+  extends DashboardConnectionStatus<SharePointPreferences> {
+  sharepointEmail?: string | null;
+}
+
 export interface DashboardIntegrationStatuses {
-  google?: GoogleCalendarStatus | null;
-  jira?: JiraStatus | null;
-  trello?: TrelloStatus | null;
-  asana?: AsanaStatus | null;
-  monday?: MondayStatus | null;
-  clickup?: ClickUpStatus | null;
-  calendly?: CalendlyStatus | null;
-  slack?: SlackStatus | null;
-  zoom?: ZoomStatus | null;
-  outlook?: OutlookStatus | null;
-  teams?: TeamsStatus | null;
-  dropbox?: DropboxStatus | null;
-  box?: BoxStatus | null;
-  onedrive?: OneDriveStatus | null;
-  sharepoint?: SharePointStatus | null;
-  hubspot?: HubSpotStatus | null;
-  salesforce?: SalesforceStatus | null;
-  dynamics?: DynamicsStatus | null;
-  zohoCrm?: ZohoCrmStatus | null;
-  zohoPeople?: ZohoPeopleStatus | null;
-  workday?: WorkdayStatus | null;
+  google?: DashboardGoogleStatus | null;
+  jira?: DashboardConnectionStatus<JiraPreferences> | null;
+  trello?: DashboardConnectionStatus<TrelloPreferences> | null;
+  asana?: DashboardConnectionStatus<AsanaPreferences> | null;
+  monday?: DashboardConnectionStatus<MondayPreferences> | null;
+  clickup?: DashboardConnectionStatus<ClickUpPreferences> | null;
+  calendly?: DashboardConnectionStatus<CalendlyPreferences> | null;
+  slack?: DashboardConnectionStatus<SlackPreferences> | null;
+  zoom?: DashboardConnectionStatus<ZoomPreferences> | null;
+  outlook?: DashboardConnectionStatus<OutlookPreferences> | null;
+  teams?: DashboardTeamsStatus | null;
+  dropbox?: DashboardConnectionStatus<DropboxPreferences> | null;
+  box?: DashboardConnectionStatus<BoxPreferences> | null;
+  onedrive?: DashboardConnectionStatus<OneDrivePreferences> | null;
+  sharepoint?: DashboardSharePointStatus | null;
+  hubspot?: DashboardConnectionStatus<HubSpotPreferences> | null;
+  salesforce?: DashboardConnectionStatus<SalesforcePreferences> | null;
+  dynamics?: DashboardConnectionStatus<DynamicsPreferences> | null;
+  zohoCrm?: DashboardConnectionStatus<ZohoCrmPreferences> | null;
+  zohoPeople?: DashboardConnectionStatus<ZohoPeoplePreferences> | null;
+  workday?: DashboardConnectionStatus | null;
 }
 
 export function resolveVisibleDashboardWidgets(

@@ -9,7 +9,7 @@ import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../database/prisma.service';
 import { AuthenticatedUser } from '../../../common/types/api-response.type';
-import { decrypt, encrypt } from '../../../common/utils/encryption.util';
+import { decrypt, encrypt, resolveEncryptionKey } from '../../../common/utils/encryption.util';
 import { successResponse } from '../../../common/utils/api-response.util';
 import { UpdateGooglePreferencesDto } from './dto/update-google-preferences.dto';
 import { CreateMeetDto } from './dto/create-meet.dto';
@@ -127,10 +127,7 @@ export class GoogleCalendarService {
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    this.encryptionKey = this.configService.get<string>(
-      'ENCRYPTION_KEY',
-      'dev-encryption-key-change-in-production',
-    );
+    this.encryptionKey = resolveEncryptionKey(this.configService);
     this.jwtSecret = this.configService.get<string>(
       'JWT_SECRET',
       'dev-secret',

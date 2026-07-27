@@ -16,7 +16,15 @@ function formatProviderList(providers: string[]): string {
 }
 
 export default function MyTasksPage() {
-  const { tasks, connectedProviders, hasConnections, isLoading, isError } = useMyTasks();
+  const {
+    tasks,
+    connectedProviders,
+    hasConnections,
+    isLoading,
+    isRefreshing,
+    isError,
+    hasPartialError,
+  } = useMyTasks();
 
   return (
     <PageContainer
@@ -60,7 +68,16 @@ export default function MyTasksPage() {
           description="No open assigned tasks from your connected apps right now."
         />
       ) : (
-        <MyTaskList tasks={tasks} />
+        <div className="space-y-3">
+          {(isRefreshing || hasPartialError) && (
+            <p className="text-xs text-muted">
+              {hasPartialError
+                ? 'Some connected apps failed to load — showing what we could fetch.'
+                : 'Loading more tasks from your connected apps…'}
+            </p>
+          )}
+          <MyTaskList tasks={tasks} />
+        </div>
       )}
     </PageContainer>
   );

@@ -6,7 +6,7 @@ import { useLandingEngine } from './hooks';
 import { BootLoader } from './boot-loader';
 import { LandingNav } from './nav';
 import { LandingHero } from './hero';
-import { LogoMarquee } from './sections';
+import { LogoMarquee } from './logo-marquee';
 import { CursorGlow } from './cursor-glow';
 import { ScrollToTop } from './scroll-to-top';
 

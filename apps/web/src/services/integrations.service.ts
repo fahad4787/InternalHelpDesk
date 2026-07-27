@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from '@/lib/api-client';
+import { apiGet } from '@/lib/api-client';
 import type { DashboardIntegrationStatuses } from '@/lib/dashboard-widget-utils';
 import { Integration } from '@/types/api.types';
 
@@ -7,6 +7,4 @@ export const integrationsService = {
 
   getDashboardStatus: () =>
     apiGet<DashboardIntegrationStatuses>('/integrations/dashboard-status'),
-
-  disconnect: (provider: string) => apiPost(`/integrations/${provider}/disconnect`),
 };

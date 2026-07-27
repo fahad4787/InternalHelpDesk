@@ -5,22 +5,17 @@ import {
   type GoogleCalendarStatus,
 } from '@/services/google-calendar.service';
 import { useDashboardVisibleWidgets } from '@/hooks/use-dashboard-visible-widgets';
+import type { DashboardGoogleStatus } from '@/lib/dashboard-widget-utils';
 
 type GoogleFeature = 'meet' | 'drive' | 'gmail' | 'calendar';
 
 function toGoogleStatus(
-  google: {
-    connected?: boolean;
-    googleEmail?: string | null;
-    lastSyncedAt?: string | null;
-    preferences?: GoogleCalendarStatus['preferences'] | null;
-    status?: string;
-  } | null | undefined,
+  google: DashboardGoogleStatus | null | undefined,
 ): GoogleCalendarStatus | undefined {
   if (!google) return undefined;
   return {
     connected: google.connected === true,
-    status: google.status ?? (google.connected ? 'CONNECTED' : 'NOT_CONNECTED'),
+    status: google.connected ? 'CONNECTED' : 'NOT_CONNECTED',
     googleEmail: google.googleEmail ?? null,
     lastSyncedAt: google.lastSyncedAt ?? null,
     preferences: google.preferences ?? DEFAULT_GOOGLE_PREFERENCES,

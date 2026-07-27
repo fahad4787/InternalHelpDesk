@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { ArrowLeft, RefreshCw, ScrollText } from 'lucide-react';
 import { PageContainer } from '@/components/shared/page-container';
 import { PageSpinner, WidgetContentSkeleton } from '@/components/shared/loading-state';
-import { ToastContainer, showToast } from '@/components/shared/toast';
+import { showToast } from '@/components/shared/toast';
 import { EmptyState } from '@/components/shared/empty-state';
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
 import { WorkdayConnectionCard } from '@/components/integrations/workday/workday-connection-card';
@@ -360,7 +360,6 @@ export default function WorkdayIntegrationPage() {
           </Button>
         </div>
       </Modal>
-      <ToastContainer />
     </>
   );
 }

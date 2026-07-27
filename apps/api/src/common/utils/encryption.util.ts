@@ -32,3 +32,20 @@ export function maskSecret(value: string | null | undefined): string | null {
   if (!value) return null;
   return '••••••••';
 }
+
+const DEV_ENCRYPTION_KEY = 'dev-encryption-key-change-in-production';
+
+/** Resolve ENCRYPTION_KEY; fail fast in production if unset. */
+export function resolveEncryptionKey(config: {
+  get<T = string>(key: string, defaultValue?: T): T | undefined;
+}): string {
+  const key = config.get<string>('ENCRYPTION_KEY')?.trim();
+  if (key) return key;
+
+  const nodeEnv = config.get<string>('NODE_ENV', 'development');
+  if (nodeEnv === 'production') {
+    throw new Error('ENCRYPTION_KEY must be set in production');
+  }
+
+  return DEV_ENCRYPTION_KEY;
+}

@@ -13,7 +13,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { AuthenticatedUser } from '../../../common/types/api-response.type';
-import { decrypt, encrypt } from '../../../common/utils/encryption.util';
+import { decrypt, encrypt, resolveEncryptionKey } from '../../../common/utils/encryption.util';
 import { paginate, successResponse } from '../../../common/utils/api-response.util';
 import { KnowledgeBaseService } from '../../knowledge-base/knowledge-base.service';
 import { ConnectWorkdayDto, TestWorkdayConnectionDto } from './dto/connect-workday.dto';
@@ -39,10 +39,7 @@ export class WorkdayService {
     private knowledgeBaseService: KnowledgeBaseService,
     private providerResolver: WorkdayProviderResolver,
   ) {
-    this.encryptionKey = this.configService.get<string>(
-      'ENCRYPTION_KEY',
-      'dev-encryption-key-change-in-production',
-    );
+    this.encryptionKey = resolveEncryptionKey(this.configService);
   }
 
   async getStatus(user: AuthenticatedUser) {

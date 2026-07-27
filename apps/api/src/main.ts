@@ -44,13 +44,17 @@ async function bootstrap() {
     'FRONTEND_URL',
     'http://localhost:3000',
   );
+  const extraCorsOrigins = (configService.get<string>('CORS_ORIGINS') ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.enableCors({
     origin: [
       frontendUrl,
       'http://localhost:3000',
       'http://127.0.0.1:3000',
-      'https://internal-help-desk-web-q2fw.vercel.app',
+      ...extraCorsOrigins,
     ],
     credentials: true,
   });

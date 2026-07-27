@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getErrorMessage } from '@/lib/api-client';
+import { useDashboardVisibleWidgets } from '@/hooks/use-dashboard-visible-widgets';
 import {
   DEFAULT_GOOGLE_PREFERENCES,
   type GoogleChatSpace,
@@ -36,13 +37,22 @@ export function useGoogleChatMessenger() {
   const [messageInput, setMessageInput] = useState('');
   const [sendError, setSendError] = useState('');
 
+  const { statuses, isBootstrapping } = useDashboardVisibleWidgets();
+  const fromDashboard = statuses.google;
+
   const { data: statusData } = useQuery({
     queryKey: ['google-calendar-status'],
     queryFn: () => googleCalendarService.getStatus(),
+    enabled: !fromDashboard && !isBootstrapping,
   });
 
-  const preferences = statusData?.data?.preferences ?? DEFAULT_GOOGLE_PREFERENCES;
-  const showGoogleChat = preferences.showGoogleChat === true;
+  const preferences =
+    fromDashboard?.preferences ??
+    statusData?.data?.preferences ??
+    DEFAULT_GOOGLE_PREFERENCES;
+  const isConnected =
+    fromDashboard?.connected === true || statusData?.data?.connected === true;
+  const showGoogleChat = isConnected && preferences.showGoogleChat === true;
   const showSpaces = showGoogleChat;
   const showDirectMessages = showGoogleChat;
 

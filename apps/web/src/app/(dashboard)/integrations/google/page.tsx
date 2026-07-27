@@ -10,7 +10,6 @@ import { GoogleCalendarConnectionCard } from '@/components/integrations/google/g
 import { GoogleChatSpacesMessagesSection } from '@/components/integrations/google/google-chat-spaces-messages-section';
 import { GooglePreferencesCard } from '@/components/integrations/google/google-preferences-card';
 import { IntegrationWidgetsSection } from '@/components/integrations/common/integration-widget-panel';
-import { ToastContainer } from '@/components/shared/toast';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/api-client';
 import { googleCalendarService } from '@/services/google-calendar.service';
@@ -83,7 +82,6 @@ export default function GoogleIntegrationPage() {
       }
     >
       <div className="space-y-6">
-        <ToastContainer />
         <GoogleCalendarConnectionCard
           status={status}
           isLoading={statusLoading}

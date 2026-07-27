@@ -786,20 +786,15 @@ export class IntegrationsService {
     );
   }
 
-  async disconnect(user: AuthenticatedUser, provider: IntegrationProvider) {
-    const integration = await this.prisma.integration.findUnique({
-      where: {
-        companyId_provider: { companyId: user.companyId, provider },
-      },
-    });
+  async disconnect(
+    _user: AuthenticatedUser,
+    provider: IntegrationProvider,
+  ) {
+    const meta = INTEGRATION_PROVIDERS.find((p) => p.provider === provider);
+    if (!meta) throw new NotFoundException('Integration provider not found');
 
-    if (!integration) throw new NotFoundException('Integration not found');
-
-    await this.prisma.integration.update({
-      where: { id: integration.id },
-      data: { status: IntegrationStatus.NOT_CONNECTED, config: {} },
-    });
-
-    return successResponse(null, 'Integration disconnected');
+    throw new BadRequestException(
+      `${meta.name} must be disconnected from its integration page so OAuth tokens are revoked correctly.`,
+    );
   }
 }

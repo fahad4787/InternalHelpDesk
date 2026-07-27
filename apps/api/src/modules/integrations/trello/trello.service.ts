@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { IntegrationProvider, IntegrationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { AuthenticatedUser } from '../../../common/types/api-response.type';
-import { decrypt, encrypt } from '../../../common/utils/encryption.util';
+import { decrypt, encrypt, resolveEncryptionKey } from '../../../common/utils/encryption.util';
 import { successResponse } from '../../../common/utils/api-response.util';
 import {
   createOAuthState,
@@ -86,10 +86,7 @@ export class TrelloService {
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    this.encryptionKey = this.configService.get<string>(
-      'ENCRYPTION_KEY',
-      'dev-encryption-key-change-in-production',
-    );
+    this.encryptionKey = resolveEncryptionKey(this.configService);
     this.jwtSecret = this.configService.get<string>(
       'JWT_SECRET',
       'dev-secret',
