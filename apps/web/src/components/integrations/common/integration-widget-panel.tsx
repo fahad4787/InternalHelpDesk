@@ -1,12 +1,16 @@
 'use client';
 
+import { Suspense } from 'react';
 import {
   DASHBOARD_WIDGET_COMPONENTS,
   type DashboardWidgetId,
 } from '@/constants/dashboard-widget-registry';
 import { useIntegrationWidgets } from '@/hooks/use-integration-widgets';
 import { INTEGRATION_FULL_WIDTH_WIDGETS } from '@/lib/dashboard-widget-utils';
-import { DashboardWidgetsSkeleton } from '@/components/shared/loading-state';
+import {
+  DashboardWidgetCardSkeleton,
+  DashboardWidgetsSkeleton,
+} from '@/components/shared/loading-state';
 import {
   IntegrationWidgetGrid,
   IntegrationWidgetGridItem,
@@ -27,12 +31,12 @@ export function IntegrationWidgetPanel({
     <IntegrationWidgetGrid className={className}>
       {widgetIds.map((widgetId) => {
         const Widget = DASHBOARD_WIDGET_COMPONENTS[widgetId];
+        const fullWidth = INTEGRATION_FULL_WIDTH_WIDGETS.has(widgetId);
         return (
-          <IntegrationWidgetGridItem
-            key={widgetId}
-            fullWidth={INTEGRATION_FULL_WIDTH_WIDGETS.has(widgetId)}
-          >
-            <Widget />
+          <IntegrationWidgetGridItem key={widgetId} fullWidth={fullWidth}>
+            <Suspense fallback={<DashboardWidgetCardSkeleton fullWidth={fullWidth} />}>
+              <Widget />
+            </Suspense>
           </IntegrationWidgetGridItem>
         );
       })}

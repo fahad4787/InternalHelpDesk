@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import {
   DASHBOARD_WIDGET_COMPONENTS,
   type DashboardWidgetId,
@@ -8,6 +8,7 @@ import {
 import { useDashboardWidgetOrder } from '@/hooks/use-dashboard-widget-order';
 import { DASHBOARD_FULL_WIDTH_WIDGETS } from '@/lib/dashboard-widget-utils';
 import { filterDashboardWidgetsBySearch } from '@/lib/filter-dashboard-widgets';
+import { DashboardWidgetCardSkeleton } from '@/components/shared/loading-state';
 import { cn } from '@/lib/utils';
 import { AddWidgetCard } from './add-widget-card';
 import { useDashboardUi } from './dashboard-ui-context';
@@ -86,7 +87,9 @@ export function DashboardWidgetGrid({ visibleWidgetIds }: DashboardWidgetGridPro
                     onDragEnd: handleDragEnd,
                   }}
                 >
-                  <Widget />
+                  <Suspense fallback={<DashboardWidgetCardSkeleton fullWidth={fullWidth} />}>
+                    <Widget />
+                  </Suspense>
                 </DashboardWidgetShellProvider>
               </div>
             );
