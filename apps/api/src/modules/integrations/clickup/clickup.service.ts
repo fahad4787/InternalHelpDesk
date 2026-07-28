@@ -275,7 +275,12 @@ export class ClickUpService {
       );
     }
 
-    const tasks = await this.fetchMyTasks(accessToken, clickupUserId);
+    const tasks = await this.fetchMyTasks(
+      accessToken,
+      clickupUserId,
+      connection.clickupEmail,
+      connection.clickupUsername,
+    );
     await this.touchLastSynced(user.id);
 
     return successResponse({
@@ -520,17 +525,43 @@ export class ClickUpService {
   private async fetchMyTasks(
     accessToken: string,
     clickupUserId: string,
+    clickupEmail: string | null,
+    clickupUsername: string | null,
   ): Promise<ClickUpTask[]> {
+    const tasksById = new Map<string, ClickUpTask>();
+
+    await this.fetchTeamAssignedTasks(accessToken, clickupUserId, tasksById);
+
+    if (tasksById.size === 0) {
+      await this.fetchMyTasksFromLists(
+        accessToken,
+        clickupEmail,
+        clickupUsername,
+        tasksById,
+      );
+    }
+
+    return Array.from(tasksById.values()).slice(0, 150);
+  }
+
+  private async fetchTeamAssignedTasks(
+    accessToken: string,
+    clickupUserId: string,
+    tasksById: Map<string, ClickUpTask>,
+  ): Promise<void> {
     const teamsData = await this.apiGet<{
       teams?: Array<{ id?: string; name?: string }>;
     }>(accessToken, '/team');
-
-    const tasksById = new Map<string, ClickUpTask>();
 
     for (const team of teamsData.teams ?? []) {
       if (!team.id) continue;
 
       try {
+        const params = new URLSearchParams();
+        params.append('assignees', clickupUserId);
+        params.append('include_closed', 'false');
+        params.append('subtasks', 'true');
+
         const tasksData = await this.apiGet<{
           tasks?: Array<{
             id?: string;
@@ -539,33 +570,107 @@ export class ClickUpService {
             due_date?: string | null;
             date_updated?: string | null;
             url?: string;
-            assignees?: Array<{ username?: string; email?: string }>;
+            assignees?: Array<{
+              id?: number | string;
+              username?: string;
+              email?: string;
+            }>;
             list?: { name?: string };
             folder?: { name?: string; hidden?: boolean };
             space?: { name?: string };
           }>;
-        }>(
-          accessToken,
-          `/team/${team.id}/task?assignees[]=${encodeURIComponent(clickupUserId)}&include_closed=false&subtasks=true`,
-        );
+        }>(accessToken, `/team/${team.id}/task?${params.toString()}`);
 
         for (const task of tasksData.tasks ?? []) {
-          const mapped = this.mapTask(task, {
+          this.addMappedTask(tasksById, task, {
             listName: task.list?.name ?? null,
             spaceName: task.space?.name ?? null,
             folderName: task.folder?.hidden
               ? null
               : (task.folder?.name ?? null),
           });
-          if (!mapped.id || tasksById.has(mapped.id)) continue;
-          tasksById.set(mapped.id, mapped);
         }
       } catch {
         // Skip teams the token cannot query and continue with others.
       }
     }
+  }
 
-    return Array.from(tasksById.values()).slice(0, 150);
+  private async fetchMyTasksFromLists(
+    accessToken: string,
+    clickupEmail: string | null,
+    clickupUsername: string | null,
+    tasksById: Map<string, ClickUpTask>,
+  ): Promise<void> {
+    const lists = await this.fetchLists(accessToken);
+    const listsWithTasks = lists
+      .filter((list) => (list.taskCount ?? 0) > 0)
+      .slice(0, 15);
+
+    await Promise.all(
+      listsWithTasks.map(async (list) => {
+        try {
+          const detail = await this.fetchListDetail(accessToken, list.id);
+          for (const task of detail.tasks) {
+            if (
+              !this.mappedTaskMatchesUser(task, clickupEmail, clickupUsername)
+            ) {
+              continue;
+            }
+            if (!task.id || tasksById.has(task.id)) continue;
+            tasksById.set(task.id, task);
+          }
+        } catch {
+          // Skip lists the token cannot query and continue with others.
+        }
+      }),
+    );
+  }
+
+  private mappedTaskMatchesUser(
+    task: ClickUpTask,
+    clickupEmail: string | null,
+    clickupUsername: string | null,
+  ): boolean {
+    if (task.assignees.length === 0) {
+      return true;
+    }
+
+    return task.assignees.some((assignee) => {
+      const normalized = assignee.toLowerCase();
+      return (
+        (clickupEmail != null &&
+          normalized === clickupEmail.toLowerCase()) ||
+        (clickupUsername != null &&
+          normalized === clickupUsername.toLowerCase())
+      );
+    });
+  }
+
+  private addMappedTask(
+    tasksById: Map<string, ClickUpTask>,
+    task: {
+      id?: string;
+      name?: string;
+      status?: { status?: string };
+      due_date?: string | null;
+      date_updated?: string | null;
+      url?: string;
+      assignees?: Array<{
+        id?: number | string;
+        username?: string;
+        email?: string;
+      }>;
+    },
+    context: {
+      listName: string | null;
+      spaceName: string | null;
+      folderName: string | null;
+    },
+  ): void {
+    const mapped = this.mapTask(task, context);
+    if (!mapped.id || tasksById.has(mapped.id)) return;
+    tasksById.set(mapped.id, mapped);
   }
 
   private mapTask(
@@ -576,7 +681,11 @@ export class ClickUpService {
       due_date?: string | null;
       date_updated?: string | null;
       url?: string;
-      assignees?: Array<{ username?: string; email?: string }>;
+      assignees?: Array<{
+        id?: number | string;
+        username?: string;
+        email?: string;
+      }>;
     },
     context: {
       listName: string | null;

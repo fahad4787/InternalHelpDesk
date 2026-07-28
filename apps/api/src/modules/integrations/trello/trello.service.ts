@@ -69,6 +69,7 @@ interface TrelloCardResponse {
   due?: string | null;
   closed?: boolean;
   dateLastActivity?: string;
+  idMembers?: string[];
   cover?: {
     scaled?: TrelloScaledCover[];
   } | null;
@@ -336,21 +337,21 @@ export class TrelloService {
       token,
     );
 
-    const mapped: TrelloMyCard[] = (cards ?? [])
+    let mapped: TrelloMyCard[] = (cards ?? [])
       .filter((card) => !card.closed)
-      .slice(0, 150)
-      .map((card) => ({
-        id: card.id,
-        name: card.name,
-        url: card.url ?? null,
-        dueAt: card.due ?? null,
-        lastActivityAt: card.dateLastActivity ?? null,
-        boardName: card.board?.name ?? null,
-        listName: card.list?.name ?? null,
-        label:
-          card.labels?.find((label) => label.name?.trim())?.name?.trim() ??
-          null,
-      }));
+      .map((card) => this.mapMyCard(card));
+
+    // Board pages show all open cards; /members/me/cards only returns cards
+    // you're a member of. When that is empty, fall back to unassigned (or mine).
+    if (mapped.length === 0) {
+      mapped = await this.fetchMyCardsFromBoards(
+        apiKey,
+        token,
+        connection.trelloMemberId,
+      );
+    }
+
+    mapped = mapped.slice(0, 150);
 
     await this.prisma.trelloConnection.update({
       where: { userId: user.id },
@@ -478,6 +479,87 @@ export class TrelloService {
       response.headers.get('content-type') ?? 'application/octet-stream';
     const buffer = Buffer.from(await response.arrayBuffer());
     return { buffer, contentType };
+  }
+
+  private mapMyCard(card: TrelloCardResponse): TrelloMyCard {
+    return {
+      id: card.id,
+      name: card.name,
+      url: card.url ?? null,
+      dueAt: card.due ?? null,
+      lastActivityAt: card.dateLastActivity ?? null,
+      boardName: card.board?.name ?? null,
+      listName: card.list?.name ?? null,
+      label:
+        card.labels?.find((label) => label.name?.trim())?.name?.trim() ?? null,
+    };
+  }
+
+  private async fetchMyCardsFromBoards(
+    apiKey: string,
+    token: string,
+    trelloMemberId: string | null,
+  ): Promise<TrelloMyCard[]> {
+    const boards = await this.trelloFetch<TrelloBoardResponse[]>(
+      `/members/me/boards?fields=id,name&filter=open`,
+      apiKey,
+      token,
+    );
+
+    const openBoards = (boards ?? []).filter((board) => !board.closed).slice(0, 10);
+    const cardsById = new Map<string, TrelloMyCard>();
+
+    await Promise.all(
+      openBoards.map(async (board) => {
+        try {
+          const [lists, cards] = await Promise.all([
+            this.trelloFetch<TrelloListResponse[]>(
+              `/boards/${board.id}/lists?fields=id,name,closed&filter=open`,
+              apiKey,
+              token,
+            ),
+            this.trelloFetch<TrelloCardResponse[]>(
+              `/boards/${board.id}/cards?fields=id,name,url,due,closed,dateLastActivity,idMembers,labels,idList&filter=open`,
+              apiKey,
+              token,
+            ),
+          ]);
+
+          const listNameById = new Map(
+            (lists ?? [])
+              .filter((list) => !list.closed)
+              .map((list) => [list.id, list.name] as const),
+          );
+
+          for (const card of cards ?? []) {
+            if (card.closed || !card.id || cardsById.has(card.id)) continue;
+
+            const members = card.idMembers ?? [];
+            const isUnassigned = members.length === 0;
+            const isMine =
+              trelloMemberId != null && members.includes(trelloMemberId);
+            if (!isUnassigned && !isMine) continue;
+
+            cardsById.set(
+              card.id,
+              this.mapMyCard({
+                ...card,
+                board: { name: board.name },
+                list: {
+                  name: card.idList
+                    ? (listNameById.get(card.idList) ?? null)
+                    : null,
+                },
+              }),
+            );
+          }
+        } catch {
+          // Skip boards the token cannot query.
+        }
+      }),
+    );
+
+    return Array.from(cardsById.values());
   }
 
   private isAllowedMediaHost(hostname: string) {

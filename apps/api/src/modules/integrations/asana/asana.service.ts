@@ -703,19 +703,94 @@ export class AsanaService {
     );
 
     const seen = new Set<string>();
-    return taskChunks
+    let tasks = taskChunks
       .flat()
       .filter((task) => {
         if (seen.has(task.gid)) return false;
         seen.add(task.gid);
         return true;
-      })
+      });
+
+    // Integration pages show all project tasks; My Tasks only assignee-filtered.
+    // When nothing is assigned, fall back to open project tasks (unassigned or mine).
+    if (tasks.length === 0) {
+      const fallback = await this.fetchMyTasksFromProjects(
+        accessToken,
+        me.gid,
+        me.name,
+      );
+      for (const task of fallback) {
+        if (seen.has(task.gid)) continue;
+        seen.add(task.gid);
+        tasks.push(task);
+      }
+    }
+
+    return tasks
       .sort((a, b) => {
         if (a.completed !== b.completed) return a.completed ? 1 : -1;
         const aDue = a.dueOn ?? '9999-99-99';
         const bDue = b.dueOn ?? '9999-99-99';
         return aDue.localeCompare(bDue);
-      });
+      })
+      .slice(0, 150);
+  }
+
+  private async fetchMyTasksFromProjects(
+    accessToken: string,
+    asanaUserGid: string | null,
+    asanaName: string | null,
+  ): Promise<AsanaTask[]> {
+    const projects = (await this.fetchProjects(accessToken)).slice(0, 15);
+    const chunks = await Promise.all(
+      projects.map(async (project) => {
+        try {
+          const payload = await this.apiGet<
+            AsanaApiListResponse<{
+              gid: string;
+              name: string;
+              completed?: boolean;
+              due_on?: string | null;
+              modified_at?: string | null;
+              permalink_url?: string | null;
+              assignee?: {
+                gid?: string | null;
+                name?: string | null;
+              } | null;
+            }>
+          >(
+            accessToken,
+            `/projects/${encodeURIComponent(project.gid)}/tasks?limit=50&opt_fields=name,completed,due_on,modified_at,permalink_url,assignee.gid,assignee.name`,
+          );
+
+          return (payload.data ?? [])
+            .filter((task) => {
+              if (task.completed === true) return false;
+              if (!task.assignee?.gid && !task.assignee?.name) return true;
+              if (
+                asanaUserGid &&
+                task.assignee.gid &&
+                task.assignee.gid === asanaUserGid
+              ) {
+                return true;
+              }
+              if (
+                asanaName &&
+                task.assignee.name &&
+                task.assignee.name.toLowerCase() === asanaName.toLowerCase()
+              ) {
+                return true;
+              }
+              return false;
+            })
+            .map((task) => this.mapTask(task, project.name));
+        } catch {
+          return [] as AsanaTask[];
+        }
+      }),
+    );
+
+    return chunks.flat();
   }
 
   private mapTask(
